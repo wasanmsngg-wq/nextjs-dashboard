@@ -560,8 +560,10 @@ function HospitalForm({
 
 export default function HospitalManager({
   hospitals,
+  pageSize,
 }: {
   hospitals: Hospital[];
+  pageSize: number;
 }) {
   const router = useRouter();
   const { t } = useI18n();
@@ -742,7 +744,11 @@ export default function HospitalManager({
         columns={columns}
         pagination={false}
         loading={isPending}
-        scroll={{ x: 720 }}
+        scroll={{
+          x: 720,
+          ...(pageSize > 10 ? { y: 'min(60vh, 640px)' } : {}),
+        }}
+        sticky={pageSize > 10}
         locale={{
           emptyText: (
             <Empty

@@ -1,15 +1,15 @@
 import {Hospital} from "@/app/lib/support/definitions";
 import { sql } from "@/app/lib/db";
-const ITEM_PER_PAGE = 6
-
-export { ITEM_PER_PAGE };
+import { normalizeHospitalPageSize } from '@/app/lib/support/pagination';
 
 export async function fetchHospitals(
         query: string,
-        page: number
+        page: number,
+        pageSize: number,
 ){
     try{
-        const offset = (page - 1) * ITEM_PER_PAGE;
+        const safePageSize = normalizeHospitalPageSize(pageSize);
+        const offset = (page - 1) * safePageSize;
         const searchTerm = `%${query.trim()}%`;
         return await sql<Hospital[]>`
         SELECT *
@@ -22,7 +22,7 @@ export async function fetchHospitals(
           OR hospital_type::text ILIKE ${searchTerm}
           OR ownership_type::text ILIKE ${searchTerm}
         ORDER BY hospital_id DESC
-        LIMIT ${ITEM_PER_PAGE}
+        LIMIT ${safePageSize}
         OFFSET ${offset}
       `;
     }catch (e) {
@@ -31,7 +31,7 @@ export async function fetchHospitals(
     }
 }
 
-export async function fetchHospitalPages(query: string){
+export async function fetchHospitalPages(query: string, pageSize: number){
     const searchTerm = `%${query.trim()}%`;
     const [result] = await sql<{count: number}[]>`
         SELECT COUNT(*)::int as count from hospital
@@ -42,7 +42,7 @@ export async function fetchHospitalPages(query: string){
         OR hospital_type::text ILIKE ${searchTerm}
         OR ownership_type::text ILIKE ${searchTerm}
     `
-    return Math.ceil(result.count / ITEM_PER_PAGE);
+    return Math.ceil(result.count / normalizeHospitalPageSize(pageSize));
 }
 
 export async function fetchHospitalById(hospitalId: number) {

@@ -219,8 +219,8 @@ export function InvoicesTableSkeleton() {
   );
 }
 
-export function HospitalSkeleton() {
-  return <HospitalTableView loading />;
+export function HospitalSkeleton({ pageSize = 10 }: { pageSize?: number }) {
+  return <HospitalTableView loading pageSize={pageSize} />;
 }
 
 export function HospitalSearchSkeleton() {

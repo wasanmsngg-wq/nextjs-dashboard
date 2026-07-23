@@ -8,6 +8,7 @@ import {
 import SupportPagination from "@/app/ui/support/support-pagination";
 import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
 import { getTranslations } from '@/app/i18n/server';
+import { normalizeHospitalPageSize } from '@/app/lib/support/pagination';
 
 export default async function Page({
     searchParams
@@ -15,12 +16,18 @@ export default async function Page({
     searchParams: Promise<{
         query?: string;
         page?: string;
+        pageSize?: string;
     }>
 }>){
     const params = await searchParams;
     const { t } = await getTranslations();
     const query = params.query ?? '';
-    const page = Number(params.page) || 1;
+    const requestedPage = Number(params.page);
+    const page =
+        Number.isInteger(requestedPage) && requestedPage > 0
+            ? requestedPage
+            : 1;
+    const pageSize = normalizeHospitalPageSize(params.pageSize);
     return (
         <main className="mx-auto w-full max-w-7xl">
             <div className="mb-8">
@@ -47,18 +54,18 @@ export default async function Page({
                 </div>
 
                 <Suspense
-                    key={`table-${query}-${page}`}
-                    fallback={<HospitalSkeleton/>}
+                    key={`table-${query}-${page}-${pageSize}`}
+                    fallback={<HospitalSkeleton pageSize={pageSize}/>}
                 >
-                    <HospitalTable page={page} query={query}/>
+                    <HospitalTable page={page} pageSize={pageSize} query={query}/>
                 </Suspense>
 
                 <div className="flex min-h-20 items-center justify-center border-t border-gray-100 px-5 py-5">
                     <Suspense
-                        key={`pagination-${query}`}
+                        key={`pagination-${query}-${pageSize}`}
                         fallback={<HospitalPaginationSkeleton/>}
                     >
-                        <SupportPagination query={query} />
+                        <SupportPagination query={query} pageSize={pageSize} />
                     </Suspense>
                 </div>
             </section>

@@ -53,20 +53,22 @@ const getHospitalColumns = (t: (key: string) => string): TableColumnsType<Hospit
   },
 ];
 
-const skeletonRows = Array.from({ length: 6 }, (_, index) => ({
-  hospitalId: -(index + 1),
-})) as Hospital[];
-
 export default function HospitalTableView({
   hospitals,
   loading = false,
+  pageSize = 10,
 }: {
   hospitals?: Hospital[];
   loading?: boolean;
+  pageSize?: number;
 }) {
   const { isNavigating } = useSupportNavigation();
   const { t } = useI18n();
   const showSkeleton = loading || isNavigating;
+  const skeletonRows = Array.from(
+    { length: Math.min(pageSize, 10) },
+    (_, index) => ({ hospitalId: -(index + 1) }),
+  ) as Hospital[];
 
   return (
     <div className="overflow-hidden" aria-busy={showSkeleton}>

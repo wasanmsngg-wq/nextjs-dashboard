@@ -18,6 +18,7 @@ const th: Record<string, string> = {
   'Search by name, type, city, or country':
     'ค้นหาด้วยชื่อ ประเภท เมือง หรือประเทศ',
   'Search': 'ค้นหา',
+  'Rows per page': 'จำนวนแถวต่อหน้า',
   '{count} shown on this page': 'แสดง {count} รายการในหน้านี้',
   'Add hospital': 'เพิ่มโรงพยาบาล',
   'Add the first hospital': 'เพิ่มโรงพยาบาลแห่งแรก',

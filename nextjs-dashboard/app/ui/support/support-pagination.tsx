@@ -1,12 +1,20 @@
 import Pagination from '@/app/ui/invoices/pagination';
 import { fetchHospitalPages } from '@/app/lib/support/data';
+import PageSizeSelect from '@/app/ui/support/page-size-select';
 
-export default async function SupportPagination({ query }: { query: string }) {
-  const totalPages = await fetchHospitalPages(query);
+export default async function SupportPagination({
+  query,
+  pageSize,
+}: {
+  query: string;
+  pageSize: number;
+}) {
+  const totalPages = await fetchHospitalPages(query, pageSize);
 
-  if (totalPages <= 1) {
-    return null;
-  }
-
-  return <Pagination totalPages={totalPages} />;
+  return (
+    <div className="flex w-full flex-col items-center justify-between gap-4 sm:flex-row">
+      <PageSizeSelect pageSize={pageSize} />
+      {totalPages > 1 ? <Pagination totalPages={totalPages} /> : <div />}
+    </div>
+  );
 }
