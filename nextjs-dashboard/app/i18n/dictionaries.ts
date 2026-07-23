@@ -1,0 +1,136 @@
+import type { Locale } from '@/app/i18n/config';
+
+const th: Record<string, string> = {
+  'Language': 'ภาษา',
+  'English': 'English',
+  'Thai': 'ไทย',
+  'Open navigation': 'เปิดเมนูนำทาง',
+  'Close navigation': 'ปิดเมนูนำทาง',
+  'User profile (coming soon)': 'โปรไฟล์ผู้ใช้ (เร็ว ๆ นี้)',
+  'Home': 'หน้าหลัก',
+  'Invoices': 'ใบแจ้งหนี้',
+  'Customers': 'ลูกค้า',
+  'Hospitals': 'โรงพยาบาล',
+  'Sign Out': 'ออกจากระบบ',
+  'Hospital directory': 'รายชื่อโรงพยาบาล',
+  'Search and manage hospitals in your support network.':
+    'ค้นหาและจัดการโรงพยาบาลในเครือข่ายของคุณ',
+  'Search by name, type, city, or country':
+    'ค้นหาด้วยชื่อ ประเภท เมือง หรือประเทศ',
+  'Search': 'ค้นหา',
+  '{count} shown on this page': 'แสดง {count} รายการในหน้านี้',
+  'Add hospital': 'เพิ่มโรงพยาบาล',
+  'Add the first hospital': 'เพิ่มโรงพยาบาลแห่งแรก',
+  'No hospitals found': 'ไม่พบโรงพยาบาล',
+  'Hospital': 'โรงพยาบาล',
+  'Type': 'ประเภท',
+  'Ownership': 'เจ้าของ',
+  'Capacity': 'จำนวนเตียง',
+  'Status': 'สถานะ',
+  'Actions for {name}': 'การดำเนินการสำหรับ {name}',
+  'View details': 'ดูรายละเอียด',
+  'Edit hospital': 'แก้ไขโรงพยาบาล',
+  'Delete': 'ลบ',
+  'Edit': 'แก้ไข',
+  'Hospital profile': 'ข้อมูลโรงพยาบาล',
+  'Hospital overview': 'ภาพรวมโรงพยาบาล',
+  'Established': 'ก่อตั้ง',
+  'Rating': 'คะแนน',
+  'Contact': 'ข้อมูลติดต่อ',
+  'Phone': 'โทรศัพท์',
+  'Email': 'อีเมล',
+  'Website': 'เว็บไซต์',
+  'Visit hospital website': 'เยี่ยมชมเว็บไซต์โรงพยาบาล',
+  '(opens in a new tab)': '(เปิดในแท็บใหม่)',
+  'Location': 'ที่ตั้ง',
+  'Coordinates': 'พิกัด',
+  'Services': 'บริการ',
+  'Emergency service': 'บริการฉุกเฉิน',
+  'Ambulance service': 'บริการรถพยาบาล',
+  'Available': 'มีบริการ',
+  'Unavailable': 'ไม่มีบริการ',
+  'Not provided': 'ไม่ได้ระบุ',
+  'beds': 'เตียง',
+  'General': 'ทั่วไป',
+  'Teaching': 'โรงเรียนแพทย์',
+  'Specialty': 'เฉพาะทาง',
+  'Community': 'ชุมชน',
+  'Children': 'เด็ก',
+  'Rehabilitation': 'ฟื้นฟู',
+  'Government': 'รัฐบาล',
+  'Private': 'เอกชน',
+  'Non-Profit': 'ไม่แสวงหากำไร',
+  'University': 'มหาวิทยาลัย',
+  'Accredited': 'ผ่านการรับรอง',
+  'Pending': 'รอการรับรอง',
+  'Not Accredited': 'ไม่ผ่านการรับรอง',
+  'Identity': 'ข้อมูลพื้นฐาน',
+  'Core information used to identify and classify the hospital.':
+    'ข้อมูลหลักสำหรับระบุและจัดประเภทโรงพยาบาล',
+  'Hospital name': 'ชื่อโรงพยาบาล',
+  'Hospital type': 'ประเภทโรงพยาบาล',
+  'Bed capacity': 'จำนวนเตียง',
+  'Enter the total number of staffed beds.': 'กรอกจำนวนเตียงที่พร้อมให้บริการทั้งหมด',
+  'e.g. 250': 'เช่น 250',
+  'Established year': 'ปีที่ก่อตั้ง',
+  'Postal address is required. Coordinates are optional.':
+    'จำเป็นต้องระบุที่อยู่ ส่วนพิกัดเป็นข้อมูลเสริม',
+  'Street address': 'ที่อยู่',
+  'Building, street, district': 'อาคาร ถนน เขต/อำเภอ',
+  'City': 'เมือง',
+  'State / province': 'จังหวัด',
+  'Postal code': 'รหัสไปรษณีย์',
+  'Country': 'ประเทศ',
+  'Latitude': 'ละติจูด',
+  'Longitude': 'ลองจิจูด',
+  'Contact and operations': 'ข้อมูลติดต่อและการดำเนินงาน',
+  'Public contact details, accreditation, and available services.':
+    'ข้อมูลติดต่อสาธารณะ การรับรอง และบริการที่มี',
+  'Phone number': 'หมายเลขโทรศัพท์',
+  'Accreditation': 'การรับรอง',
+  'Hospital information': 'ข้อมูลโรงพยาบาล',
+  'Update the profile for {name}.': 'อัปเดตข้อมูลของ {name}',
+  'Create a complete hospital profile for the directory.':
+    'สร้างข้อมูลโรงพยาบาลสำหรับรายชื่อ',
+  'Save changes': 'บันทึกการเปลี่ยนแปลง',
+  'Create hospital': 'สร้างโรงพยาบาล',
+  'Cancel': 'ยกเลิก',
+  'Delete hospital?': 'ลบโรงพยาบาลหรือไม่',
+  '{name} will be permanently removed. This action cannot be undone.':
+    '{name} จะถูกลบอย่างถาวรและไม่สามารถย้อนกลับได้',
+  'Please enter ${label}.': 'กรุณากรอก ${label}',
+  '${label} must be at least ${min} characters.':
+    '${label} ต้องมีอย่างน้อย ${min} ตัวอักษร',
+  'Enter a valid email address.': 'กรอกอีเมลที่ถูกต้อง',
+  'Enter a complete URL, including https://.':
+    'กรอก URL แบบเต็ม รวมถึง https://',
+  '${label} must be a number.': '${label} ต้องเป็นตัวเลข',
+  '${label} must be at least ${min}.': '${label} ต้องไม่น้อยกว่า ${min}',
+  '${label} must be no more than ${max}.': '${label} ต้องไม่เกิน ${max}',
+  '${label} must be between ${min} and ${max}.':
+    '${label} ต้องอยู่ระหว่าง ${min} ถึง ${max}',
+  'Hospital created successfully.': 'เพิ่มโรงพยาบาลเรียบร้อยแล้ว',
+  'Hospital updated successfully.': 'อัปเดตโรงพยาบาลเรียบร้อยแล้ว',
+  'Hospital deleted.': 'ลบโรงพยาบาลแล้ว',
+  'Welcome to Acme.': 'ยินดีต้อนรับสู่ Acme',
+  'Manage your hospital support network from one place.':
+    'จัดการเครือข่ายโรงพยาบาลที่คุณดูแลได้จากที่เดียว',
+  'Open dashboard': 'เปิดแดชบอร์ด',
+};
+
+const dictionaries: Record<Locale, Record<string, string>> = {
+  en: {},
+  th,
+};
+
+export function translate(
+  locale: Locale,
+  key: string,
+  values?: Record<string, string | number>,
+) {
+  let message = dictionaries[locale][key] ?? key;
+  for (const [name, value] of Object.entries(values ?? {})) {
+    message = message.replaceAll(`{${name}}`, String(value));
+  }
+  return message;
+}

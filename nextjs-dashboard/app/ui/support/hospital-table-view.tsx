@@ -3,10 +3,11 @@
 import { Skeleton, Table, type TableColumnsType } from 'antd';
 import type { Hospital } from '@/app/lib/support/definitions';
 import { useSupportNavigation } from '@/app/ui/support/support-navigation';
+import { useI18n } from '@/app/i18n/provider';
 
-const hospitalColumns: TableColumnsType<Hospital> = [
+const getHospitalColumns = (t: (key: string) => string): TableColumnsType<Hospital> => [
   {
-    title: 'Hospital',
+    title: t('Hospital'),
     dataIndex: 'hospitalName',
     key: 'hospitalName',
     render: () => (
@@ -17,26 +18,26 @@ const hospitalColumns: TableColumnsType<Hospital> = [
     ),
   },
   {
-    title: 'Type',
+    title: t('Type'),
     dataIndex: 'hospitalType',
     key: 'hospitalType',
     render: () => <Skeleton.Input active size="small" style={{ width: 88 }} />,
   },
   {
-    title: 'Ownership',
+    title: t('Ownership'),
     dataIndex: 'ownershipType',
     key: 'ownershipType',
     render: () => <Skeleton.Input active size="small" style={{ width: 92 }} />,
   },
   {
-    title: 'Capacity',
+    title: t('Capacity'),
     dataIndex: 'bedCapacity',
     key: 'bedCapacity',
     align: 'right',
     render: () => <Skeleton.Input active size="small" style={{ width: 76 }} />,
   },
   {
-    title: 'Status',
+    title: t('Status'),
     dataIndex: 'accreditationStatus',
     key: 'accreditationStatus',
     render: () => <Skeleton.Input active size="small" style={{ width: 96 }} />,
@@ -64,6 +65,7 @@ export default function HospitalTableView({
   loading?: boolean;
 }) {
   const { isNavigating } = useSupportNavigation();
+  const { t } = useI18n();
   const showSkeleton = loading || isNavigating;
 
   return (
@@ -78,10 +80,10 @@ export default function HospitalTableView({
       <Table<Hospital>
         rowKey="hospitalId"
         dataSource={showSkeleton ? skeletonRows : hospitals}
-        columns={hospitalColumns}
+        columns={getHospitalColumns(t)}
         pagination={false}
         scroll={{ x: 720 }}
-        locale={{ emptyText: 'No hospitals found' }}
+        locale={{ emptyText: t('No hospitals found') }}
       />
     </div>
   );

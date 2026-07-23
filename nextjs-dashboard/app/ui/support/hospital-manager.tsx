@@ -47,9 +47,9 @@ import {
   type Hospital,
   type HospitalInput,
 } from '@/app/lib/support/definitions';
+import { useI18n } from '@/app/i18n/provider';
 
 const { Text, Link } = Typography;
-const missingValue = 'Not provided';
 
 const statusColors = {
   Accredited: 'green',
@@ -128,6 +128,8 @@ function ProfileRow({
 }
 
 function HospitalProfile({ hospital }: { hospital: Hospital }) {
+  const { t } = useI18n();
+  const missingValue = t('Not provided');
   return (
     <div>
       <section
@@ -149,10 +151,10 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
               {hospital.hospitalName}
             </h2>
             <div className="mt-2 flex flex-wrap gap-2">
-              <Tag>{hospital.hospitalType}</Tag>
-              <Tag>{hospital.ownershipType}</Tag>
+              <Tag>{t(hospital.hospitalType)}</Tag>
+              <Tag>{t(hospital.ownershipType)}</Tag>
               <Tag color={statusColors[hospital.accreditationStatus]}>
-                {hospital.accreditationStatus}
+                {t(hospital.accreditationStatus)}
               </Tag>
             </div>
             <div className="mt-3 flex items-start gap-2 text-sm text-gray-600">
@@ -171,22 +173,22 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
       <div className="space-y-7 px-6 py-6">
         <section aria-labelledby="hospital-overview-heading">
           <h3 id="hospital-overview-heading" className="sr-only">
-            Hospital overview
+            {t('Hospital overview')}
           </h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <ProfileStat
               icon={<BuildingOffice2Icon className="h-4 w-4" />}
-              label="Capacity"
-              value={`${Number(hospital.bedCapacity).toLocaleString()} beds`}
+              label={t('Capacity')}
+              value={`${Number(hospital.bedCapacity).toLocaleString()} ${t('beds')}`}
             />
             <ProfileStat
               icon={<CalendarDaysIcon className="h-4 w-4" />}
-              label="Established"
+              label={t('Established')}
               value={hospital.establishedYear || missingValue}
             />
             <ProfileStat
               icon={<StarIcon className="h-4 w-4" />}
-              label="Rating"
+              label={t('Rating')}
               value={
                 hospital.rating == null
                   ? missingValue
@@ -201,12 +203,12 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
             id="hospital-contact-heading"
             className="text-sm font-semibold text-gray-950"
           >
-            Contact
+            {t('Contact')}
           </h3>
           <div className="mt-2 divide-y divide-gray-100 rounded-xl border border-gray-200 px-4">
             <ProfileRow
               icon={<PhoneIcon className="h-5 w-5" />}
-              label="Phone"
+              label={t('Phone')}
             >
               {hospital.phoneNumber ? (
                 <Link href={`tel:${hospital.phoneNumber}`}>
@@ -218,7 +220,7 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
             </ProfileRow>
             <ProfileRow
               icon={<EnvelopeIcon className="h-5 w-5" />}
-              label="Email"
+              label={t('Email')}
             >
               {hospital.email ? (
                 <Link href={`mailto:${hospital.email}`}>{hospital.email}</Link>
@@ -228,7 +230,7 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
             </ProfileRow>
             <ProfileRow
               icon={<GlobeAltIcon className="h-5 w-5" />}
-              label="Website"
+              label={t('Website')}
             >
               {hospital.website ? (
                 <Link
@@ -236,8 +238,8 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Visit hospital website
-                  <span className="sr-only"> (opens in a new tab)</span>
+                  {t('Visit hospital website')}
+                  <span className="sr-only"> {t('(opens in a new tab)')}</span>
                 </Link>
               ) : (
                 <span className="text-gray-500">{missingValue}</span>
@@ -251,7 +253,7 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
             id="hospital-location-heading"
             className="text-sm font-semibold text-gray-950"
           >
-            Location
+            {t('Location')}
           </h3>
           <div className="mt-2 rounded-xl border border-gray-200 p-4">
             <div className="flex gap-3">
@@ -269,7 +271,7 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
             </div>
             {hospital.latitude != null && hospital.longitude != null ? (
               <div className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-500">
-                Coordinates: {hospital.latitude}, {hospital.longitude}
+                {t('Coordinates')}: {hospital.latitude}, {hospital.longitude}
               </div>
             ) : null}
           </div>
@@ -280,7 +282,7 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
             id="hospital-services-heading"
             className="text-sm font-semibold text-gray-950"
           >
-            Services
+            {t('Services')}
           </h3>
           <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
@@ -292,10 +294,10 @@ function HospitalProfile({ hospital }: { hospital: Hospital }) {
                 className="flex items-center justify-between rounded-xl border border-gray-200 p-4"
               >
                 <span className="text-sm font-medium text-gray-700">
-                  {String(label)}
+                  {t(String(label))}
                 </span>
                 <Tag color={available ? 'blue' : 'default'}>
-                  {available ? 'Available' : 'Unavailable'}
+                  {t(available ? 'Available' : 'Unavailable')}
                 </Tag>
               </div>
             ))}
@@ -311,41 +313,49 @@ function HospitalForm({
 }: {
   form: ReturnType<typeof Form.useForm<HospitalInput>>[0];
 }) {
+  const { t } = useI18n();
   return (
     <Form
       form={form}
       layout="vertical"
+      variant="filled"
       requiredMark="optional"
       className="pt-3"
-      aria-label="Hospital information"
+      aria-label={t('Hospital information')}
       validateMessages={{
-        required: 'Please enter ${label}.',
+        required: t('Please enter ${label}.'),
         string: {
-          min: '${label} must be at least ${min} characters.',
+          min: t('${label} must be at least ${min} characters.'),
         },
         types: {
-          email: 'Enter a valid email address.',
-          url: 'Enter a complete URL, including https://.',
-          number: '${label} must be a number.',
+          email: t('Enter a valid email address.'),
+          url: t('Enter a complete URL, including https://.'),
+          number: t('${label} must be a number.'),
         },
         number: {
-          min: '${label} must be at least ${min}.',
-          max: '${label} must be no more than ${max}.',
-          range: '${label} must be between ${min} and ${max}.',
+          min: t('${label} must be at least ${min}.'),
+          max: t('${label} must be no more than ${max}.'),
+          range: t('${label} must be between ${min} and ${max}.'),
         },
       }}
     >
-      <fieldset className="rounded-xl border border-gray-200 p-4 sm:p-5">
-        <legend className="px-2 text-sm font-semibold text-gray-900">
-          Identity
+      <fieldset className="min-w-0 border-0 p-0">
+        <legend className="w-full">
+          <span className="flex items-center gap-3 text-sm font-semibold text-gray-900">
+            <span>{t('Identity')}</span>
+            <span
+              className="h-px flex-1 bg-gray-200"
+              aria-hidden="true"
+            />
+          </span>
         </legend>
         <p className="mb-5 text-sm text-gray-500">
-          Core information used to identify and classify the hospital.
+          {t('Core information used to identify and classify the hospital.')}
         </p>
         <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
           <Form.Item
             name="hospitalName"
-            label="Hospital name"
+            label={t('Hospital name')}
             rules={[{ required: true, min: 2 }]}
             className="md:col-span-2"
           >
@@ -356,39 +366,43 @@ function HospitalForm({
           </Form.Item>
           <Form.Item
             name="hospitalType"
-            label="Hospital type"
+            label={t('Hospital type')}
             rules={[{ required: true }]}
           >
             <Select
               showSearch
-              options={HOSPITAL_TYPES.map((value) => ({ value }))}
+              options={HOSPITAL_TYPES.map((value) => ({ value, label: t(value) }))}
             />
           </Form.Item>
           <Form.Item
             name="ownershipType"
-            label="Ownership"
+            label={t('Ownership')}
             rules={[{ required: true }]}
           >
             <Select
               showSearch
-              options={OWNERSHIP_TYPES.map((value) => ({ value }))}
+              options={OWNERSHIP_TYPES.map((value) => ({ value, label: t(value) }))}
             />
           </Form.Item>
-          <Form.Item
-            name="bedCapacity"
-            label="Bed capacity"
-            rules={[{ required: true, type: 'number', min: 1 }]}
-          >
-            <InputNumber
-              min={1}
-              precision={0}
-              className="w-full"
-              addonAfter="beds"
-            />
-          </Form.Item>
+          <div className="md:col-span-2">
+            <Form.Item
+              name="bedCapacity"
+              label={t('Bed capacity')}
+              extra={t('Enter the total number of staffed beds.')}
+              rules={[{ required: true, type: 'number', min: 1 }]}
+            >
+              <InputNumber
+                min={1}
+                precision={0}
+                className="w-full"
+                style={{ width: '100%' }}
+                placeholder={t('e.g. 250')}
+              />
+            </Form.Item>
+          </div>
           <Form.Item
             name="establishedYear"
-            label="Established year"
+            label={t('Established year')}
             rules={[
               {
                 type: 'number',
@@ -408,59 +422,65 @@ function HospitalForm({
         </div>
       </fieldset>
 
-      <fieldset className="mt-5 rounded-xl border border-gray-200 p-4 sm:p-5">
-        <legend className="px-2 text-sm font-semibold text-gray-900">
-          Location
+      <fieldset className="mt-8 min-w-0 border-0 p-0">
+        <legend className="w-full">
+          <span className="flex items-center gap-3 text-sm font-semibold text-gray-900">
+            <span>{t('Location')}</span>
+            <span
+              className="h-px flex-1 bg-gray-200"
+              aria-hidden="true"
+            />
+          </span>
         </legend>
         <p className="mb-5 text-sm text-gray-500">
-          Postal address is required. Coordinates are optional.
+          {t('Postal address is required. Coordinates are optional.')}
         </p>
         <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
           <Form.Item
             name="addressLine"
-            label="Street address"
+            label={t('Street address')}
             rules={[{ required: true, min: 3 }]}
             className="md:col-span-2"
           >
             <Input
-              placeholder="Building, street, district"
+              placeholder={t('Building, street, district')}
               autoComplete="street-address"
             />
           </Form.Item>
-          <Form.Item name="city" label="City" rules={[{ required: true, min: 2 }]}>
+          <Form.Item name="city" label={t('City')} rules={[{ required: true, min: 2 }]}>
             <Input autoComplete="address-level2" />
           </Form.Item>
           <Form.Item
             name="stateProvince"
-            label="State / province"
+            label={t('State / province')}
             rules={[{ required: true, min: 2 }]}
           >
             <Input autoComplete="address-level1" />
           </Form.Item>
           <Form.Item
             name="postalCode"
-            label="Postal code"
+            label={t('Postal code')}
             rules={[{ required: true, min: 2 }]}
           >
             <Input autoComplete="postal-code" />
           </Form.Item>
           <Form.Item
             name="country"
-            label="Country"
+            label={t('Country')}
             rules={[{ required: true, min: 2 }]}
           >
             <Input autoComplete="country-name" />
           </Form.Item>
           <Form.Item
             name="latitude"
-            label="Latitude"
+            label={t('Latitude')}
             rules={[{ type: 'number', min: -90, max: 90 }]}
           >
             <InputNumber min={-90} max={90} className="w-full" />
           </Form.Item>
           <Form.Item
             name="longitude"
-            label="Longitude"
+            label={t('Longitude')}
             rules={[{ type: 'number', min: -180, max: 180 }]}
           >
             <InputNumber min={-180} max={180} className="w-full" />
@@ -468,30 +488,36 @@ function HospitalForm({
         </div>
       </fieldset>
 
-      <fieldset className="mt-5 rounded-xl border border-gray-200 p-4 sm:p-5">
-        <legend className="px-2 text-sm font-semibold text-gray-900">
-          Contact and operations
+      <fieldset className="mt-8 min-w-0 border-0 p-0">
+        <legend className="w-full">
+          <span className="flex items-center gap-3 text-sm font-semibold text-gray-900">
+            <span>{t('Contact and operations')}</span>
+            <span
+              className="h-px flex-1 bg-gray-200"
+              aria-hidden="true"
+            />
+          </span>
         </legend>
         <p className="mb-5 text-sm text-gray-500">
-          Public contact details, accreditation, and available services.
+          {t('Public contact details, accreditation, and available services.')}
         </p>
         <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-          <Form.Item name="phoneNumber" label="Phone number">
+          <Form.Item name="phoneNumber" label={t('Phone number')}>
             <Input autoComplete="tel" placeholder="+66 ..." />
           </Form.Item>
-          <Form.Item name="email" label="Email" rules={[{ type: 'email' }]}>
+          <Form.Item name="email" label={t('Email')} rules={[{ type: 'email' }]}>
             <Input autoComplete="email" />
           </Form.Item>
           <Form.Item
             name="website"
-            label="Website"
+            label={t('Website')}
             rules={[{ type: 'url' }]}
           >
             <Input placeholder="https://example.com" inputMode="url" />
           </Form.Item>
           <Form.Item
             name="rating"
-            label="Rating"
+            label={t('Rating')}
             rules={[{ type: 'number', min: 0, max: 5 }]}
           >
             <InputNumber
@@ -499,32 +525,32 @@ function HospitalForm({
               max={5}
               step={0.1}
               className="w-full"
-              addonAfter="/ 5"
+              suffix="/ 5"
             />
           </Form.Item>
           <Form.Item
             name="accreditationStatus"
-            label="Accreditation"
+            label={t('Accreditation')}
             rules={[{ required: true }]}
           >
             <Select
-              options={ACCREDITATION_STATUSES.map((value) => ({ value }))}
+              options={ACCREDITATION_STATUSES.map((value) => ({ value, label: t(value) }))}
             />
           </Form.Item>
           <div className="hidden md:block" />
           <Form.Item
             name="emergencyService"
-            label="Emergency service"
+            label={t('Emergency service')}
             valuePropName="checked"
           >
-            <Switch checkedChildren="Available" unCheckedChildren="Unavailable" />
+            <Switch checkedChildren={t('Available')} unCheckedChildren={t('Unavailable')} />
           </Form.Item>
           <Form.Item
             name="ambulanceService"
-            label="Ambulance service"
+            label={t('Ambulance service')}
             valuePropName="checked"
           >
-            <Switch checkedChildren="Available" unCheckedChildren="Unavailable" />
+            <Switch checkedChildren={t('Available')} unCheckedChildren={t('Unavailable')} />
           </Form.Item>
         </div>
       </fieldset>
@@ -538,6 +564,7 @@ export default function HospitalManager({
   hospitals: Hospital[];
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [form] = Form.useForm<HospitalInput>();
   const [editorOpen, setEditorOpen] = useState(false);
   const [selected, setSelected] = useState<Hospital | null>(null);
@@ -579,12 +606,12 @@ export default function HospitalManager({
         ? await updateHospital(selected.hospitalId, values)
         : await createHospital(values);
       if (result.success) {
-        messageApi.success(result.message);
+        messageApi.success(t(result.message));
         setEditorOpen(false);
         form.resetFields();
         router.refresh();
       } else {
-        messageApi.error(result.message);
+        messageApi.error(t(result.message));
       }
     });
   };
@@ -593,10 +620,10 @@ export default function HospitalManager({
     startTransition(async () => {
       const result = await deleteHospital(hospital.hospitalId);
       if (result.success) {
-        messageApi.success(result.message);
+        messageApi.success(t(result.message));
         router.refresh();
       } else {
-        messageApi.error(result.message);
+        messageApi.error(t(result.message));
       }
     });
   };
@@ -605,13 +632,13 @@ export default function HospitalManager({
     {
       key: 'view',
       icon: <EyeIcon className="h-4 w-4" />,
-      label: 'View details',
+      label: t('View details'),
       onClick: () => setViewing(hospital),
     },
     {
       key: 'edit',
       icon: <PencilSquareIcon className="h-4 w-4" />,
-      label: 'Edit hospital',
+      label: t('Edit hospital'),
       onClick: () => openEdit(hospital),
     },
     { type: 'divider' },
@@ -619,14 +646,14 @@ export default function HospitalManager({
       key: 'delete',
       danger: true,
       icon: <TrashIcon className="h-4 w-4" />,
-      label: 'Delete',
+      label: t('Delete'),
       onClick: () => setDeleteTarget(hospital),
     },
   ];
 
   const columns: TableColumnsType<Hospital> = [
     {
-      title: 'Hospital',
+      title: t('Hospital'),
       dataIndex: 'hospitalName',
       key: 'hospitalName',
       render: (name, hospital) => (
@@ -643,29 +670,30 @@ export default function HospitalManager({
       ),
     },
     {
-      title: 'Type',
+      title: t('Type'),
       dataIndex: 'hospitalType',
       key: 'hospitalType',
-      render: (value) => <Tag>{value}</Tag>,
+      render: (value) => <Tag>{t(value)}</Tag>,
     },
     {
-      title: 'Ownership',
+      title: t('Ownership'),
       dataIndex: 'ownershipType',
       key: 'ownershipType',
+      render: (value) => t(value),
     },
     {
-      title: 'Capacity',
+      title: t('Capacity'),
       dataIndex: 'bedCapacity',
       key: 'bedCapacity',
       align: 'right',
-      render: (value) => `${Number(value).toLocaleString()} beds`,
+      render: (value) => `${Number(value).toLocaleString()} ${t('beds')}`,
     },
     {
-      title: 'Status',
+      title: t('Status'),
       dataIndex: 'accreditationStatus',
       key: 'accreditationStatus',
       render: (value: AccreditationStatus) => (
-        <Tag color={statusColors[value]}>{value}</Tag>
+        <Tag color={statusColors[value]}>{t(value)}</Tag>
       ),
     },
     {
@@ -682,7 +710,7 @@ export default function HospitalManager({
           <Button
             type="text"
             icon={<EllipsisHorizontalIcon className="h-5 w-5" />}
-            aria-label={`Actions for ${hospital.hospitalName}`}
+            aria-label={t('Actions for {name}', { name: hospital.hospitalName })}
           />
         </Dropdown>
       ),
@@ -694,9 +722,9 @@ export default function HospitalManager({
       {contextHolder}
       <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6">
         <div>
-          <Text strong>Hospitals</Text>
+          <Text strong>{t('Hospitals')}</Text>
           <div className="text-xs text-gray-500">
-            {hospitals.length} shown on this page
+            {t('{count} shown on this page', { count: hospitals.length })}
           </div>
         </div>
         <Button
@@ -704,7 +732,7 @@ export default function HospitalManager({
           icon={<PlusIcon className="h-4 w-4" />}
           onClick={openCreate}
         >
-          Add hospital
+          {t('Add hospital')}
         </Button>
       </div>
 
@@ -719,10 +747,10 @@ export default function HospitalManager({
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="No hospitals found"
+              description={t('No hospitals found')}
             >
               <Button type="primary" onClick={openCreate}>
-                Add the first hospital
+                {t('Add the first hospital')}
               </Button>
             </Empty>
           ),
@@ -733,18 +761,19 @@ export default function HospitalManager({
         title={
           <div>
             <div className="text-base font-semibold text-gray-900">
-              {selected ? 'Edit hospital' : 'Add hospital'}
+              {t(selected ? 'Edit hospital' : 'Add hospital')}
             </div>
             <div className="mt-1 text-sm font-normal text-gray-500">
               {selected
-                ? `Update the profile for ${selected.hospitalName}.`
-                : 'Create a complete hospital profile for the directory.'}
+                ? t('Update the profile for {name}.', { name: selected.hospitalName })
+                : t('Create a complete hospital profile for the directory.')}
             </div>
           </div>
         }
         open={editorOpen}
         width={820}
-        okText={selected ? 'Save changes' : 'Create hospital'}
+        okText={t(selected ? 'Save changes' : 'Create hospital')}
+        cancelText={t('Cancel')}
         confirmLoading={isPending}
         onOk={save}
         onCancel={() => {
@@ -757,7 +786,7 @@ export default function HospitalManager({
       </Modal>
 
       <Drawer
-        title="Hospital profile"
+        title={t('Hospital profile')}
         open={Boolean(viewing)}
         size={560}
         onClose={() => setViewing(null)}
@@ -768,7 +797,7 @@ export default function HospitalManager({
               icon={<PencilSquareIcon className="h-4 w-4" />}
               onClick={() => openEdit(viewing)}
             >
-              Edit
+              {t('Edit')}
             </Button>
           ) : null
         }
@@ -777,9 +806,10 @@ export default function HospitalManager({
       </Drawer>
 
       <Modal
-        title="Delete hospital?"
+        title={t('Delete hospital?')}
         open={Boolean(deleteTarget)}
-        okText="Delete"
+        okText={t('Delete')}
+        cancelText={t('Cancel')}
         okButtonProps={{ danger: true }}
         confirmLoading={isPending}
         onCancel={() => setDeleteTarget(null)}
@@ -791,8 +821,11 @@ export default function HospitalManager({
         }}
       >
         <p className="text-gray-600">
-          {deleteTarget?.hospitalName} will be permanently removed. This action
-          cannot be undone.
+          {deleteTarget
+            ? t('{name} will be permanently removed. This action cannot be undone.', {
+                name: deleteTarget.hospitalName,
+              })
+            : null}
         </p>
       </Modal>
     </>

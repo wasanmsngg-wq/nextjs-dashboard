@@ -7,6 +7,7 @@ import {
 } from "@/app/ui/skeletons";
 import SupportPagination from "@/app/ui/support/support-pagination";
 import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
+import { getTranslations } from '@/app/i18n/server';
 
 export default async function Page({
     searchParams
@@ -17,6 +18,7 @@ export default async function Page({
     }>
 }>){
     const params = await searchParams;
+    const { t } = await getTranslations();
     const query = params.query ?? '';
     const page = Number(params.page) || 1;
     return (
@@ -28,10 +30,10 @@ export default async function Page({
                     </div>
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-                            Hospital directory
+                            {t('Hospital directory')}
                         </h1>
                         <p className="mt-1 text-sm text-gray-500">
-                            Search and browse hospitals in your support network.
+                            {t('Search and manage hospitals in your support network.')}
                         </p>
                     </div>
                 </div>
@@ -40,7 +42,7 @@ export default async function Page({
             <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div className="border-b border-gray-100 p-5 sm:p-6">
                     <div className="max-w-xl">
-                        <Search placeholder="Search by name, type, city, or country" />
+                        <Search placeholder={t('Search by name, type, city, or country')} />
                     </div>
                 </div>
 

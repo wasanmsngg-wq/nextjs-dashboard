@@ -4,6 +4,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useDebouncedCallback} from "use-debounce";
 import {useSupportNavigation} from "@/app/ui/support/support-navigation";
+import { useI18n } from '@/app/i18n/provider';
 
 export default function Search({ placeholder }: { placeholder: string }) {
 
@@ -11,6 +12,7 @@ export default function Search({ placeholder }: { placeholder: string }) {
     const pathName = usePathname();
     const {replace} = useRouter();
     const {startNavigation} = useSupportNavigation();
+    const { t } = useI18n();
 
     const handleSearch = useDebouncedCallback((term:string) => {
         const params = new URLSearchParams(searchParams);
@@ -33,7 +35,7 @@ export default function Search({ placeholder }: { placeholder: string }) {
   return (
     <div className="relative flex flex-1 flex-shrink-0">
       <label htmlFor="search" className="sr-only">
-        Search
+        {t('Search')}
       </label>
       <input
         className="peer block h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"

@@ -7,6 +7,7 @@ import {
 import Link from "next/link";
 import clsx from "clsx";
 import {usePathname} from "next/navigation";
+import { useI18n } from '@/app/i18n/provider';
 
 // Map of links to display in the side navigation.
 // Depending on the size of the application, this would be stored in a database.
@@ -23,6 +24,7 @@ const links = [
 
 export default function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   return (
     <>
       {links.map((link) => {
@@ -38,7 +40,7 @@ export default function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             })}
           >
             <LinkIcon className="w-6" />
-            <p>{link.name}</p>
+            <p>{t(link.name)}</p>
           </Link>
         );
       })}
