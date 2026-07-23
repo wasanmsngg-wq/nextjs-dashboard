@@ -1,5 +1,6 @@
 // Loading animation
 import HospitalTableView from '@/app/ui/support/hospital-table-view';
+import RouteLoadingAnnouncer from '@/app/ui/route-loading-announcer';
 
 const shimmer =
   'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
@@ -87,6 +88,7 @@ export function LatestInvoicesSkeleton() {
 export default function DashboardSkeleton() {
   return (
     <>
+      <RouteLoadingAnnouncer />
       <div
         className={`${shimmer} relative mb-4 h-8 w-36 overflow-hidden rounded-md bg-gray-100`}
       />
@@ -174,6 +176,7 @@ export function InvoicesTableSkeleton({
     status: 'Status',
     actions: 'Actions',
   },
+  showLabels = true,
 }: {
   labels?: {
     customer: string;
@@ -183,6 +186,7 @@ export function InvoicesTableSkeleton({
     status: string;
     actions: string;
   };
+  showLabels?: boolean;
 }) {
   return (
     <div className="mt-6 flow-root">
@@ -196,23 +200,26 @@ export function InvoicesTableSkeleton({
             <InvoicesMobileSkeleton />
             <InvoicesMobileSkeleton />
           </div>
-          <table className="hidden min-w-full text-gray-900 md:table">
+          <table
+            className="hidden min-w-full text-gray-900 md:table"
+            aria-hidden={!showLabels}
+          >
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  {labels.customer}
+                  {showLabels ? labels.customer : <SkeletonLabel width="w-20" />}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  {labels.email}
+                  {showLabels ? labels.email : <SkeletonLabel width="w-14" />}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  {labels.amount}
+                  {showLabels ? labels.amount : <SkeletonLabel width="w-16" />}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  {labels.date}
+                  {showLabels ? labels.date : <SkeletonLabel width="w-12" />}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  {labels.status}
+                  {showLabels ? labels.status : <SkeletonLabel width="w-14" />}
                 </th>
                 <th
                   scope="col"
@@ -238,7 +245,138 @@ export function InvoicesTableSkeleton({
 }
 
 export function HospitalSkeleton({ pageSize = 10 }: { pageSize?: number }) {
-  return <HospitalTableView loading pageSize={pageSize} />;
+  return (
+    <>
+      <RouteLoadingAnnouncer />
+      <HospitalTableView loading pageSize={pageSize} />
+    </>
+  );
+}
+
+function SkeletonLabel({ width }: { width: string }) {
+  return <span className={`block h-4 animate-pulse rounded bg-gray-200 ${width}`} />;
+}
+
+export function LandingPageSkeleton() {
+  return (
+    <main className="flex min-h-screen flex-col p-6">
+      <RouteLoadingAnnouncer />
+      <div className="h-20 shrink-0 animate-pulse rounded-lg bg-blue-200 md:h-52" />
+      <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
+        <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
+          <div className="h-7 w-7 animate-pulse rounded bg-gray-300" />
+          <div className="space-y-3">
+            <div className="h-8 w-full animate-pulse rounded bg-gray-200" />
+            <div className="h-8 w-5/6 animate-pulse rounded bg-gray-200" />
+            <div className="h-8 w-2/3 animate-pulse rounded bg-gray-200" />
+          </div>
+          <div className="h-12 w-40 animate-pulse rounded-lg bg-blue-200" />
+        </div>
+        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
+          <div className="aspect-[4/3] w-full max-w-2xl animate-pulse rounded-xl bg-gray-100" />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export function InvoicesPageSkeleton() {
+  return (
+    <div className="w-full">
+      <RouteLoadingAnnouncer />
+      <div className="h-8 w-28 animate-pulse rounded bg-gray-200" />
+      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
+        <div className="h-11 max-w-xl flex-1 animate-pulse rounded-xl bg-gray-100" />
+        <div className="h-10 w-12 animate-pulse rounded-lg bg-blue-100 md:w-40" />
+      </div>
+      <InvoicesTableSkeleton showLabels={false} />
+      <PaginationSkeleton />
+    </div>
+  );
+}
+
+export function CustomersPageSkeleton() {
+  return (
+    <main className="w-full">
+      <RouteLoadingAnnouncer />
+      <div className="h-8 w-32 animate-pulse rounded bg-gray-200" />
+      <div className="mt-2 h-4 w-72 max-w-full animate-pulse rounded bg-gray-100" />
+      <div className="mt-8 h-11 max-w-xl animate-pulse rounded-xl bg-gray-100" />
+      <div className="mt-6 overflow-hidden rounded-md bg-gray-50 p-2">
+        <div className="space-y-2 md:hidden">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <CustomerMobileSkeleton key={index} />
+          ))}
+        </div>
+        <table className="hidden min-w-full md:table" aria-hidden="true">
+          <thead>
+            <tr>
+              {['w-16', 'w-14', 'w-24', 'w-24', 'w-20'].map((width, index) => (
+                <th key={index} className="px-4 py-5">
+                  <SkeletonLabel width={width} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <CustomerTableRowSkeleton key={index} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  );
+}
+
+function CustomerMobileSkeleton() {
+  return (
+    <div className="rounded-md bg-white p-4">
+      <div className="flex items-center gap-3 border-b pb-4">
+        <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+        <div className="space-y-2">
+          <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+          <div className="h-3 w-44 animate-pulse rounded bg-gray-100" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 py-5">
+        <div className="h-10 animate-pulse rounded bg-gray-100" />
+        <div className="h-10 animate-pulse rounded bg-gray-100" />
+      </div>
+      <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
+    </div>
+  );
+}
+
+function CustomerTableRowSkeleton() {
+  return (
+    <tr>
+      <td className="px-4 py-5">
+        <div className="flex items-center gap-3">
+          <div className="h-7 w-7 animate-pulse rounded-full bg-gray-200" />
+          <div className="h-4 w-32 animate-pulse rounded bg-gray-100" />
+        </div>
+      </td>
+      {Array.from({ length: 4 }).map((_, index) => (
+        <td key={index} className="px-4 py-5">
+          <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+function PaginationSkeleton() {
+  return (
+    <div className="mt-5 flex justify-center gap-2" aria-hidden="true">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-10 w-10 animate-pulse rounded-md border border-gray-100 bg-gray-100"
+        />
+      ))}
+    </div>
+  );
 }
 
 export function HospitalSearchSkeleton() {
@@ -254,9 +392,8 @@ export function HospitalPaginationSkeleton() {
   return (
     <div
       className={`${shimmer} relative flex overflow-hidden rounded-lg`}
-      role="status"
-      aria-label="Loading pagination"
     >
+      <RouteLoadingAnnouncer />
       <div className="mr-4 h-10 w-10 rounded-md border border-gray-200 bg-gray-100" />
       {Array.from({ length: 5 }).map((_, index) => (
         <div
@@ -265,7 +402,6 @@ export function HospitalPaginationSkeleton() {
         />
       ))}
       <div className="ml-4 h-10 w-10 rounded-md border border-gray-200 bg-gray-100" />
-      <span className="sr-only">Loading pagination...</span>
     </div>
   );
 }

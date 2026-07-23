@@ -1,0 +1,5 @@
+import { InvoicesPageSkeleton } from '@/app/ui/skeletons';
+
+export default function Loading() {
+  return <InvoicesPageSkeleton />;
+}

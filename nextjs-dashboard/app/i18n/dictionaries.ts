@@ -3,6 +3,7 @@ import type { Locale } from '@/app/i18n/config';
 const th: Record<string, string> = {
   'payment.pending': 'รอชำระ',
   'Language': 'ภาษา',
+  'Loading...': 'กำลังโหลด...',
   'English': 'English',
   'Thai': 'ไทย',
   'Open navigation': 'เปิดเมนูนำทาง',

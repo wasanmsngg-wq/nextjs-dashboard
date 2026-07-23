@@ -3,10 +3,12 @@ import {
   HospitalSearchSkeleton,
   HospitalSkeleton,
 } from '@/app/ui/skeletons';
+import RouteLoadingAnnouncer from '@/app/ui/route-loading-announcer';
 
 export default function Loading() {
   return (
     <main className="mx-auto w-full max-w-7xl">
+      <RouteLoadingAnnouncer />
       <div className="mb-8">
         <div className="flex items-center gap-3">
           <div className="h-11 w-11 animate-pulse rounded-xl bg-blue-50" />
@@ -22,8 +24,14 @@ export default function Loading() {
           <HospitalSearchSkeleton />
         </div>
         <HospitalSkeleton />
-        <div className="flex justify-center border-t border-gray-100 px-5 py-5">
-          <HospitalPaginationSkeleton />
+        <div className="flex min-h-20 border-t border-gray-100 px-5 py-5">
+          <div className="flex w-full flex-col items-center justify-between gap-4 sm:flex-row">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
+              <div className="h-10 w-16 animate-pulse rounded-lg bg-gray-100" />
+            </div>
+            <HospitalPaginationSkeleton />
+          </div>
         </div>
       </section>
     </main>
