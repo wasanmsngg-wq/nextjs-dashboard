@@ -2,7 +2,7 @@
 import {
   UserGroupIcon,
   HomeIcon,
-  DocumentDuplicateIcon,
+  DocumentDuplicateIcon, HeartIcon,
 } from '@heroicons/react/24/outline';
 import Link from "next/link";
 import clsx from "clsx";
@@ -18,9 +18,10 @@ const links = [
     icon: DocumentDuplicateIcon,
   },
   { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
+  { name: 'Hospitals', href: '/support', icon: HeartIcon}
 ];
 
-export default function NavLinks() {
+export default function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <>
@@ -30,12 +31,14 @@ export default function NavLinks() {
           <Link
             key={link.name}
             href={link.href}
-            className={clsx("flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3",{
+            prefetch={false}
+            onClick={onNavigate}
+            className={clsx("flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-gray-700 transition hover:bg-sky-50 hover:text-blue-600",{
               'bg-sky-100 text-blue-600' : pathname === link.href,
             })}
           >
             <LinkIcon className="w-6" />
-            <p className="hidden md:block">{link.name}</p>
+            <p>{link.name}</p>
           </Link>
         );
       })}

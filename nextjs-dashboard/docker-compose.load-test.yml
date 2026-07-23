@@ -1,0 +1,22 @@
+services:
+  postgres-load-test:
+    image: postgres:17-alpine
+    container_name: hospital-postgres-load-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hospital_load_test
+      POSTGRES_USER: hospital
+      POSTGRES_PASSWORD: hospital_load_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - hospital_load_test_data:/var/lib/postgresql/data
+      - ./database/load-test:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hospital -d hospital_load_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  hospital_load_test_data:

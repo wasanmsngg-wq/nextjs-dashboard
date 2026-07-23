@@ -3,12 +3,14 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useDebouncedCallback} from "use-debounce";
+import {useSupportNavigation} from "@/app/ui/support/support-navigation";
 
 export default function Search({ placeholder }: { placeholder: string }) {
 
     const searchParams = useSearchParams();
     const pathName = usePathname();
     const {replace} = useRouter();
+    const {startNavigation} = useSupportNavigation();
 
     const handleSearch = useDebouncedCallback((term:string) => {
         const params = new URLSearchParams(searchParams);
@@ -18,7 +20,13 @@ export default function Search({ placeholder }: { placeholder: string }) {
         } else {
             params.delete('query')
         }
-        replace(`${pathName}?${params.toString()}`)
+        const nextUrl = `${pathName}?${params.toString()}`;
+        const currentUrl = `${pathName}?${searchParams.toString()}`;
+
+        if (nextUrl !== currentUrl) {
+            startNavigation();
+            replace(nextUrl);
+        }
     },300);
 
 
@@ -28,12 +36,12 @@ export default function Search({ placeholder }: { placeholder: string }) {
         Search
       </label>
       <input
-        className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
+        className="peer block h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
         placeholder={placeholder}
         onChange={(e) => handleSearch(e.target.value)}
         defaultValue={searchParams.get('query')?.toString()}
       />
-      <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+      <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 transition peer-focus:text-blue-600" />
     </div>
   );
 }

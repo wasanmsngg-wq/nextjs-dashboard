@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { generatePagination } from '@/app/lib/utils';
 import {usePathname, useSearchParams} from "next/navigation";
+import {useSupportNavigation} from "@/app/ui/support/support-navigation";
 
 export default function Pagination({ totalPages }: { totalPages: number }) {
   // NOTE: Uncomment this code in Chapter 10
@@ -12,6 +13,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
     const pathName = usePathname();
     const searchParams = useSearchParams();
     const currentPage = Number(searchParams.get('page')) || 1;
+    const {startNavigation} = useSupportNavigation();
 
     const createPageURL = (pageNumber:number | string) => {
         const params = new URLSearchParams(searchParams);
@@ -32,6 +34,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
           direction="left"
           href={createPageURL(currentPage - 1)}
           isDisabled={currentPage <= 1}
+          onNavigate={startNavigation}
         />
 
         <div className="flex -space-x-px">
@@ -50,6 +53,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
                 page={page}
                 position={position}
                 isActive={currentPage === page}
+                onNavigate={startNavigation}
               />
             );
           })}
@@ -59,6 +63,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
           direction="right"
           href={createPageURL(currentPage + 1)}
           isDisabled={currentPage >= totalPages}
+          onNavigate={startNavigation}
         />
       </div>
     </>
@@ -69,12 +74,14 @@ function PaginationNumber({
   page,
   href,
   isActive,
+  onNavigate,
   position,
 }: {
   page: number | string;
   href: string;
   position?: 'first' | 'last' | 'middle' | 'single';
   isActive: boolean;
+  onNavigate: () => void;
 }) {
   const className = clsx(
     'flex h-10 w-10 items-center justify-center text-sm border',
@@ -90,7 +97,7 @@ function PaginationNumber({
   return isActive || position === 'middle' ? (
     <div className={className}>{page}</div>
   ) : (
-    <Link href={href} className={className}>
+    <Link href={href} className={className} onNavigate={onNavigate}>
       {page}
     </Link>
   );
@@ -100,10 +107,12 @@ function PaginationArrow({
   href,
   direction,
   isDisabled,
+  onNavigate,
 }: {
   href: string;
   direction: 'left' | 'right';
   isDisabled?: boolean;
+  onNavigate: () => void;
 }) {
   const className = clsx(
     'flex h-10 w-10 items-center justify-center rounded-md border',
@@ -125,7 +134,7 @@ function PaginationArrow({
   return isDisabled ? (
     <div className={className}>{icon}</div>
   ) : (
-    <Link className={className} href={href}>
+    <Link className={className} href={href} onNavigate={onNavigate}>
       {icon}
     </Link>
   );

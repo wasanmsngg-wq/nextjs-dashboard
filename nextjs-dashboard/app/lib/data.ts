@@ -1,4 +1,3 @@
-import postgres from 'postgres';
 import {
   CustomerField,
   CustomersTableType,
@@ -8,13 +7,7 @@ import {
   Revenue,
 } from './definitions';
 import { formatCurrency } from './utils';
-
-const sql = postgres(process.env.POSTGRES_URL!, {
-  ssl: 'require',
-  // Supabase's transaction pooler (port 6543) does not support
-  // PostgreSQL prepared statements.
-  prepare: false,
-});
+import { sqlRaw as sql } from './db';
 
 export async function fetchRevenue() {
   try {

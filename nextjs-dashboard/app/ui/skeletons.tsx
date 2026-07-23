@@ -1,4 +1,6 @@
 // Loading animation
+import HospitalTableView from '@/app/ui/support/hospital-table-view';
+
 const shimmer =
   'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
 
@@ -216,3 +218,37 @@ export function InvoicesTableSkeleton() {
     </div>
   );
 }
+
+export function HospitalSkeleton() {
+  return <HospitalTableView loading />;
+}
+
+export function HospitalSearchSkeleton() {
+  return (
+    <div className={`${shimmer} relative h-11 w-full max-w-xl overflow-hidden rounded-xl border border-gray-200 bg-gray-50`}>
+      <div className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-gray-200" />
+      <div className="absolute left-11 top-1/2 h-3.5 w-56 max-w-[65%] -translate-y-1/2 rounded bg-gray-200" />
+    </div>
+  );
+}
+
+export function HospitalPaginationSkeleton() {
+  return (
+    <div
+      className={`${shimmer} relative flex overflow-hidden rounded-lg`}
+      role="status"
+      aria-label="Loading pagination"
+    >
+      <div className="mr-4 h-10 w-10 rounded-md border border-gray-200 bg-gray-100" />
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-10 w-10 border border-gray-200 bg-gray-100 first:rounded-l-md last:rounded-r-md"
+        />
+      ))}
+      <div className="ml-4 h-10 w-10 rounded-md border border-gray-200 bg-gray-100" />
+      <span className="sr-only">Loading pagination...</span>
+    </div>
+  );
+}
+
