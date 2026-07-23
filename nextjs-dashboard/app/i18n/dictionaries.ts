@@ -1,6 +1,7 @@
 import type { Locale } from '@/app/i18n/config';
 
 const th: Record<string, string> = {
+  'payment.pending': 'รอชำระ',
   'Language': 'ภาษา',
   'English': 'English',
   'Thai': 'ไทย',
@@ -12,6 +13,49 @@ const th: Record<string, string> = {
   'Customers': 'ลูกค้า',
   'Hospitals': 'โรงพยาบาล',
   'Sign Out': 'ออกจากระบบ',
+  'Dashboard': 'แดชบอร์ด',
+  'Collected': 'ยอดชำระแล้ว',
+  'Total Invoices': 'ใบแจ้งหนี้ทั้งหมด',
+  'Total Customers': 'ลูกค้าทั้งหมด',
+  'Recent Revenue': 'รายได้ล่าสุด',
+  'Last 12 months': '12 เดือนล่าสุด',
+  'Latest Invoices': 'ใบแจ้งหนี้ล่าสุด',
+  'Updated just now': 'อัปเดตเมื่อสักครู่',
+  'No data available.': 'ไม่มีข้อมูล',
+  'Jan': 'ม.ค.',
+  'Feb': 'ก.พ.',
+  'Mar': 'มี.ค.',
+  'Apr': 'เม.ย.',
+  'May': 'พ.ค.',
+  'Jun': 'มิ.ย.',
+  'Jul': 'ก.ค.',
+  'Aug': 'ส.ค.',
+  'Sep': 'ก.ย.',
+  'Oct': 'ต.ค.',
+  'Nov': 'พ.ย.',
+  'Dec': 'ธ.ค.',
+  'Search invoices...': 'ค้นหาใบแจ้งหนี้...',
+  'Create Invoice': 'สร้างใบแจ้งหนี้',
+  'Customer': 'ลูกค้า',
+  'Amount': 'จำนวนเงิน',
+  'Date': 'วันที่',
+  'Actions': 'การดำเนินการ',
+  'Paid': 'ชำระแล้ว',
+  'Edit invoice': 'แก้ไขใบแจ้งหนี้',
+  'Delete invoice': 'ลบใบแจ้งหนี้',
+  'No invoices found.': 'ไม่พบใบแจ้งหนี้',
+  'Previous page': 'หน้าก่อนหน้า',
+  'Next page': 'หน้าถัดไป',
+  'Page {page}': 'หน้า {page}',
+  "View customers and their invoice totals.":
+    'ดูลูกค้าและยอดรวมใบแจ้งหนี้ของแต่ละราย',
+  'Search customers...': 'ค้นหาลูกค้า...',
+  'Name': 'ชื่อ',
+  'Total Pending': 'ยอดรอชำระทั้งหมด',
+  'Total Paid': 'ยอดชำระแล้วทั้งหมด',
+  '{count} invoices': 'ใบแจ้งหนี้ {count} รายการ',
+  'No customers found.': 'ไม่พบลูกค้า',
+  "{name}'s profile picture": 'รูปโปรไฟล์ของ {name}',
   'Hospital directory': 'รายชื่อโรงพยาบาล',
   'Search and manage hospitals in your support network.':
     'ค้นหาและจัดการโรงพยาบาลในเครือข่ายของคุณ',
@@ -119,8 +163,12 @@ const th: Record<string, string> = {
   'Open dashboard': 'เปิดแดชบอร์ด',
 };
 
+const en: Record<string, string> = {
+  'payment.pending': 'Pending',
+};
+
 const dictionaries: Record<Locale, Record<string, string>> = {
-  en: {},
+  en,
   th,
 };
 

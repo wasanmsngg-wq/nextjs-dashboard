@@ -3,6 +3,7 @@ import { UpdateInvoice, DeleteInvoice } from '@/app/ui/invoices/buttons';
 import InvoiceStatus from '@/app/ui/invoices/status';
 import { formatDateToLocal, formatCurrency } from '@/app/lib/utils';
 import { fetchFilteredInvoices } from '@/app/lib/data';
+import { getTranslations } from '@/app/i18n/server';
 
 export default async function InvoicesTable({
   query,
@@ -12,6 +13,8 @@ export default async function InvoicesTable({
   currentPage: number;
 }) {
   const invoices = await fetchFilteredInvoices(query, currentPage);
+  const { locale, t } = await getTranslations();
+  const dateLocale = locale === 'th' ? 'th-TH' : 'en-US';
 
   return (
     <div className="mt-6 flow-root">
@@ -31,7 +34,7 @@ export default async function InvoicesTable({
                         className="mr-2 rounded-full"
                         width={28}
                         height={28}
-                        alt={`${invoice.name}'s profile picture`}
+                        alt={t("{name}'s profile picture", { name: invoice.name })}
                       />
                       <p>{invoice.name}</p>
                     </div>
@@ -44,7 +47,7 @@ export default async function InvoicesTable({
                     <p className="text-xl font-medium">
                       {formatCurrency(invoice.amount)}
                     </p>
-                    <p>{formatDateToLocal(invoice.date)}</p>
+                    <p>{formatDateToLocal(invoice.date, dateLocale)}</p>
                   </div>
                   <div className="flex justify-end gap-2">
                     <UpdateInvoice id={invoice.id} />
@@ -58,22 +61,22 @@ export default async function InvoicesTable({
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  Customer
+                  {t('Customer')}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Email
+                  {t('Email')}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Amount
+                  {t('Amount')}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Date
+                  {t('Date')}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Status
+                  {t('Status')}
                 </th>
                 <th scope="col" className="relative py-3 pl-6 pr-3">
-                  <span className="sr-only">Edit</span>
+                  <span className="sr-only">{t('Actions')}</span>
                 </th>
               </tr>
             </thead>
@@ -90,7 +93,7 @@ export default async function InvoicesTable({
                         className="rounded-full"
                         width={28}
                         height={28}
-                        alt={`${invoice.name}'s profile picture`}
+                        alt={t("{name}'s profile picture", { name: invoice.name })}
                       />
                       <p>{invoice.name}</p>
                     </div>
@@ -102,7 +105,7 @@ export default async function InvoicesTable({
                     {formatCurrency(invoice.amount)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {formatDateToLocal(invoice.date)}
+                    {formatDateToLocal(invoice.date, dateLocale)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     <InvoiceStatus status={invoice.status} />
@@ -117,6 +120,11 @@ export default async function InvoicesTable({
               ))}
             </tbody>
           </table>
+          {invoices.length === 0 ? (
+            <div className="rounded-md bg-white px-6 py-12 text-center text-sm text-gray-500">
+              {t('No invoices found.')}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

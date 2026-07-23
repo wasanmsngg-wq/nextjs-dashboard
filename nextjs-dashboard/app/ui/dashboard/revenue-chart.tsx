@@ -3,6 +3,7 @@ import { CalendarIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
 import { Revenue } from '@/app/lib/definitions';
 import {fetchRevenue} from "@/app/lib/data";
+import { getTranslations } from '@/app/i18n/server';
 
 // This component is representational only.
 // For data visualization UI, check out:
@@ -12,19 +13,20 @@ import {fetchRevenue} from "@/app/lib/data";
 
 export default async function RevenueChart() {
   const revenue = await fetchRevenue();
+  const { t } = await getTranslations();
   const chartHeight = 350;
   // NOTE: Uncomment this code in Chapter 7
 
   const { yAxisLabels, topLabel } = generateYAxis(revenue);
 
   if (!revenue || revenue.length === 0) {
-    return <p className="mt-4 text-gray-400">No data available.</p>;
+    return <p className="mt-4 text-gray-400">{t('No data available.')}</p>;
   }
 
   return (
     <div className="w-full md:col-span-4">
       <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Recent Revenue
+        {t('Recent Revenue')}
       </h2>
       {/* NOTE: Uncomment this code in Chapter 7 */}
 
@@ -48,14 +50,14 @@ export default async function RevenueChart() {
                 }}
               ></div>
               <p className="-rotate-90 text-sm text-gray-400 sm:rotate-0">
-                {month.month}
+                {t(month.month)}
               </p>
             </div>
           ))}
         </div>
         <div className="flex items-center pb-2 pt-6">
           <CalendarIcon className="h-5 w-5 text-gray-500" />
-          <h3 className="ml-2 text-sm text-gray-500 ">Last 12 months</h3>
+          <h3 className="ml-2 text-sm text-gray-500 ">{t('Last 12 months')}</h3>
         </div>
       </div>
     </div>

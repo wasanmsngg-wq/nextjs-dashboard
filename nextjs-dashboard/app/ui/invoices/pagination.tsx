@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { generatePagination } from '@/app/lib/utils';
 import {usePathname, useSearchParams} from "next/navigation";
 import {useSupportNavigation} from "@/app/ui/support/support-navigation";
+import { useI18n } from '@/app/i18n/provider';
 
 export default function Pagination({ totalPages }: { totalPages: number }) {
   // NOTE: Uncomment this code in Chapter 10
@@ -14,6 +15,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
     const searchParams = useSearchParams();
     const currentPage = Number(searchParams.get('page')) || 1;
     const {startNavigation} = useSupportNavigation();
+    const { t } = useI18n();
 
     const createPageURL = (pageNumber:number | string) => {
         const params = new URLSearchParams(searchParams);
@@ -35,6 +37,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
           href={createPageURL(currentPage - 1)}
           isDisabled={currentPage <= 1}
           onNavigate={startNavigation}
+          label={t('Previous page')}
         />
 
         <div className="flex -space-x-px">
@@ -54,6 +57,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
                 position={position}
                 isActive={currentPage === page}
                 onNavigate={startNavigation}
+                label={t('Page {page}', { page })}
               />
             );
           })}
@@ -64,6 +68,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
           href={createPageURL(currentPage + 1)}
           isDisabled={currentPage >= totalPages}
           onNavigate={startNavigation}
+          label={t('Next page')}
         />
       </div>
     </>
@@ -75,6 +80,7 @@ function PaginationNumber({
   href,
   isActive,
   onNavigate,
+  label,
   position,
 }: {
   page: number | string;
@@ -82,6 +88,7 @@ function PaginationNumber({
   position?: 'first' | 'last' | 'middle' | 'single';
   isActive: boolean;
   onNavigate: () => void;
+  label: string;
 }) {
   const className = clsx(
     'flex h-10 w-10 items-center justify-center text-sm border',
@@ -97,7 +104,7 @@ function PaginationNumber({
   return isActive || position === 'middle' ? (
     <div className={className}>{page}</div>
   ) : (
-    <Link href={href} className={className} onNavigate={onNavigate}>
+    <Link href={href} className={className} onNavigate={onNavigate} aria-label={label}>
       {page}
     </Link>
   );
@@ -108,11 +115,13 @@ function PaginationArrow({
   direction,
   isDisabled,
   onNavigate,
+  label,
 }: {
   href: string;
   direction: 'left' | 'right';
   isDisabled?: boolean;
   onNavigate: () => void;
+  label: string;
 }) {
   const className = clsx(
     'flex h-10 w-10 items-center justify-center rounded-md border',
@@ -132,9 +141,9 @@ function PaginationArrow({
     );
 
   return isDisabled ? (
-    <div className={className}>{icon}</div>
+    <div className={className} aria-hidden="true">{icon}</div>
   ) : (
-    <Link className={className} href={href} onNavigate={onNavigate}>
+    <Link className={className} href={href} onNavigate={onNavigate} aria-label={label}>
       {icon}
     </Link>
   );

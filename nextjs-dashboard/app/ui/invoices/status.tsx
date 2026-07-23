@@ -1,7 +1,9 @@
 import { CheckIcon, ClockIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import { getTranslations } from '@/app/i18n/server';
 
-export default function InvoiceStatus({ status }: { status: string }) {
+export default async function InvoiceStatus({ status }: { status: string }) {
+  const { t } = await getTranslations();
   return (
     <span
       className={clsx(
@@ -14,13 +16,13 @@ export default function InvoiceStatus({ status }: { status: string }) {
     >
       {status === 'pending' ? (
         <>
-          Pending
+          {t('payment.pending')}
           <ClockIcon className="ml-1 w-4 text-gray-500" />
         </>
       ) : null}
       {status === 'paid' ? (
         <>
-          Paid
+          {t('Paid')}
           <CheckIcon className="ml-1 w-4 text-white" />
         </>
       ) : null}

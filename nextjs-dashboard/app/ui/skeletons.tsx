@@ -165,7 +165,25 @@ export function InvoicesMobileSkeleton() {
   );
 }
 
-export function InvoicesTableSkeleton() {
+export function InvoicesTableSkeleton({
+  labels = {
+    customer: 'Customer',
+    email: 'Email',
+    amount: 'Amount',
+    date: 'Date',
+    status: 'Status',
+    actions: 'Actions',
+  },
+}: {
+  labels?: {
+    customer: string;
+    email: string;
+    amount: string;
+    date: string;
+    status: string;
+    actions: string;
+  };
+}) {
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
@@ -182,25 +200,25 @@ export function InvoicesTableSkeleton() {
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  Customer
+                  {labels.customer}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Email
+                  {labels.email}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Amount
+                  {labels.amount}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Date
+                  {labels.date}
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Status
+                  {labels.status}
                 </th>
                 <th
                   scope="col"
                   className="relative pb-4 pl-3 pr-6 pt-2 sm:pr-6"
                 >
-                  <span className="sr-only">Edit</span>
+                  <span className="sr-only">{labels.actions}</span>
                 </th>
               </tr>
             </thead>
