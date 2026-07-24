@@ -38,3 +38,17 @@ test('URL controls preserve contracts', async ({ page }) => {
   await page.getByRole('link', { name: 'Page 2' }).click();
   await expect(page).toHaveURL(/page=2&pageSize=25/);
 });
+
+test('seed endpoint should not exist', async ({
+    request}) => {
+    const response = await request.get('/seed');
+
+    console.log({
+      url: response.url(),
+      status: response.status(),
+      statusText: response.statusText(),
+      headers: response.headers(),
+      body: await response.text(),
+    });
+    expect(response.status()).toBe(404);
+})
