@@ -19,6 +19,10 @@ TypeScript, frozen-lockfile installation, the 12,000-record production build,
 unit tests, and Chromium/Firefox/WebKit end-to-end checks pass. See
 `docs/evidence/qa-report.md`.
 
+Production deployment and monitoring passed at
+`https://nextjs-dashboard-eight-jade-42.vercel.app/`. See
+`docs/evidence/production-verification.md`.
+
 ## Rollback
 
 No database migration is included. Roll back the application artifact to commit
