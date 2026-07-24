@@ -31,3 +31,72 @@ test('dialog traps focus and restores it to the trigger', async ({ page }, testI
     await expect(trigger).toBeEnabled();
   }
 });
+
+test('pagination exposes current-page semantics', async ({ page }) => {
+  await page.goto('/support?page=1&pageSize=10');
+
+  const currentPage = page.locator('[aria-current="page"]');
+
+  await expect(currentPage).toHaveCount(1);
+  await expect(currentPage).toHaveText('1');
+});
+
+test('pagination supports keyboard navigation', async ({ page }) => {
+  await page.goto('/support?page=1&pageSize=10');
+
+  const pageTwo = page.getByRole('link', {
+    name: /page 2/i,
+  });
+
+  await pageTwo.focus();
+  await expect(pageTwo).toBeFocused();
+
+  await page.keyboard.press('Enter');
+
+  await expect(page).toHaveURL(/page=2/);
+  await expect(
+      page.locator('[aria-current="page"]'),
+  ).toHaveText('2');
+});
+test('pagination links are reachable with Tab', async ({ page,browserName }) => {
+  test.skip( browserName === 'webkit','Safari/WebKit Tab behavior depends on Full Keyboard Access Settings')
+  await page.goto('/support?page=1&pageSize=10');
+
+  const pageTwo = page.getByRole('link', {
+    name: /page 2/i,
+  });
+
+  await page.locator('body').focus();
+
+  let reachedPageTwo = false;
+
+  for (let attempt = 0; attempt < 30; attempt++) {
+    await page.keyboard.press('Tab');
+
+    if (await pageTwo.evaluate((element) => element === document.activeElement)) {
+      reachedPageTwo = true;
+      break;
+    }
+  }
+
+  expect(reachedPageTwo).toBe(true);
+})
+
+test('pagination has accessible semantics', async ({ page }) => {
+  await page.goto('/support?page=1&pageSize=10');
+
+  const pagination = page.getByRole('navigation', {
+    name: 'Pagination',
+  });
+
+  await expect(pagination).toBeVisible();
+
+  const currentPage = pagination.locator('[aria-current="page"]');
+
+  await expect(currentPage).toHaveCount(1);
+  await expect(currentPage).toHaveText('1');
+
+  await expect(
+      pagination.getByRole('link', { name: /page 2/i }),
+  ).toBeVisible();
+})
