@@ -1,13 +1,6 @@
-import {
-  CustomerField,
-  CustomersTableType,
-  InvoiceForm,
-  InvoicesTable,
-  LatestInvoiceRaw,
-  Revenue,
-} from './definitions';
-import { formatCurrency } from './utils';
-import { sqlRaw as sql } from './db';
+import {CustomerField, CustomersTableType, InvoiceForm, InvoicesTable, LatestInvoiceRaw, Revenue,} from './definitions';
+import {formatCurrency} from './utils';
+import {sqlRaw as sql} from './db';
 
 export async function fetchRevenue() {
   try {
@@ -88,6 +81,11 @@ export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
 ) {
+  if (!Number.isSafeInteger(currentPage) || currentPage < 1) {
+    throw new RangeError(
+        'currentPage must be a positive integer',
+    );
+  }
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {

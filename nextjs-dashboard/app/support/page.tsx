@@ -1,54 +1,61 @@
 import HospitalManager from "@/app/ui/features/hospitals/hospital-manager";
 import Search from "@/app/ui/molecules/search-field";
 import {Suspense} from "react";
-import {
-    HospitalPaginationSkeleton,
-    HospitalSkeleton
-} from "@/app/ui/features/hospitals/hospital-list-skeleton";
-import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
-import { getTranslations } from '@/app/i18n/server';
-import { normalizeHospitalPageSize } from '@/app/lib/support/pagination';
-import { DirectoryTemplate } from '@/app/ui/templates/directory-template';
-import { fetchHospitalPages, fetchHospitals } from '@/app/lib/support/data';
-import { PageSizeSelector } from '@/app/ui/molecules/page-size-selector';
+import {HospitalPaginationSkeleton, HospitalSkeleton} from "@/app/ui/features/hospitals/hospital-list-skeleton";
+import {BuildingOffice2Icon} from "@heroicons/react/24/outline";
+import {getTranslations} from '@/app/i18n/server';
+import {HOSPITAL_PAGE_SIZE_OPTIONS, normalizeHospitalPageSize} from '@/app/lib/support/pagination';
+import {DirectoryTemplate} from '@/app/ui/templates/directory-template';
+import {fetchHospitalPages, fetchHospitals} from '@/app/lib/support/data';
+import {PageSizeSelector} from '@/app/ui/molecules/page-size-selector';
 import Pagination from '@/app/ui/molecules/pagination';
-import { HOSPITAL_PAGE_SIZE_OPTIONS } from '@/app/lib/support/pagination';
-import { DataTableShell } from '@/app/ui/organisms/data-table-shell';
+import {DataTableShell} from '@/app/ui/organisms/data-table-shell';
+import {normalizePage} from '@/app/lib/url-state';
+import {redirect} from 'next/navigation';
 
-async function HospitalListSection({ query, page, pageSize }: { query: string; page: number; pageSize: number }) {
+async function HospitalListSection({query, page, pageSize}: Readonly<{
+    query: string; page: number; pageSize: number
+}>) {
     const hospitals = await fetchHospitals(query, page, pageSize);
-    return <HospitalManager hospitals={hospitals} pageSize={pageSize} />;
+    return <HospitalManager hospitals={hospitals} pageSize={pageSize}/>;
 }
 
-async function HospitalPaginationSection({ query, pageSize, label }: { query: string; pageSize: number; label: string }) {
-    const totalPages = await fetchHospitalPages(query, pageSize);
-    return <div className="flex w-full flex-col items-center justify-between gap-4 sm:flex-row"><PageSizeSelector value={pageSize} options={HOSPITAL_PAGE_SIZE_OPTIONS} label={label} />{totalPages > 1 ? <Pagination totalPages={totalPages} /> : <div />}</div>;
+async function HospitalPaginationSection({totalPages, pageSize, label}: Readonly<{
+    totalPages: number; pageSize: number; label: string
+}>) {
+    return <div className="flex w-full flex-col items-center justify-between gap-4 sm:flex-row"><PageSizeSelector
+        value={pageSize} options={HOSPITAL_PAGE_SIZE_OPTIONS} label={label}/>{totalPages > 1 ?
+        <Pagination totalPages={totalPages}/> : <div/>}</div>;
 }
 
 export default async function Page({
-    searchParams
-                             }: Readonly<{
+                                       searchParams
+                                   }: Readonly<{
     searchParams: Promise<{
-        query?: string;
-        page?: string;
-        pageSize?: string;
+        query?: string; page?: string; pageSize?: string;
     }>
-}>){
+}>) {
     const params = await searchParams;
-    const { t } = await getTranslations();
+    const {t} = await getTranslations();
     const query = params.query ?? '';
-    const requestedPage = Number(params.page);
-    const page =
-        Number.isInteger(requestedPage) && requestedPage > 0
-            ? requestedPage
-            : 1;
     const pageSize = normalizeHospitalPageSize(params.pageSize);
-    return (
-        <DirectoryTemplate
+    const totalPages = await fetchHospitalPages(query, pageSize);
+    const {page, needsRedirect: pageNeedsRedirect} = normalizePage(params.page, totalPages,);
+    const pageSizeNeedsRedirect = params.pageSize !== undefined && params.pageSize !== String(pageSize);
+
+    if (pageNeedsRedirect || pageSizeNeedsRedirect) {
+        const canonicalParams = new URLSearchParams();
+        if (query) canonicalParams.set('query', query);
+        canonicalParams.set('page', String(page));
+        canonicalParams.set('pageSize', String(pageSize));
+        redirect(`/support?${canonicalParams.toString()}`);
+    }
+
+    return (<DirectoryTemplate
             className="mx-auto w-full max-w-7xl"
             title={<span className="flex items-center gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                        <BuildingOffice2Icon className="h-6 w-6" />
+                        <BuildingOffice2Icon className="h-6 w-6"/>
                     </span>
                     <span>{t('Hospital directory')}</span>
                 </span>}
@@ -57,7 +64,7 @@ export default async function Page({
             <DataTableShell
                 toolbar={<div className="border-b border-gray-100 p-5 sm:p-6">
                     <div className="max-w-xl">
-                        <Search placeholder={t('Search by name, type, city, or country')} />
+                        <Search placeholder={t('Search by name, type, city, or country')}/>
                     </div>
                 </div>}
                 footer={<div className="flex min-h-20 items-center justify-center px-1 py-1">
@@ -65,7 +72,8 @@ export default async function Page({
                         key={`pagination-${query}-${pageSize}`}
                         fallback={<HospitalPaginationSkeleton/>}
                     >
-                        <HospitalPaginationSection query={query} pageSize={pageSize} label={t('Rows per page')} />
+                        <HospitalPaginationSection totalPages={totalPages} pageSize={pageSize}
+                                                   label={t('Rows per page')}/>
                     </Suspense>
                 </div>}
             >
@@ -78,6 +86,5 @@ export default async function Page({
                 </Suspense>
 
             </DataTableShell>
-        </DirectoryTemplate>
-    )
+    </DirectoryTemplate>)
 }
