@@ -162,6 +162,8 @@ const th: Record<string, string> = {
   'Manage your hospital support network from one place.':
     'จัดการเครือข่ายโรงพยาบาลที่คุณดูแลได้จากที่เดียว',
   'Open dashboard': 'เปิดแดชบอร์ด',
+  'Dashboard preview on desktop': 'ตัวอย่างแดชบอร์ดบนเดสก์ท็อป',
+  'Dashboard preview on mobile': 'ตัวอย่างแดชบอร์ดบนมือถือ',
 };
 
 const en: Record<string, string> = {

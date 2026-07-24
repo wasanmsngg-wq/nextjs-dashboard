@@ -1,12 +1,17 @@
-import Pagination from '@/app/ui/invoices/pagination';
-import Search from '@/app/ui/search';
-import Table from '@/app/ui/invoices/table';
-import { CreateInvoice } from '@/app/ui/invoices/buttons';
-import { lusitana } from '@/app/ui/fonts';
-import { InvoicesTableSkeleton } from '@/app/ui/skeletons';
+import Pagination from '@/app/ui/molecules/pagination';
+import Search from '@/app/ui/molecules/search-field';
+import Table from '@/app/ui/features/invoices/invoice-list';
+import { CreateInvoice } from '@/app/ui/features/invoices/invoice-actions';
+import { InvoicesTableSkeleton } from '@/app/ui/features/invoices/invoice-list-skeleton';
 import { Suspense } from 'react';
-import {fetchInvoicesPages} from "@/app/lib/data";
+import {fetchFilteredInvoices, fetchInvoicesPages} from "@/app/lib/data";
 import { getTranslations } from '@/app/i18n/server';
+import { DirectoryTemplate } from '@/app/ui/templates/directory-template';
+
+async function InvoiceListSection({ query, currentPage }: { query: string; currentPage: number }) {
+  const invoices = await fetchFilteredInvoices(query, currentPage);
+  return <Table invoices={invoices} />;
+}
 
 export default async function Page(props: {
     searchParams?: Promise<{
@@ -20,14 +25,14 @@ export default async function Page(props: {
     const totalPages = await fetchInvoicesPages(query);
     const { t } = await getTranslations();
   return (
-    <div className="w-full">
-      <div className="flex w-full items-center justify-between">
-        <h1 className={`${lusitana.className} text-2xl`}>{t('Invoices')}</h1>
-      </div>
-      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
+    <DirectoryTemplate
+      title={t('Invoices')}
+      controls={<div className="flex items-center justify-between gap-2">
         <Search placeholder={t('Search invoices...')} />
         <CreateInvoice />
-      </div>
+      </div>}
+      footer={<div className="mt-5 flex w-full justify-center"><Pagination totalPages={totalPages} /></div>}
+    >
         <Suspense
           key={query + currentPage}
           fallback={
@@ -43,11 +48,8 @@ export default async function Page(props: {
             />
           }
         >
-        <Table query={query} currentPage={currentPage} />
+        <InvoiceListSection query={query} currentPage={currentPage} />
       </Suspense>
-      <div className="mt-5 flex w-full justify-center">
-        <Pagination totalPages={totalPages} />
-      </div>
-    </div>
+    </DirectoryTemplate>
   );
 }

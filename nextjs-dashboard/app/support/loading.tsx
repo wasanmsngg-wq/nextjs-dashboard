@@ -2,13 +2,11 @@ import {
   HospitalPaginationSkeleton,
   HospitalSearchSkeleton,
   HospitalSkeleton,
-} from '@/app/ui/skeletons';
-import RouteLoadingAnnouncer from '@/app/ui/route-loading-announcer';
+} from '@/app/ui/features/hospitals/hospital-list-skeleton';
 
 export default function Loading() {
   return (
     <main className="mx-auto w-full max-w-7xl">
-      <RouteLoadingAnnouncer />
       <div className="mb-8">
         <div className="flex items-center gap-3">
           <div className="h-11 w-11 animate-pulse rounded-xl bg-blue-50" />
