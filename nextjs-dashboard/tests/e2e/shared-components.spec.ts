@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 
 test('shared controls expose names, disabled state, focus, and non-color status text', async ({ page }) => {
   await page.goto('/dashboard/invoices');
@@ -100,3 +100,21 @@ test('pagination has accessible semantics', async ({ page }) => {
       pagination.getByRole('link', { name: /page 2/i }),
   ).toBeVisible();
 })
+test('search input has an associated accessible label', async ({page}) => {
+  await page.goto('/dashboard/invoices');
+
+  const input = page.getByRole('searchbox', {
+    name: 'Search',
+  });
+
+  await expect(input).toBeVisible();
+
+  const inputId = await input.getAttribute('id');
+
+  expect(inputId).toBeTruthy();
+
+  await expect(
+      page.locator(`label[for="${inputId}"]`),
+  ).toHaveText('Search');
+})
+
