@@ -1,12 +1,17 @@
 import {Hospital} from "@/app/lib/support/definitions";
-import { sql } from "@/app/lib/db";
-import { normalizeHospitalPageSize } from '@/app/lib/support/pagination';
+import {sql} from "@/app/lib/db";
+import {normalizeHospitalPageSize} from '@/app/lib/support/pagination';
 
 export async function fetchHospitals(
         query: string,
         page: number,
         pageSize: number,
 ){
+    if (!Number.isSafeInteger(page) || page < 1) {
+        throw new RangeError(
+            'currentPage must be a positive integer',
+        );
+    }
     try{
         const safePageSize = normalizeHospitalPageSize(pageSize);
         const offset = (page - 1) * safePageSize;

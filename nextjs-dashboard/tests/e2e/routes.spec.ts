@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 
 const routes = ['/', '/dashboard', '/dashboard/invoices', '/dashboard/customers', '/support'];
 const viewports = [{ width: 390, height: 844 }, { width: 768, height: 900 }, { width: 1280, height: 900 }];
@@ -37,6 +37,20 @@ test('URL controls preserve contracts', async ({ page }) => {
   await page.goto('/support?page=1&pageSize=25');
   await page.getByRole('link', { name: 'Page 2' }).click();
   await expect(page).toHaveURL(/page=2&pageSize=25/);
+});
+
+test('invalid pagination URLs are canonicalized', async ({page}) => {
+  await page.goto('/dashboard/invoices?query=alice&page=-1');
+  await expect(page).toHaveURL(
+      /\/dashboard\/invoices\?query=alice&page=1$/,
+  );
+  await expect(page.getByText(/server error/i)).toHaveCount(0);
+
+  await page.goto('/support?query=bangkok&page=-1&pageSize=999');
+  await expect(page).toHaveURL(
+      /\/support\?query=bangkok&page=1&pageSize=10$/,
+  );
+  await expect(page.getByLabel('Rows per page')).toHaveValue('10');
 });
 
 test('seed endpoint should not exist', async ({

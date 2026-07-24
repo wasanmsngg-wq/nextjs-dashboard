@@ -7,6 +7,8 @@ import {Suspense} from 'react';
 import {fetchFilteredInvoices, fetchInvoicesPages} from "@/app/lib/data";
 import {getTranslations} from '@/app/i18n/server';
 import {DirectoryTemplate} from '@/app/ui/templates/directory-template';
+import {normalizePage} from "@/app/lib/url-state";
+import {redirect} from "next/navigation";
 
 async function InvoiceListSection({query, currentPage}: Readonly<{ query: string; currentPage: number }>) {
     const invoices = await fetchFilteredInvoices(query, currentPage);
@@ -20,9 +22,21 @@ export default async function Page(props: Readonly<{
 }>) {
     const searchParams = await props.searchParams;
     const query = searchParams?.query || '';
-    const currentPage = Number(searchParams?.page) || 1;
+
     const totalPages = await fetchInvoicesPages(query);
     const {t} = await getTranslations();
+    const {page: currentPage, needsRedirect} = normalizePage(
+        searchParams?.page,
+        totalPages,
+    );
+
+    if (needsRedirect) {
+        const canonicalParams = new URLSearchParams();
+        if (query) canonicalParams.set('query', query);
+        canonicalParams.set('page', String(currentPage));
+        redirect(`/dashboard/invoices?${canonicalParams.toString()}`);
+    }
+
     return (<DirectoryTemplate
         title={t('Invoices')}
         controls={<div className="flex items-center justify-between gap-2">
