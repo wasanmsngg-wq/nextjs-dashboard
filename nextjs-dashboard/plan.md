@@ -305,7 +305,7 @@ Owner: Foundation developer. QA owns pipeline and accessibility smoke tests.
 Verification gate:
 
 - [x] A new developer can set up the app from documented steps.
-- [ ] CI passes from a clean checkout.
+- [x] CI passes from a clean checkout.
 - [x] Unauthorized users cannot read or mutate another user's data.
 - [x] Secrets and personal data are absent from logs, client bundles, and test
       fixtures.
