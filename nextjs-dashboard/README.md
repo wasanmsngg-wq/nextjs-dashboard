@@ -29,6 +29,24 @@ npm install
 npm run dev
 ```
 
+Authentication uses a single environment-configured administrator account.
+There is intentionally no registration flow. Configure these values in an
+ignored local environment file:
+
+```dotenv
+AUTH_SECRET=<random secret>
+AUTH_ADMIN_USERNAME=<administrator username>
+AUTH_ADMIN_PASSWORD_HASH=<bcrypt password hash>
+```
+
+The browser tests additionally read test login values from the ignored
+`.env.auth.local` file:
+
+```dotenv
+AUTH_TEST_USERNAME=<administrator username>
+AUTH_TEST_PASSWORD=<administrator password>
+```
+
 Verification:
 
 ```bash

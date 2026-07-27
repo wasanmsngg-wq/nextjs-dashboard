@@ -12,12 +12,14 @@ import Pagination from '@/app/ui/molecules/pagination';
 import {DataTableShell} from '@/app/ui/organisms/data-table-shell';
 import {normalizePage} from '@/app/lib/url-state';
 import {redirect} from 'next/navigation';
+import {auth} from '@/auth';
+import {canManageHospitals} from '@/app/lib/authorization';
 
-async function HospitalListSection({query, page, pageSize}: Readonly<{
-    query: string; page: number; pageSize: number
+async function HospitalListSection({query, page, pageSize, canManage}: Readonly<{
+    query: string; page: number; pageSize: number; canManage: boolean
 }>) {
     const hospitals = await fetchHospitals(query, page, pageSize);
-    return <HospitalManager hospitals={hospitals} pageSize={pageSize}/>;
+    return <HospitalManager hospitals={hospitals} pageSize={pageSize} canManage={canManage}/>;
 }
 
 async function HospitalPaginationSection({totalPages, pageSize, label}: Readonly<{
@@ -36,6 +38,9 @@ export default async function Page({
     }>
 }>) {
     const params = await searchParams;
+    const session = await auth();
+    if (!session) redirect('/login?callbackUrl=/support');
+
     const {t} = await getTranslations();
     const query = params.query ?? '';
     const pageSize = normalizeHospitalPageSize(params.pageSize);
@@ -82,7 +87,8 @@ export default async function Page({
                     key={`table-${query}-${page}-${pageSize}`}
                     fallback={<HospitalSkeleton pageSize={pageSize}/>}
                 >
-                    <HospitalListSection page={page} pageSize={pageSize} query={query}/>
+                    <HospitalListSection page={page} pageSize={pageSize} query={query}
+                                         canManage={canManageHospitals(session)}/>
                 </Suspense>
 
             </DataTableShell>

@@ -29,7 +29,11 @@ test('locale persists and navigation supports keyboard dismissal', async ({ page
 
 test('URL controls preserve contracts', async ({ page }) => {
   await page.goto('/dashboard/invoices?page=2');
-  await page.getByPlaceholder('Search invoices...').fill('alice');
+  const invoiceSearch = page.getByPlaceholder('Search invoices...');
+  await expect.poll(() => invoiceSearch.evaluate((input) =>
+    Object.keys(input).some((key) => key.startsWith('__reactProps')),
+  )).toBe(true);
+  await invoiceSearch.fill('alice');
   await expect(page).toHaveURL(/page=1&query=alice/);
   await page.goto('/support?query=bangkok&page=3&pageSize=10');
   await page.getByLabel('Rows per page').selectOption('25');
@@ -56,13 +60,5 @@ test('invalid pagination URLs are canonicalized', async ({page}) => {
 test('seed endpoint should not exist', async ({
     request}) => {
     const response = await request.get('/seed');
-
-    console.log({
-      url: response.url(),
-      status: response.status(),
-      statusText: response.statusText(),
-      headers: response.headers(),
-      body: await response.text(),
-    });
     expect(response.status()).toBe(404);
 })
