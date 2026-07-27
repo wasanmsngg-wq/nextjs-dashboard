@@ -61,7 +61,9 @@ const th: Record<string, string> = {
   "Not set": "ไม่ได้ตั้งค่า",
   "No guest profile found.": "ไม่พบโปรไฟล์ผู้เยี่ยมชม",
   "Export JSON": "ส่งออก JSON",
+  "Guest export downloaded.": "ดาวน์โหลดข้อมูลผู้เยี่ยมชมแล้ว",
   "Confirm import": "ยืนยันการนำเข้า",
+  "Importing…": "กำลังนำเข้า…",
   "Clear guest data": "ล้างข้อมูลผู้เยี่ยมชม",
   "Guest data cleared from this browser.":
     "ล้างข้อมูลผู้เยี่ยมชมจากเบราว์เซอร์นี้แล้ว",

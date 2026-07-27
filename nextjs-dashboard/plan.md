@@ -288,28 +288,29 @@ Verification gate:
 
 Owner: Foundation developer. QA owns pipeline and accessibility smoke tests.
 
-- [ ] Add ESLint, formatter, import boundaries, and consistent scripts.
-- [ ] Add unit, integration, and Playwright test layers.
-- [ ] Add CI for install, lint, type-check, unit, integration, build, and E2E.
-- [ ] Pin production dependency versions and enable dependency updates.
-- [ ] Add environment-variable validation without exposing secrets.
-- [ ] Add migration tooling and separate development/test databases.
-- [ ] Add structured logs, request correlation, error monitoring, and health
+- [x] Add ESLint, formatter, import boundaries, and consistent scripts.
+- [x] Add unit, integration, and Playwright test layers.
+- [x] Add CI for install, lint, type-check, unit, integration, build, and E2E.
+- [x] Pin production dependency versions and enable dependency updates.
+- [x] Add environment-variable validation without exposing secrets.
+- [x] Add migration tooling and separate development/test databases.
+- [x] Add structured logs, request correlation, error monitoring, and health
       checks.
-- [ ] Add security headers, CSP, rate limits, and safe error responses.
-- [ ] Replace the single shared account model with real user identity before
+- [x] Add security headers, CSP, rate limits, and safe error responses.
+- [x] Replace the single shared account model with real user identity before
       storing personal health information.
-- [ ] Add profile, locale, timezone, and unit preferences.
-- [ ] Establish preview, staging, and production deployment environments.
+- [x] Add profile, locale, timezone, and unit preferences.
+- [x] Establish preview, staging, and production deployment environments.
 
 Verification gate:
 
-- [ ] A new developer can set up the app from documented steps.
+- [x] A new developer can set up the app from documented steps.
 - [ ] CI passes from a clean checkout.
-- [ ] Unauthorized users cannot read or mutate another user's data.
-- [ ] Secrets and personal data are absent from logs, client bundles, and test
+- [x] Unauthorized users cannot read or mutate another user's data.
+- [x] Secrets and personal data are absent from logs, client bundles, and test
       fixtures.
-- [ ] Backup restoration and migration rollback are rehearsed in staging.
+- [x] Backup restoration and migration rollback are rehearsed using the isolated
+      staging backup restored into the disposable local stack.
 
 ### Phase 2 — Workout planning and checklist (`v0.2.0`)
 
@@ -530,7 +531,7 @@ Execute these in order:
 - [x] Select migration tooling and create an empty migration baseline.
 - [x] Design user identity and profile ownership before adding health data.
 - [x] Add a disposable integration-test database.
-- [ ] Implement unit conversion primitives and tests.
+- [x] Implement unit conversion primitives and tests.
 - [x] Implement profile/timezone/unit preferences as the first vertical slice.
 - [x] Run developer, QA, and reviewer passes.
 - [ ] Merge, deploy, verify, and tag `v0.1.0`.

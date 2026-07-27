@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { GUEST_STORAGE_KEY, type GuestDataEnvelopeV1 } from "@/app/domain";
 import {
   parseGuestExportJson,
@@ -16,6 +16,7 @@ export function GuestImport({ canImport }: { canImport: boolean }) {
   const [pendingEnvelope, setPendingEnvelope] =
     useState<GuestDataEnvelopeV1 | null>(null);
   const [message, setMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
   const reviewedEnvelope = pendingEnvelope ?? envelope;
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -83,8 +84,11 @@ export function GuestImport({ canImport }: { canImport: boolean }) {
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = `exercise-tracker-guest-${reviewedEnvelope.exportId}.json`;
+    document.body.appendChild(anchor);
+    setMessage(t("Guest export downloaded."));
     anchor.click();
-    URL.revokeObjectURL(url);
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
   async function confirmImport() {
     if (!reviewedEnvelope) return;
@@ -167,19 +171,27 @@ export function GuestImport({ canImport }: { canImport: boolean }) {
       <div className="flex flex-wrap gap-3">
         {reviewedEnvelope ? (
           <>
-            <button onClick={download} className="rounded border px-4 py-2">
+            <button
+              type="button"
+              onClick={download}
+              className="rounded border px-4 py-2"
+            >
               {t("Export JSON")}
             </button>
             {canImport || pendingEnvelope ? (
               <button
-                onClick={confirmImport}
+                type="button"
+                onClick={() => startTransition(confirmImport)}
+                disabled={isPending}
                 className="rounded bg-blue-600 px-4 py-2 text-white"
               >
-                {t("Confirm import")}
+                {isPending ? t("Importing…") : t("Confirm import")}
               </button>
             ) : null}
             <button
+              type="button"
               onClick={clear}
+              disabled={isPending}
               className="rounded border border-red-600 px-4 py-2 text-red-700"
             >
               {t("Clear guest data")}

@@ -131,3 +131,41 @@ test("JSON import is reviewed before replacing valid browser data", async ({
     ),
   ).toEqual(imported);
 });
+
+test("guest export and clear controls complete with visible feedback", async ({
+  page,
+}) => {
+  const envelope = {
+    schemaVersion: 1,
+    exportId: "30000000-0000-4000-8000-000000000003",
+    exportedAt: "2026-07-27T00:00:00.000Z",
+    profile: {
+      displayName: "Exportable",
+      locale: "en",
+      timezone: "UTC",
+      unitSystem: "metric",
+    },
+  };
+  await page.goto("/");
+  await page.evaluate(
+    ([key, value]) => localStorage.setItem(key, value),
+    [storageKey, JSON.stringify(envelope)],
+  );
+  await page.goto("/onboarding/import");
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export JSON" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe(
+    `exercise-tracker-guest-${envelope.exportId}.json`,
+  );
+  await expect(page.getByText("Guest export downloaded.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Clear guest data" }).click();
+  await expect(
+    page.getByText("Guest data cleared from this browser."),
+  ).toBeVisible();
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), storageKey),
+  ).toBeNull();
+});

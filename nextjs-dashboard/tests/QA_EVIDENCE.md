@@ -15,9 +15,9 @@ connections are used by this test suite.
 | Local-only safety   | Reject configured remote database and Supabase URLs during tests                                                      | `tests/local-supabase-guard.test.mjs`                    | Implemented                            |
 | Database behavior   | Reset, profile ownership, admin customer/revenue access, self-escalation denial, guest import retry/rollback          | `tests/integration/database.test.mjs`                    | Implemented and passing                |
 | Guest behavior      | Persistence, corruption/version/storage/quota handling, warnings, export/import/clear                                 | Unit and Playwright suites                               | Implemented                            |
-| Authentication      | Entry points, callback allowlisting, safe invalid confirmation                                                        | `tests/e2e/auth.spec.ts`                                 | Implemented (delivery fixture pending) |
+| Authentication      | Signup, login, recovery/update-password entry points, callback allowlisting, and safe invalid confirmation            | Unit, contract, Playwright, and hosted owner checks      | Implemented; recovery delivery pending |
 | Authorization       | Admin RLS, profile isolation, and old-route concealment                                                               | Integration and Playwright                               | Implemented                            |
-| Localization        | Complete English and Thai states                                                                                      | Manual/Playwright                                        | Follow-up required                     |
+| Localization        | Complete English and Thai states                                                                                      | Unit and Playwright                                      | Implemented                            |
 | Accessibility       | WCAG A/AA automated scans and keyboard/responsive checks                                                              | `tests/e2e/accessibility.spec.ts`                        | Implemented (manual AA pending)        |
 | Responsive/browser  | Chromium, Firefox, WebKit, Pixel-sized, and iPhone-sized smoke                                                        | `playwright.config.ts`                                   | Implemented                            |
 | Security operations | CSP nonce, transport/security headers, generic health responses, production env validation                            | Unit and Playwright                                      | Implemented                            |
@@ -44,15 +44,15 @@ connections are used by this test suite.
 - [x] Unit and contract tests
 - [x] Local Supabase reset and live RLS integration tests
 - [x] Production build
-- [x] All Playwright projects (80/80)
+- [x] All Playwright projects (100/100)
 - [x] Production dependency audit (no high/critical advisories)
 - [x] `git diff --check`
 - [x] No unresolved critical/high authorization, migration, security, or integrity finding
-- [ ] Custom SMTP configured
-- [ ] Distributed rate limiter configured
-- [ ] Monitoring configured
-- [ ] Branch protection configured
-- [ ] Staging backup/restore evidence recorded
+- [ ] Custom SMTP configured (deferred to production hardening)
+- [ ] Distributed rate limiter configured (deferred to production hardening)
+- [ ] Monitoring configured (deferred to production hardening)
+- [x] Branch protection configured
+- [x] Staging backup/restore evidence recorded
 
 ## Hosted-environment configuration incident
 
@@ -92,7 +92,7 @@ recovery completed:
 The January and February values previously upserted on the shared project cannot
 be reconstructed without pre-change evidence, but the owner confirmed that old
 data does not matter. Administrator bootstrap and authenticated browser testing
-remain pending until the selected user completes signup.
+were completed using the owner's isolated-staging identity.
 
 An initial signup retry exposed duplicate Vercel variable definitions: the
 integration-provided shared value won over the Preview override and created one
@@ -106,9 +106,13 @@ bootstrapped in `admins`.
 
 ## Current findings
 
-1. Signup verification delivery, recovery delivery, session refresh, and authenticated
-   browser happy paths still need isolated Supabase test-user fixtures.
-2. Complete English/Thai localization and manual WCAG 2.2 AA inspection remain
-   release follow-up work.
-3. The required custom SMTP, distributed rate limiter, monitoring, branch protection,
-   and staging backup evidence remain release blockers by design.
+1. Signup verification, login, and authenticated administrator access were
+   exercised by the owner against isolated Preview. Recovery delivery and session
+   refresh still need a controlled hosted test.
+2. English/Thai localization and automated WCAG A/AA scans are complete. Manual
+   WCAG 2.2 AA inspection remains before this release can be declared accessible.
+3. Custom SMTP, distributed rate limiting, and monitoring are explicitly deferred
+   to production hardening. Production environment validation continues to reject
+   missing distributed rate limiting and monitoring configuration.
+4. Merge, production deployment, migration, and tagging are outside this draft-PR
+   phase and remain deferred.

@@ -35,7 +35,6 @@ Each feature issue must contain:
 
 - Production foundation and isolated environments (existing issue #19).
 - Complete hosted authentication and profile acceptance.
-- Configure custom SMTP, distributed rate limiting, and monitoring.
 - Rehearse staging backup restore and record RPO/RTO evidence.
 - Complete EN/TH and manual WCAG 2.2 AA foundation review.
 - Enable branch protection and obtain independent approval.
@@ -74,6 +73,8 @@ Each feature issue must contain:
 
 ### `v0.9.0`
 
+- Configure custom SMTP, distributed rate limiting, and monitoring before the
+  first production release.
 - Threat model and authorization review.
 - Security, secret, dependency, and migration scans.
 - WCAG 2.2 AA manual audit and browser/device matrix.
