@@ -8,6 +8,7 @@ import {
   HOSPITAL_TYPES,
   OWNERSHIP_TYPES,
 } from '@/app/lib/support/definitions';
+import { isHospitalAdmin } from '@/app/lib/authorization';
 
 const optionalText = z.union([
   z.string().trim().transform((value) => value || null),
@@ -59,6 +60,10 @@ function databaseMessage(error: unknown) {
 export async function createHospital(
   values: unknown,
 ): Promise<HospitalActionResult> {
+  if (!(await isHospitalAdmin())) {
+    return { success: false, message: 'You are not authorized to manage hospitals.' };
+  }
+
   const parsed = hospitalSchema.safeParse(values);
   if (!parsed.success) {
     return { success: false, message: 'Please check the highlighted fields.' };
@@ -92,6 +97,10 @@ export async function updateHospital(
   hospitalId: number | string,
   values: unknown,
 ): Promise<HospitalActionResult> {
+  if (!(await isHospitalAdmin())) {
+    return { success: false, message: 'You are not authorized to manage hospitals.' };
+  }
+
   const id = Number(hospitalId);
   if (!Number.isSafeInteger(id) || id <= 0) {
     return { success: false, message: 'Invalid hospital.' };
@@ -142,6 +151,10 @@ export async function updateHospital(
 export async function deleteHospital(
   hospitalId: number | string,
 ): Promise<HospitalActionResult> {
+  if (!(await isHospitalAdmin())) {
+    return { success: false, message: 'You are not authorized to manage hospitals.' };
+  }
+
   const id = Number(hospitalId);
   if (!Number.isSafeInteger(id) || id <= 0) {
     return { success: false, message: 'Invalid hospital.' };

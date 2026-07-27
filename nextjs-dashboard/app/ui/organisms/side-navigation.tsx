@@ -7,6 +7,7 @@ import { DocumentDuplicateIcon, HeartIcon, HomeIcon, PowerIcon, UserGroupIcon, X
 import AcmeLogo from '@/app/ui/acme-logo';
 import { useI18n } from '@/app/i18n/provider';
 import { IconButton } from '@/app/ui/atoms/icon-button';
+import { logout } from '@/app/lib/auth-actions';
 
 const links = [
   { name: 'Home', href: '/dashboard', icon: HomeIcon },
@@ -24,7 +25,7 @@ export function SideNavigation({ open, onClose }: { open: boolean; onClose: () =
       <nav aria-label={t('Open navigation')} className="flex h-[calc(100vh-4rem)] flex-col px-3 py-4">
         {links.map(({ name, href, icon: Icon }) => <Link key={href} href={href} prefetch={false} onClick={onClose} className={clsx('flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-sky-50 hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500', pathname === href && 'bg-sky-100 text-blue-600')}><Icon className="w-6" /><span>{t(name)}</span></Link>)}
         <div className="grow" />
-        <form><button className="flex h-12 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-sky-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><PowerIcon className="w-6" /><span>{t('Sign Out')}</span></button></form>
+        <form action={logout}><button type="submit" className="flex h-12 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-sky-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><PowerIcon className="w-6" /><span>{t('Sign Out')}</span></button></form>
       </nav>
     </aside>
   );

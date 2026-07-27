@@ -56,9 +56,11 @@ function normalise(values: HospitalInput): HospitalInput {
 export default function HospitalManager({
   hospitals,
   pageSize,
+  canManage,
 }: {
   hospitals: Hospital[];
   pageSize: number;
+  canManage: boolean;
 }) {
   const router = useRouter();
   const { t } = useI18n();
@@ -144,16 +146,18 @@ export default function HospitalManager({
             {t('{count} shown on this page', { count: hospitals.length })}
           </div>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusIcon className="h-4 w-4" />}
-          onClick={openCreate}
-        >
-          {t('Add hospital')}
-        </Button>
+        {canManage ? (
+          <Button
+            type="primary"
+            icon={<PlusIcon className="h-4 w-4" />}
+            onClick={openCreate}
+          >
+            {t('Add hospital')}
+          </Button>
+        ) : null}
       </div>
 
-      <HospitalTable hospitals={hospitals} pageSize={pageSize} pending={isPending} onCreate={openCreate} onView={setViewing} onEdit={openEdit} onDelete={setDeleteTarget} />
+      <HospitalTable hospitals={hospitals} pageSize={pageSize} pending={isPending} canManage={canManage} onCreate={openCreate} onView={setViewing} onEdit={openEdit} onDelete={setDeleteTarget} />
 
       <Modal
         title={
@@ -192,7 +196,7 @@ export default function HospitalManager({
         onClose={() => setViewing(null)}
         styles={{ body: { padding: 0 } }}
         extra={
-          viewing ? (
+          viewing && canManage ? (
             <Button
               icon={<PencilSquareIcon className="h-4 w-4" />}
               onClick={() => openEdit(viewing)}

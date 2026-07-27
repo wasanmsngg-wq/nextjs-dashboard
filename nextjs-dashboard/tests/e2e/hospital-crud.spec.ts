@@ -1,14 +1,24 @@
 import { expect, test } from '@playwright/test';
 
 test('hospital create, view, edit, and delete workflow', async ({ page }, testInfo) => {
-  const name = `Atomic QA ${testInfo.project.name}`;
+  const name = `Atomic QA ${testInfo.project.name} ${Date.now()}`;
   await page.goto('/support?pageSize=10');
   await page.getByRole('button', { name: 'Add hospital' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Hospital name').fill(name);
-  for (const [index, option] of [[0, 'General'], [1, 'Private']] as const) {
-    await dialog.locator('.ant-select').nth(index).click();
-    await page.locator('.ant-select-item-option').filter({ hasText: option }).click();
+  for (const [label, option] of [['Hospital type', 'General'], ['Ownership', 'Private']] as const) {
+    const formItem = dialog.locator('.ant-form-item').filter({ hasText: label }).first();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await formItem.locator('.ant-select').click();
+      await page
+        .locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option')
+        .filter({ hasText: option })
+        .click();
+      if ((await formItem.textContent())?.includes(option)) break;
+    }
+
+    await expect(formItem).toContainText(option);
   }
   await dialog.getByLabel('Bed capacity').fill('42');
   await dialog.getByLabel('Street address').fill('123 QA Road');
@@ -17,6 +27,7 @@ test('hospital create, view, edit, and delete workflow', async ({ page }, testIn
   await dialog.getByRole('textbox', { name: 'Postal code', exact: true }).fill('10110');
   await dialog.getByRole('button', { name: 'Create hospital' }).click();
   await expect(page.getByText(name, { exact: true })).toBeVisible();
+  await expect(dialog).toBeHidden();
   await page.getByRole('button', { name: `${name} Bangkok, Thailand` }).click();
   await expect(page.getByText('Hospital profile', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Edit', exact: true }).click();
