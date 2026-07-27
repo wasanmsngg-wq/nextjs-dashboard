@@ -4,8 +4,21 @@ import { readServerEnv } from "@/app/lib/env";
 
 export async function proxy(request: NextRequest) {
   const env = readServerEnv();
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  if (env.APP_ENV === "preview" && env.NEXT_PUBLIC_SITE_URL) {
+    const canonicalOrigin = new URL(env.NEXT_PUBLIC_SITE_URL).origin;
+    if (request.nextUrl.origin !== canonicalOrigin) {
+      const canonicalUrl = new URL(
+        `${request.nextUrl.pathname}${request.nextUrl.search}`,
+        canonicalOrigin,
+      );
+      const canonicalResponse = NextResponse.redirect(canonicalUrl, 307);
+      canonicalResponse.headers.set("Cache-Control", "no-store");
+      canonicalResponse.headers.set("X-Request-Id", requestId);
+      return canonicalResponse;
+    }
+  }
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("x-request-id", requestId);
