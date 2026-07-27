@@ -47,7 +47,6 @@ sport-specific needs to consult an appropriately qualified professional.
 - Calorie and protein target calculators.
 - Dashboard summary for today's workout and nutrition progress.
 - English and Thai localization for all user-facing MVP content.
-- Data export and account deletion.
 
 ### Later releases
 
@@ -56,6 +55,7 @@ sport-specific needs to consult an appropriately qualified professional.
 - Social features, coaching, subscriptions, and shared plans.
 - AI-generated recommendations.
 - Offline-first synchronization.
+- Full account export and permanent account deletion.
 
 These later items require separate discovery, privacy review, threat modeling,
 and release plans. They must not be silently added to the MVP.
@@ -232,7 +232,7 @@ Data rules:
 - [ ] Store weight in grams or decimal kilograms, distance in meters, energy in
       integer kilocalories, and time in seconds.
 - [ ] Store a snapshot of mutable exercise/food facts used by historical logs.
-- [ ] Define whether a user's "day" is determined by their saved timezone.
+- [x] Define whether a user's "day" is determined by their saved timezone.
 - [ ] Make workout completion and meal logging idempotent.
 - [ ] Add uniqueness and range constraints in both validation and PostgreSQL.
 - [ ] Use transactions for multi-row template, workout, and meal mutations.
@@ -270,19 +270,19 @@ Checklist:
 
 Owner: Lead, with QA and reviewer input.
 
-- [ ] Write user stories for workout, performance, nutrition, and calculators.
-- [ ] Define supported devices, browsers, locales, timezones, and units.
-- [ ] Define MVP nutrient list and source of nutrient reference values.
-- [ ] Decide data retention, export format, deletion behavior, and legal copy.
-- [ ] Create low-fidelity workflows and keyboard interaction notes.
-- [ ] Record non-goals and defer third-party integrations.
-- [ ] Create the issue and milestone structure.
+- [x] Write user stories for workout, performance, nutrition, and calculators.
+- [x] Define supported devices, browsers, locales, timezones, and units.
+- [x] Define MVP nutrient list and source of nutrient reference values.
+- [x] Decide data retention, export format, deletion behavior, and legal copy.
+- [x] Create low-fidelity workflows and keyboard interaction notes.
+- [x] Record non-goals and defer third-party integrations.
+- [x] Create the issue and milestone structure.
 
 Verification gate:
 
-- [ ] Every MVP story has observable acceptance criteria.
-- [ ] Every sensitive field has a reason, retention rule, and deletion path.
-- [ ] No unresolved product decision blocks the schema.
+- [x] Every MVP story has observable acceptance criteria.
+- [x] Every sensitive field has a reason, retention rule, and deletion path.
+- [x] No unresolved product decision blocks the schema.
 
 ### Phase 1 — Production foundation (`v0.1.0`)
 
@@ -524,13 +524,13 @@ Rollback:
 
 Execute these in order:
 
-- [ ] Create the `v0.1.0` milestone and foundation issues.
-- [ ] Create `feature/<issue>-production-foundation` from `main`.
-- [ ] Add linting, formatting, type-check, and CI scripts.
-- [ ] Select migration tooling and create an empty migration baseline.
-- [ ] Design user identity and profile ownership before adding health data.
-- [ ] Add a disposable integration-test database.
+- [x] Create the `v0.1.0` milestone and foundation issues.
+- [x] Create `feature/<issue>-production-foundation` from `main`.
+- [x] Add linting, formatting, type-check, and CI scripts.
+- [x] Select migration tooling and create an empty migration baseline.
+- [x] Design user identity and profile ownership before adding health data.
+- [x] Add a disposable integration-test database.
 - [ ] Implement unit conversion primitives and tests.
-- [ ] Implement profile/timezone/unit preferences as the first vertical slice.
-- [ ] Run developer, QA, and reviewer passes.
+- [x] Implement profile/timezone/unit preferences as the first vertical slice.
+- [x] Run developer, QA, and reviewer passes.
 - [ ] Merge, deploy, verify, and tag `v0.1.0`.
