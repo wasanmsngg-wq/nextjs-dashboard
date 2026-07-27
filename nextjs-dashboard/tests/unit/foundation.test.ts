@@ -36,6 +36,15 @@ describe("foundation security contracts", () => {
         VERCEL_URL: "exercise-tracker-review.vercel.app",
       }),
     ).toBe("https://exercise-tracker-review.vercel.app");
+    expect(
+      resolveSiteUrl({
+        ...publicEnv,
+        NEXT_PUBLIC_SITE_URL: undefined,
+        NODE_ENV: "production",
+        VERCEL_ENV: "preview",
+        VERCEL_URL: "automatic-review.vercel.app",
+      }),
+    ).toBe("https://automatic-review.vercel.app");
     expect(() =>
       resolveSiteUrl({
         NEXT_PUBLIC_SUPABASE_URL: "https://staging.supabase.co",

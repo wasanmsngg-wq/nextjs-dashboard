@@ -12,6 +12,7 @@ const serverSchema = publicSchema.extend({
     .enum(["development", "test", "production"])
     .default("development"),
   APP_ENV: z.enum(["development", "test", "preview", "production"]).optional(),
+  VERCEL_ENV: z.enum(["development", "preview", "production"]).optional(),
   RATE_LIMIT_ADAPTER: z.enum(["memory", "distributed"]).default("memory"),
   ERROR_REPORTER_ADAPTER: z.enum(["console", "sentry"]).default("console"),
 });
@@ -48,11 +49,14 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
       `Invalid server environment configuration: ${formatError(parsed.error)}`,
     );
   }
-  if (parsed.data.NODE_ENV === "production" && !parsed.data.APP_ENV) {
-    throw new Error("APP_ENV is required when NODE_ENV is production.");
+  const appEnvironment = parsed.data.APP_ENV ?? parsed.data.VERCEL_ENV;
+  if (parsed.data.NODE_ENV === "production" && !appEnvironment) {
+    throw new Error(
+      "APP_ENV is required outside Vercel when NODE_ENV is production.",
+    );
   }
   if (
-    parsed.data.APP_ENV === "production" &&
+    appEnvironment === "production" &&
     (parsed.data.RATE_LIMIT_ADAPTER !== "distributed" ||
       parsed.data.ERROR_REPORTER_ADAPTER !== "sentry")
   ) {
@@ -61,14 +65,14 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
     );
   }
   if (
-    parsed.data.APP_ENV === "production" &&
+    appEnvironment === "production" &&
     (!parsed.data.NEXT_PUBLIC_SITE_URL ||
       new URL(parsed.data.NEXT_PUBLIC_SITE_URL).hostname === "localhost" ||
       new URL(parsed.data.NEXT_PUBLIC_SUPABASE_URL).hostname === "127.0.0.1")
   ) {
     throw new Error("Production URLs must not point to local services.");
   }
-  return parsed.data;
+  return { ...parsed.data, APP_ENV: appEnvironment };
 }
 
 export function resolveSiteUrl(input: EnvironmentInput = process.env) {
