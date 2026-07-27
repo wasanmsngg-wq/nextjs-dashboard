@@ -54,27 +54,26 @@ connections are used by this test suite.
 - [ ] Branch protection configured
 - [ ] Staging backup/restore evidence recorded
 
-## Isolated staging rehearsal
+## Hosted-environment configuration incident
 
-Rehearsed on 2026-07-27 against the isolated Supabase project used only by the
-Vercel Preview environment:
+On 2026-07-27, preflight checks confirmed that the local database target and
+Vercel Preview public URL both resolved to project `rnmzyccanuwacsxqpzez`.
+Migration `20260727050000_production_foundation.sql` and the synthetic seed were
+then applied to that target.
 
-- confirmed the local database URL and Preview public URL resolve to the same
-  staging project before applying changes;
-- dry-ran and then applied migration `20260727050000_production_foundation.sql`;
-- loaded only the committed synthetic seed (`8` customers and `12` revenue rows);
-- confirmed remote and local migration history match;
-- confirmed database lint reports no schema errors;
-- confirmed RLS is enabled on `user_profiles`, `admins`, `guest_imports`,
-  `customers`, and `revenue`, with nine public-schema policies installed;
-- confirmed no profiles or administrators were created by the seed;
-- confirmed the Vercel Preview readiness endpoint returns `{"status":"ready"}`;
-- rendered the landing, authentication, guest dashboard, profile, liveness, and
-  readiness routes through Vercel deployment protection without middleware errors.
+After Supabase management access became available, project inventory showed the
+intended isolated Preview project is `qfnobrywiouxiaoirhgg`. A subsequent
+read-only check showed both Vercel Preview and Production were configured for
+`rnmzyccanuwacsxqpzez`; Preview was therefore not isolated as represented.
 
-Production was not connected to or modified. Auth redirect allowlisting and the
-first staging administrator still require trusted Supabase management access and
-an explicitly selected administrator identity.
+Further hosted database mutations stopped immediately. The affected target had
+six pre-existing customers and ten pre-existing revenue rows; the seed added two
+synthetic rows to each table. The migration also removed legacy `public.users`,
+installed the Phase 1 schema, and enabled RLS. Recovery or roll-forward action
+must be selected using Supabase backup evidence before any further change.
+
+The intended Preview project remains unmigrated. Auth redirect configuration,
+administrator bootstrap, and hosted authentication testing remain pending.
 
 ## Current findings
 
