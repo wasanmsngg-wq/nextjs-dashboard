@@ -66,11 +66,13 @@ intended isolated Preview project is `qfnobrywiouxiaoirhgg`. A subsequent
 read-only check showed both Vercel Preview and Production were configured for
 `rnmzyccanuwacsxqpzez`; Preview was therefore not isolated as represented.
 
-Further hosted database mutations stopped immediately. The affected target had
-six pre-existing customers and ten pre-existing revenue rows; the seed added two
-synthetic rows to each table. The migration also removed legacy `public.users`,
-installed the Phase 1 schema, and enabled RLS. Recovery or roll-forward action
-must be selected using Supabase backup evidence before any further change.
+Further hosted database mutations stopped immediately. The affected target now
+has eight customers, including the two deterministic synthetic customer IDs, and
+twelve revenue rows. The seed upserted January and February revenue, so without a
+pre-change backup it is not possible to prove whether those rows were inserted or
+overwritten. The migration also removed legacy `public.users`, installed the
+Phase 1 schema, and enabled RLS. Recovery or roll-forward action must be selected
+before any further change.
 
 The intended Preview project remains unmigrated. Auth redirect configuration,
 administrator bootstrap, and hosted authentication testing remain pending.
