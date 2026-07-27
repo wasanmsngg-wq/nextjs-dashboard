@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GUEST_STORAGE_KEY, type GuestDataEnvelopeV1 } from "@/app/domain";
 import { readGuestEnvelope } from "@/app/features/profile/data/guest-profile-store";
@@ -82,29 +83,33 @@ export function GuestImport({ canImport }: { canImport: boolean }) {
         <p>No guest profile found.</p>
       )}
       <div className="flex flex-wrap gap-3">
-        <button
-          onClick={download}
-          disabled={!envelope}
-          className="rounded border px-4 py-2"
-        >
-          Export JSON
-        </button>
-        {canImport ? (
-          <button
-            onClick={confirmImport}
-            disabled={!envelope}
-            className="rounded bg-blue-600 px-4 py-2 text-white"
-          >
-            Confirm import
-          </button>
+        {envelope ? (
+          <>
+            <button onClick={download} className="rounded border px-4 py-2">
+              Export JSON
+            </button>
+            {canImport ? (
+              <button
+                onClick={confirmImport}
+                className="rounded bg-blue-600 px-4 py-2 text-white"
+              >
+                Confirm import
+              </button>
+            ) : null}
+            <button
+              onClick={clear}
+              className="rounded border border-red-600 px-4 py-2 text-red-700"
+            >
+              Clear guest data
+            </button>
+          </>
         ) : null}
-        <button
-          onClick={clear}
-          disabled={!envelope}
-          className="rounded border border-red-600 px-4 py-2 text-red-700"
+        <Link
+          href="/dashboard"
+          className="rounded border border-blue-600 px-4 py-2 text-blue-700"
         >
-          Clear guest data
-        </button>
+          Continue to dashboard
+        </Link>
       </div>
       <p aria-live="polite">{message}</p>
     </section>

@@ -44,4 +44,13 @@ test("malformed guest data is reported and can be cleared safely", async ({
   await expect(
     page.getByRole("button", { name: "Confirm import" }),
   ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Export JSON" })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("button", { name: "Clear guest data" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Continue to dashboard" }),
+  ).toBeVisible();
 });
