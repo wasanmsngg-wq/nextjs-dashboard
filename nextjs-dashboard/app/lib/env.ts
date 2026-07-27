@@ -5,6 +5,16 @@ const publicSchema = z.object({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(20),
 });
 
+const publicEnvironment = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_PREVIEW_SUPABASE_URL:
+    process.env.NEXT_PUBLIC_PREVIEW_SUPABASE_URL,
+  NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY:
+    process.env.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY,
+};
+
 const serverSchema = publicSchema.extend({
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
   VERCEL_URL: z.string().min(1).optional(),
@@ -23,8 +33,23 @@ function formatError(error: z.ZodError) {
 
 type EnvironmentInput = Record<string, string | undefined>;
 
-export function readPublicEnv(input: EnvironmentInput = process.env) {
-  const parsed = publicSchema.safeParse(input);
+function preferIsolatedPreview(input: EnvironmentInput): EnvironmentInput {
+  if (
+    input.NEXT_PUBLIC_PREVIEW_SUPABASE_URL &&
+    input.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY
+  ) {
+    return {
+      ...input,
+      NEXT_PUBLIC_SUPABASE_URL: input.NEXT_PUBLIC_PREVIEW_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+        input.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY,
+    };
+  }
+  return input;
+}
+
+export function readPublicEnv(input: EnvironmentInput = publicEnvironment) {
+  const parsed = publicSchema.safeParse(preferIsolatedPreview(input));
   if (!parsed.success) {
     throw new Error(
       `Invalid public environment configuration: ${formatError(parsed.error)}`,
@@ -43,7 +68,7 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
     throw new Error("Secret-like values must not use the NEXT_PUBLIC_ prefix.");
   }
 
-  const parsed = serverSchema.safeParse(input);
+  const parsed = serverSchema.safeParse(preferIsolatedPreview(input));
   if (!parsed.success) {
     throw new Error(
       `Invalid server environment configuration: ${formatError(parsed.error)}`,
