@@ -6,18 +6,22 @@ import AcmeLogo from "@/app/ui/acme-logo";
 import { useI18n } from "@/app/i18n/provider";
 import { IconButton } from "@/app/ui/atoms/icon-button";
 import { LanguageSelector } from "@/app/ui/molecules/language-selector";
+import type { RefObject } from "react";
 
 export function AppHeader({
   sidebarOpen,
   onOpen,
+  navigationTriggerRef,
 }: {
   sidebarOpen: boolean;
   onOpen: () => void;
+  navigationTriggerRef: RefObject<HTMLButtonElement | null>;
 }) {
   const { t } = useI18n();
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6">
       <IconButton
+        ref={navigationTriggerRef}
         label={t("Open navigation")}
         onClick={onOpen}
         aria-controls="application-sidebar"

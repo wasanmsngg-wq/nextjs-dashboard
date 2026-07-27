@@ -8,19 +8,19 @@ connections are used by this test suite.
 
 ## Automated acceptance matrix
 
-| Area                | Coverage                                                                                                              | Evidence                                                 | Status                                 |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------- |
-| Domain contracts    | Identity, profile, guest envelope, rate limiter, reporter, framework boundary                                         | `tests/domain-contracts.test.mjs` and architecture tests | Implemented                            |
-| Migration contracts | Timestamped migration, legacy table removal, RLS, ownership, admin isolation, idempotency, health RPC, synthetic seed | `tests/migration-contracts.test.mjs`                     | Implemented                            |
-| Local-only safety   | Reject configured remote database and Supabase URLs during tests                                                      | `tests/local-supabase-guard.test.mjs`                    | Implemented                            |
-| Database behavior   | Reset, profile ownership, admin customer/revenue access, self-escalation denial, guest import retry/rollback          | `tests/integration/database.test.mjs`                    | Implemented and passing                |
-| Guest behavior      | Persistence, corruption/version/storage/quota handling, warnings, export/import/clear                                 | Unit and Playwright suites                               | Implemented                            |
-| Authentication      | Signup, login, recovery/update-password entry points, callback allowlisting, and safe invalid confirmation            | Unit, contract, Playwright, and hosted owner checks      | Implemented; recovery delivery pending |
-| Authorization       | Admin RLS, profile isolation, and old-route concealment                                                               | Integration and Playwright                               | Implemented                            |
-| Localization        | Complete English and Thai states                                                                                      | Unit and Playwright                                      | Implemented                            |
-| Accessibility       | WCAG A/AA automated scans and keyboard/responsive checks                                                              | `tests/e2e/accessibility.spec.ts`                        | Implemented (manual AA pending)        |
-| Responsive/browser  | Chromium, Firefox, WebKit, Pixel-sized, and iPhone-sized smoke                                                        | `playwright.config.ts`                                   | Implemented                            |
-| Security operations | CSP nonce, transport/security headers, generic health responses, production env validation                            | Unit and Playwright                                      | Implemented                            |
+| Area                | Coverage                                                                                                              | Evidence                                                 | Status                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------- |
+| Domain contracts    | Identity, profile, guest envelope, rate limiter, reporter, framework boundary                                         | `tests/domain-contracts.test.mjs` and architecture tests | Implemented                             |
+| Migration contracts | Timestamped migration, legacy table removal, RLS, ownership, admin isolation, idempotency, health RPC, synthetic seed | `tests/migration-contracts.test.mjs`                     | Implemented                             |
+| Local-only safety   | Reject configured remote database and Supabase URLs during tests                                                      | `tests/local-supabase-guard.test.mjs`                    | Implemented                             |
+| Database behavior   | Reset, profile ownership, admin customer/revenue access, self-escalation denial, guest import retry/rollback          | `tests/integration/database.test.mjs`                    | Implemented and passing                 |
+| Guest behavior      | Persistence, corruption/version/storage/quota handling, warnings, export/import/clear                                 | Unit and Playwright suites                               | Implemented                             |
+| Authentication      | Login/logout, session persistence, recovery/update-password entry points, callback allowlisting, and safe callbacks   | Unit, contract, authenticated Playwright, hosted owner   | Implemented; recovery delivery deferred |
+| Authorization       | Admin RLS, profile isolation, and old-route concealment                                                               | Integration and Playwright                               | Implemented                             |
+| Localization        | Complete English and Thai states                                                                                      | Unit and Playwright                                      | Implemented                             |
+| Accessibility       | EN/TH axe scans, authenticated admin scans, keyboard/focus lifecycle, status, 320px reflow, and text spacing          | Accessibility and authenticated Playwright suites        | Automated complete; manual AA pending   |
+| Responsive/browser  | Chromium, Firefox, WebKit, Pixel-sized, and iPhone-sized smoke                                                        | `playwright.config.ts`                                   | Implemented                             |
+| Security operations | CSP nonce, transport/security headers, generic health responses, production env validation                            | Unit and Playwright                                      | Implemented                             |
 
 ## Manual acceptance checks
 
@@ -44,7 +44,7 @@ connections are used by this test suite.
 - [x] Unit and contract tests
 - [x] Local Supabase reset and live RLS integration tests
 - [x] Production build
-- [x] All Playwright projects (100/100)
+- [x] All Playwright projects (175/175)
 - [x] Production dependency audit (no high/critical advisories)
 - [x] `git diff --check`
 - [x] No unresolved critical/high authorization, migration, security, or integrity finding
@@ -108,10 +108,16 @@ bootstrapped in `admins`.
 
 1. Signup verification, login, authenticated administrator access, and the guest
    import empty state were exercised by the owner against isolated Preview.
-   Recovery delivery is deferred with custom SMTP; the built-in staging mailer is
-   limited to two authentication emails per hour.
-2. English/Thai localization and automated WCAG A/AA scans are complete. Manual
-   WCAG 2.2 AA inspection remains before this release can be declared accessible.
+   Disposable local browser fixtures additionally prove profile persistence,
+   session persistence, logout, post-logout denial, confirmed idempotent guest
+   import, and authenticated administrator rendering. Recovery delivery is
+   deferred with custom SMTP; the built-in staging mailer is limited to two
+   authentication emails per hour.
+2. Source-derived English/Thai translation completeness, EN/TH axe scans,
+   authenticated administrator scans, keyboard submission/status behavior,
+   navigation focus containment/restoration, 320px reflow, and WCAG text spacing
+   are automated and passing. Dated manual WCAG 2.2 AA inspection remains the
+   final accessibility acceptance item.
 3. Custom SMTP and hosted email-template activation, distributed rate limiting,
    and monitoring are explicitly deferred to production hardening. Token-hash
    callback support and versioned template sources are retained for that release.

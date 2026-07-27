@@ -13,6 +13,7 @@ import AcmeLogo from "@/app/ui/acme-logo";
 import { useI18n } from "@/app/i18n/provider";
 import { IconButton } from "@/app/ui/atoms/icon-button";
 import { logout } from "@/app/lib/auth-actions";
+import { useEffect, useRef } from "react";
 
 const links = [{ name: "Home", href: "/dashboard", icon: HomeIcon }];
 
@@ -29,8 +30,40 @@ export function SideNavigation({
 }) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const sidebarRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    closeButtonRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !sidebarRef.current) return;
+      const focusable = Array.from(
+        sidebarRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, open]);
   return (
     <aside
+      ref={sidebarRef}
       id="application-sidebar"
       className={clsx(
         "fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform bg-white shadow-xl transition-transform",
@@ -38,15 +71,22 @@ export function SideNavigation({
       )}
       aria-hidden={!open}
       inert={!open}
+      aria-label={t("Primary navigation")}
+      aria-modal="true"
+      role="dialog"
     >
       <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
         <AcmeLogo compact />
-        <IconButton label={t("Close navigation")} onClick={onClose}>
+        <IconButton
+          ref={closeButtonRef}
+          label={t("Close navigation")}
+          onClick={onClose}
+        >
           <XMarkIcon className="h-6 w-6" />
         </IconButton>
       </div>
       <nav
-        aria-label={t("Open navigation")}
+        aria-label={t("Primary navigation")}
         className="flex h-[calc(100vh-4rem)] flex-col px-3 py-4"
       >
         {[

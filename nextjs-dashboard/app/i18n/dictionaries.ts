@@ -8,6 +8,8 @@ const th: Record<string, string> = {
   "Open navigation": "เปิดเมนูนำทาง",
   "Close navigation": "ปิดเมนูนำทาง",
   "User profile": "โปรไฟล์ผู้ใช้",
+  "User profile (coming soon)": "โปรไฟล์ผู้ใช้ (เร็ว ๆ นี้)",
+  "Primary navigation": "การนำทางหลัก",
   Home: "หน้าหลัก",
   Customers: "ลูกค้า",
   "Sign Out": "ออกจากระบบ",
@@ -135,6 +137,10 @@ const th: Record<string, string> = {
 };
 
 const dictionaries: Record<Locale, Record<string, string>> = { en: {}, th };
+
+export function hasTranslation(locale: Locale, key: string) {
+  return locale === "en" || Object.hasOwn(dictionaries[locale], key);
+}
 
 export function translate(
   locale: Locale,

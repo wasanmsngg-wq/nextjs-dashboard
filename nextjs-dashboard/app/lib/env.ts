@@ -38,8 +38,17 @@ function formatError(error: z.ZodError) {
 
 type EnvironmentInput = Record<string, string | undefined>;
 
+function resolveAppEnvironment(input: EnvironmentInput) {
+  if (input.APP_ENV && input.VERCEL_ENV && input.APP_ENV !== input.VERCEL_ENV) {
+    throw new Error(
+      "APP_ENV and VERCEL_ENV must identify the same environment.",
+    );
+  }
+  return input.VERCEL_ENV ?? input.APP_ENV;
+}
+
 function preferIsolatedPreview(input: EnvironmentInput): EnvironmentInput {
-  const environment = input.APP_ENV ?? input.VERCEL_ENV;
+  const environment = resolveAppEnvironment(input);
   if (
     environment === "preview" &&
     input.NEXT_PUBLIC_PREVIEW_SUPABASE_URL &&
@@ -81,7 +90,7 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
       `Invalid server environment configuration: ${formatError(parsed.error)}`,
     );
   }
-  const appEnvironment = parsed.data.APP_ENV ?? parsed.data.VERCEL_ENV;
+  const appEnvironment = resolveAppEnvironment(parsed.data);
   if (parsed.data.NODE_ENV === "production" && !appEnvironment) {
     throw new Error(
       "APP_ENV is required outside Vercel when NODE_ENV is production.",
@@ -111,13 +120,23 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
       "Production requires configured distributed rate limiting and Sentry-compatible monitoring.",
     );
   }
-  if (
-    appEnvironment === "production" &&
-    (!parsed.data.NEXT_PUBLIC_SITE_URL ||
-      new URL(parsed.data.NEXT_PUBLIC_SITE_URL).hostname === "localhost" ||
-      new URL(parsed.data.NEXT_PUBLIC_SUPABASE_URL).hostname === "127.0.0.1")
-  ) {
-    throw new Error("Production URLs must not point to local services.");
+  if (appEnvironment === "production") {
+    if (!parsed.data.NEXT_PUBLIC_SITE_URL) {
+      throw new Error("Production URLs must be configured.");
+    }
+    const siteUrl = new URL(parsed.data.NEXT_PUBLIC_SITE_URL);
+    const supabaseUrl = new URL(parsed.data.NEXT_PUBLIC_SUPABASE_URL);
+    const loopbackHosts = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+    if (
+      siteUrl.protocol !== "https:" ||
+      supabaseUrl.protocol !== "https:" ||
+      loopbackHosts.has(siteUrl.hostname) ||
+      loopbackHosts.has(supabaseUrl.hostname)
+    ) {
+      throw new Error(
+        "Production URLs must use HTTPS and must not point to local services.",
+      );
+    }
   }
   return { ...parsed.data, APP_ENV: appEnvironment };
 }

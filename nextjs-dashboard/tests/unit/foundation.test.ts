@@ -40,8 +40,8 @@ describe("foundation security contracts", () => {
     });
   });
 
-  it("never lets Preview variables override Production configuration", () => {
-    expect(
+  it("rejects conflicting deployment environment declarations", () => {
+    expect(() =>
       readServerEnv({
         ...publicEnv,
         APP_ENV: "production",
@@ -60,9 +60,15 @@ describe("foundation security contracts", () => {
         ERROR_REPORTER_ADAPTER: "sentry",
         SENTRY_DSN: "https://public@example.ingest.sentry.io/123",
       }),
-    ).toMatchObject({
-      NEXT_PUBLIC_SUPABASE_URL: "https://production.supabase.co",
-    });
+    ).toThrow("APP_ENV and VERCEL_ENV");
+
+    expect(() =>
+      readServerEnv({
+        ...publicEnv,
+        APP_ENV: "preview",
+        VERCEL_ENV: "production",
+      }),
+    ).toThrow("APP_ENV and VERCEL_ENV");
   });
 
   it("requires production-grade adapters", () => {
@@ -108,6 +114,33 @@ describe("foundation security contracts", () => {
         SENTRY_DSN: "https://public@example.ingest.sentry.io/123",
       }),
     ).toThrow("Production URLs");
+  });
+
+  it("requires HTTPS and non-loopback production URLs", () => {
+    const production = {
+      ...publicEnv,
+      NODE_ENV: "production",
+      APP_ENV: "production",
+      RATE_LIMIT_ADAPTER: "distributed",
+      UPSTASH_REDIS_REST_URL: "https://example.upstash.io",
+      UPSTASH_REDIS_REST_TOKEN: "upstash-token-long-enough",
+      ERROR_REPORTER_ADAPTER: "sentry",
+      SENTRY_DSN: "https://public@example.ingest.sentry.io/123",
+    };
+    expect(() =>
+      readServerEnv({
+        ...production,
+        NEXT_PUBLIC_SITE_URL: "http://exercise.example",
+        NEXT_PUBLIC_SUPABASE_URL: "https://production.supabase.co",
+      }),
+    ).toThrow("HTTPS");
+    expect(() =>
+      readServerEnv({
+        ...production,
+        NEXT_PUBLIC_SITE_URL: "https://exercise.example",
+        NEXT_PUBLIC_SUPABASE_URL: "https://localhost:54321",
+      }),
+    ).toThrow("local services");
   });
 
   it("allowlists local redirect paths", () => {
