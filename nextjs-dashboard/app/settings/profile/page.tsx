@@ -1,9 +1,12 @@
 import { createSupabaseServerClient } from "@/app/lib/supabase/server";
 import { ProfileForm } from "@/app/features/profile/ui/profile-form";
 import type { ProfilePreferences } from "@/app/domain";
+import { getLocale, getTranslations } from "@/app/i18n/server";
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
+  const locale = await getLocale();
+  const { t } = await getTranslations();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -21,11 +24,15 @@ export default async function ProfilePage() {
         timezone: data.timezone,
         unitSystem: data.unit_system,
       }
-    : { displayName: "", locale: "en", timezone: "UTC", unitSystem: "metric" };
+    : { displayName: "", locale, timezone: "UTC", unitSystem: "metric" };
   return (
     <main className="p-6">
-      <h1 className="mb-6 text-2xl font-semibold">Profile settings</h1>
-      <ProfileForm initial={initial} userId={user?.id} />
+      <h1 className="mb-6 text-2xl font-semibold">{t("Profile settings")}</h1>
+      <ProfileForm
+        initial={initial}
+        userId={user?.id}
+        useBrowserDefaults={!data}
+      />
     </main>
   );
 }

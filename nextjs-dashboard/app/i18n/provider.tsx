@@ -12,7 +12,11 @@ import { useRouter } from "next/navigation";
 import { ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import thTH from "antd/locale/th_TH";
-import { localeCookie, type Locale } from "@/app/i18n/config";
+import {
+  legacyLocaleCookie,
+  localeCookie,
+  type Locale,
+} from "@/app/i18n/config";
 import { translate } from "@/app/i18n/dictionaries";
 
 type I18nContextValue = {
@@ -38,6 +42,7 @@ export function I18nProvider({
       setLocaleState(nextLocale);
       document.documentElement.lang = nextLocale;
       document.cookie = `${localeCookie}=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+      document.cookie = `${legacyLocaleCookie}=; Path=/; Max-Age=0; SameSite=Lax`;
       router.refresh();
     },
     [router],

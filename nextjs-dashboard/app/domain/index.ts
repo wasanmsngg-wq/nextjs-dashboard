@@ -9,3 +9,12 @@ export {
   type ProfileStore,
   type UnitSystem,
 } from "./profile";
+export {
+  convertDistance,
+  convertMass,
+  distanceUnits,
+  massUnits,
+  roundMeasurement,
+  type DistanceUnit,
+  type MassUnit,
+} from "./units";

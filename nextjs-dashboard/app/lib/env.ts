@@ -13,6 +13,8 @@ const publicEnvironment = {
     process.env.NEXT_PUBLIC_PREVIEW_SUPABASE_URL,
   NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY,
+  APP_ENV: process.env.NEXT_PUBLIC_APP_ENV ?? process.env.APP_ENV,
+  VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV,
 };
 
 const serverSchema = publicSchema.extend({
@@ -25,6 +27,9 @@ const serverSchema = publicSchema.extend({
   VERCEL_ENV: z.enum(["development", "preview", "production"]).optional(),
   RATE_LIMIT_ADAPTER: z.enum(["memory", "distributed"]).default("memory"),
   ERROR_REPORTER_ADAPTER: z.enum(["console", "sentry"]).default("console"),
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(20).optional(),
+  SENTRY_DSN: z.string().url().optional(),
 });
 
 function formatError(error: z.ZodError) {
@@ -34,7 +39,9 @@ function formatError(error: z.ZodError) {
 type EnvironmentInput = Record<string, string | undefined>;
 
 function preferIsolatedPreview(input: EnvironmentInput): EnvironmentInput {
+  const environment = input.APP_ENV ?? input.VERCEL_ENV;
   if (
+    environment === "preview" &&
     input.NEXT_PUBLIC_PREVIEW_SUPABASE_URL &&
     input.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY
   ) {
@@ -81,12 +88,27 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
     );
   }
   if (
+    parsed.data.RATE_LIMIT_ADAPTER === "distributed" &&
+    (!parsed.data.UPSTASH_REDIS_REST_URL ||
+      !parsed.data.UPSTASH_REDIS_REST_TOKEN)
+  ) {
+    throw new Error(
+      "Distributed rate limiting requires an Upstash REST URL and token.",
+    );
+  }
+  if (
+    parsed.data.ERROR_REPORTER_ADAPTER === "sentry" &&
+    !parsed.data.SENTRY_DSN
+  ) {
+    throw new Error("Sentry-compatible monitoring requires SENTRY_DSN.");
+  }
+  if (
     appEnvironment === "production" &&
     (parsed.data.RATE_LIMIT_ADAPTER !== "distributed" ||
       parsed.data.ERROR_REPORTER_ADAPTER !== "sentry")
   ) {
     throw new Error(
-      "Production requires distributed rate limiting and monitoring.",
+      "Production requires configured distributed rate limiting and Sentry-compatible monitoring.",
     );
   }
   if (

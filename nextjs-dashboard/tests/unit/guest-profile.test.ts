@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { GUEST_STORAGE_KEY } from "@/app/domain";
 import {
   GuestProfileStore,
+  parseGuestExportJson,
   readGuestEnvelope,
 } from "@/app/features/profile/data/guest-profile-store";
 
@@ -37,6 +38,28 @@ describe("guest profile storage", () => {
     expect(readGuestEnvelope({ getItem: () => '{"schemaVersion":2}' })).toEqual(
       { ok: false, reason: "unsupported" },
     );
+  });
+
+  it("validates JSON imports without writing browser storage", () => {
+    const raw = JSON.stringify({
+      schemaVersion: 1,
+      exportId: "30000000-0000-4000-8000-000000000001",
+      exportedAt: "2026-07-27T00:00:00.000Z",
+      profile: {
+        displayName: "Imported",
+        locale: "th",
+        timezone: "Asia/Bangkok",
+        unitSystem: "metric",
+      },
+    });
+    expect(parseGuestExportJson(raw)).toMatchObject({
+      ok: true,
+      envelope: { profile: { displayName: "Imported" } },
+    });
+    expect(parseGuestExportJson('{"schemaVersion":2}')).toEqual({
+      ok: false,
+      reason: "unsupported",
+    });
   });
 
   it("reports quota failures without losing the contract", async () => {

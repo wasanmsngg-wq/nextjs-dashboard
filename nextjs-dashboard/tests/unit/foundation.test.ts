@@ -3,6 +3,10 @@ import { readServerEnv, resolveSiteUrl } from "@/app/lib/env";
 import { profileSchema } from "@/app/lib/profile-validation";
 import { safeRedirectPath } from "@/app/lib/redirects";
 import { redact } from "@/app/lib/observability";
+import {
+  credentialsSchema,
+  newPasswordSchema,
+} from "@/app/lib/auth-validation";
 
 const publicEnv = {
   NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
@@ -21,6 +25,7 @@ describe("foundation security contracts", () => {
     expect(
       readServerEnv({
         ...publicEnv,
+        APP_ENV: "preview",
         NEXT_PUBLIC_SUPABASE_URL: "https://shared.supabase.co",
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
           "shared-publishable-key-long-enough",
@@ -32,6 +37,31 @@ describe("foundation security contracts", () => {
     ).toMatchObject({
       NEXT_PUBLIC_SUPABASE_URL: "https://isolated-preview.supabase.co",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "isolated-preview-publishable-key",
+    });
+  });
+
+  it("never lets Preview variables override Production configuration", () => {
+    expect(
+      readServerEnv({
+        ...publicEnv,
+        APP_ENV: "production",
+        VERCEL_ENV: "preview",
+        NEXT_PUBLIC_SITE_URL: "https://exercise.example",
+        NEXT_PUBLIC_SUPABASE_URL: "https://production.supabase.co",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+          "production-publishable-key-long-enough",
+        NEXT_PUBLIC_PREVIEW_SUPABASE_URL:
+          "https://isolated-preview.supabase.co",
+        NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY:
+          "isolated-preview-publishable-key",
+        RATE_LIMIT_ADAPTER: "distributed",
+        UPSTASH_REDIS_REST_URL: "https://example.upstash.io",
+        UPSTASH_REDIS_REST_TOKEN: "upstash-token-long-enough",
+        ERROR_REPORTER_ADAPTER: "sentry",
+        SENTRY_DSN: "https://public@example.ingest.sentry.io/123",
+      }),
+    ).toMatchObject({
+      NEXT_PUBLIC_SUPABASE_URL: "https://production.supabase.co",
     });
   });
 
@@ -72,7 +102,10 @@ describe("foundation security contracts", () => {
         NODE_ENV: "production",
         APP_ENV: "production",
         RATE_LIMIT_ADAPTER: "distributed",
+        UPSTASH_REDIS_REST_URL: "https://example.upstash.io",
+        UPSTASH_REDIS_REST_TOKEN: "upstash-token-long-enough",
         ERROR_REPORTER_ADAPTER: "sentry",
+        SENTRY_DSN: "https://public@example.ingest.sentry.io/123",
       }),
     ).toThrow("Production URLs");
   });
@@ -109,5 +142,26 @@ describe("foundation security contracts", () => {
       requestId: "1",
       nested: { token: "[REDACTED]" },
     });
+  });
+
+  it("validates authentication credentials and matching recovery passwords", () => {
+    expect(
+      credentialsSchema.safeParse({
+        email: "person@example.com",
+        password: "correct-horse",
+      }).success,
+    ).toBe(true);
+    expect(
+      credentialsSchema.safeParse({
+        email: "not-an-email",
+        password: "short",
+      }).success,
+    ).toBe(false);
+    expect(
+      newPasswordSchema.safeParse({
+        password: "correct-horse",
+        confirmPassword: "different-horse",
+      }).success,
+    ).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { z } from "zod";
 import {
   GUEST_STORAGE_KEY,
   type AppIdentity,
@@ -13,6 +14,36 @@ export type GuestStorageResult =
   | { ok: true; envelope: GuestDataEnvelopeV1 | null }
   | { ok: false; reason: "unavailable" | "corrupt" | "unsupported" };
 
+export type GuestImportParseResult =
+  | { ok: true; envelope: GuestDataEnvelopeV1 }
+  | { ok: false; reason: "corrupt" | "unsupported" };
+
+const guestEnvelopeSchema = z.object({
+  schemaVersion: z.literal(1),
+  exportId: z.string().uuid(),
+  exportedAt: z.string().datetime(),
+  profile: profileSchema,
+});
+
+function validateGuestEnvelope(value: unknown): GuestImportParseResult {
+  if (!value || typeof value !== "object" || !("schemaVersion" in value))
+    return { ok: false, reason: "corrupt" };
+  if ((value as { schemaVersion: unknown }).schemaVersion !== 1)
+    return { ok: false, reason: "unsupported" };
+  const candidate = guestEnvelopeSchema.safeParse(value);
+  return candidate.success
+    ? { ok: true, envelope: candidate.data }
+    : { ok: false, reason: "corrupt" };
+}
+
+export function parseGuestExportJson(raw: string): GuestImportParseResult {
+  try {
+    return validateGuestEnvelope(JSON.parse(raw));
+  } catch {
+    return { ok: false, reason: "corrupt" };
+  }
+}
+
 export function readGuestEnvelope(
   storage: Pick<Storage, "getItem"> = localStorage,
 ): GuestStorageResult {
@@ -24,30 +55,10 @@ export function readGuestEnvelope(
   }
   if (!raw) return { ok: true, envelope: null };
 
-  let value: unknown;
-  try {
-    value = JSON.parse(raw);
-  } catch {
-    return { ok: false, reason: "corrupt" };
-  }
-
-  try {
-    if (!value || typeof value !== "object" || !("schemaVersion" in value))
-      return { ok: false, reason: "corrupt" };
-    if ((value as { schemaVersion: unknown }).schemaVersion !== 1)
-      return { ok: false, reason: "unsupported" };
-    const candidate = value as GuestDataEnvelopeV1;
-    if (
-      !candidate.exportId ||
-      !candidate.exportedAt ||
-      !profileSchema.safeParse(candidate.profile).success
-    ) {
-      return { ok: false, reason: "corrupt" };
-    }
-    return { ok: true, envelope: candidate };
-  } catch {
-    return { ok: false, reason: "corrupt" };
-  }
+  const parsed = parseGuestExportJson(raw);
+  return parsed.ok
+    ? { ok: true, envelope: parsed.envelope }
+    : { ok: false, reason: parsed.reason };
 }
 
 export function createGuestEnvelope(

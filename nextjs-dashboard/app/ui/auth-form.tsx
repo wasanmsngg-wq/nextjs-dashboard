@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import type { AuthState } from "@/app/lib/auth-actions";
 import { Button } from "@/app/ui/atoms/button";
+import { useI18n } from "@/app/i18n/provider";
 
 export function AuthForm({
   action,
@@ -11,10 +12,12 @@ export function AuthForm({
   callbackUrl,
 }: {
   action: (state: AuthState, data: FormData) => Promise<AuthState>;
-  mode: "login" | "signup" | "recovery";
+  mode: "login" | "signup" | "recovery" | "update-password";
   callbackUrl?: string;
 }) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(action, {});
+  const needsEmail = mode !== "update-password";
   const needsPassword = mode !== "recovery";
   return (
     <form
@@ -23,27 +26,31 @@ export function AuthForm({
     >
       <h1 className="text-2xl font-semibold">
         {mode === "login"
-          ? "Log in"
+          ? t("Log in")
           : mode === "signup"
-            ? "Create account"
-            : "Reset password"}
+            ? t("Create account")
+            : mode === "recovery"
+              ? t("Reset password")
+              : t("Choose a new password")}
       </h1>
       {callbackUrl ? (
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
       ) : null}
-      <label className="block text-sm font-medium">
-        Email
-        <input
-          className="mt-1 block w-full rounded-md border p-2"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-        />
-      </label>
+      {needsEmail ? (
+        <label className="block text-sm font-medium">
+          {t("Email")}
+          <input
+            className="mt-1 block w-full rounded-md border p-2"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+          />
+        </label>
+      ) : null}
       {needsPassword ? (
         <label className="block text-sm font-medium">
-          Password
+          {t("Password")}
           <input
             className="mt-1 block w-full rounded-md border p-2"
             name="password"
@@ -56,38 +63,60 @@ export function AuthForm({
           />
         </label>
       ) : null}
+      {mode === "update-password" ? (
+        <label className="block text-sm font-medium">
+          {t("Confirm password")}
+          <input
+            className="mt-1 block w-full rounded-md border p-2"
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </label>
+      ) : null}
       <Button className="w-full" disabled={pending}>
         {pending
-          ? "Please wait…"
+          ? t("Please wait…")
           : mode === "login"
-            ? "Log in"
+            ? t("Log in")
             : mode === "signup"
-              ? "Sign up"
-              : "Send recovery link"}
+              ? t("Sign up")
+              : mode === "recovery"
+                ? t("Send recovery link")
+                : t("Update password")}
       </Button>
       <div aria-live="polite" className="min-h-6 text-sm">
-        {state.error ? <p className="text-red-700">{state.error}</p> : null}
+        {state.error ? <p className="text-red-700">{t(state.error)}</p> : null}
         {state.message ? (
-          <p className="text-green-800">{state.message}</p>
+          <p className="text-green-800">{t(state.message)}</p>
         ) : null}
       </div>
       {mode === "login" ? (
         <div className="flex justify-between gap-4 text-sm">
           <Link className="inline-flex items-center py-2" href="/signup">
-            Create account
+            {t("Create account")}
           </Link>
           <Link
             className="inline-flex items-center py-2"
             href="/forgot-password"
           >
-            Forgot password?
+            {t("Forgot password?")}
           </Link>
         </div>
-      ) : (
+      ) : mode !== "update-password" ? (
         <Link className="inline-flex items-center py-2 text-sm" href="/login">
-          Back to login
+          {t("Back to login")}
         </Link>
-      )}
+      ) : state.message ? (
+        <Link
+          className="inline-flex items-center py-2 text-sm"
+          href="/dashboard"
+        >
+          {t("Continue to dashboard")}
+        </Link>
+      ) : null}
     </form>
   );
 }

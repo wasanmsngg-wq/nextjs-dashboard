@@ -41,7 +41,7 @@ export default function Search({
         aria-describedby={`${searchId}-description`}
       />
       <span id={`${searchId}-description`} className="sr-only">
-        Search result update as you type
+        {t("Search results update as you type.")}
       </span>
       <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 transition peer-focus:text-blue-600" />
     </div>

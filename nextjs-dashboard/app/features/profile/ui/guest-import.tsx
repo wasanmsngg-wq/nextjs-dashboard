@@ -3,104 +3,186 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GUEST_STORAGE_KEY, type GuestDataEnvelopeV1 } from "@/app/domain";
-import { readGuestEnvelope } from "@/app/features/profile/data/guest-profile-store";
+import {
+  parseGuestExportJson,
+  readGuestEnvelope,
+} from "@/app/features/profile/data/guest-profile-store";
 import { importGuestProfile } from "@/app/features/profile/import-actions";
+import { useI18n } from "@/app/i18n/provider";
 
 export function GuestImport({ canImport }: { canImport: boolean }) {
+  const { t } = useI18n();
   const [envelope, setEnvelope] = useState<GuestDataEnvelopeV1 | null>(null);
+  const [pendingEnvelope, setPendingEnvelope] =
+    useState<GuestDataEnvelopeV1 | null>(null);
   const [message, setMessage] = useState("");
+  const reviewedEnvelope = pendingEnvelope ?? envelope;
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const initial = readGuestEnvelope(window.localStorage);
       setEnvelope(initial.ok ? initial.envelope : null);
-      setMessage(initial.ok ? "" : `Guest storage is ${initial.reason}.`);
+      setMessage(
+        initial.ok
+          ? ""
+          : t(
+              initial.reason === "corrupt"
+                ? "Guest storage is corrupt."
+                : initial.reason === "unsupported"
+                  ? "Guest storage is unsupported."
+                  : "Guest storage is unavailable.",
+            ),
+      );
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [t]);
   function clear() {
     try {
       localStorage.removeItem(GUEST_STORAGE_KEY);
       setEnvelope(null);
-      setMessage("Guest data cleared from this browser.");
+      setPendingEnvelope(null);
+      setMessage(t("Guest data cleared from this browser."));
     } catch {
       setMessage(
-        "Guest data could not be cleared because storage is unavailable.",
+        t("Guest data could not be cleared because storage is unavailable."),
       );
     }
   }
+  async function chooseFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const parsed = parseGuestExportJson(await file.text());
+      if (!parsed.ok) {
+        setPendingEnvelope(null);
+        setMessage(
+          parsed.reason === "unsupported"
+            ? t("This guest export version is not supported.")
+            : t("The selected file is not a valid guest export."),
+        );
+        return;
+      }
+      setPendingEnvelope(parsed.envelope);
+      setMessage(
+        t(
+          "Review the selected preferences. Existing browser data has not changed.",
+        ),
+      );
+    } catch {
+      setPendingEnvelope(null);
+      setMessage(t("The selected guest export could not be read."));
+    }
+  }
   function download() {
-    if (!envelope) return;
+    if (!reviewedEnvelope) return;
     const url = URL.createObjectURL(
-      new Blob([JSON.stringify(envelope, null, 2)], {
+      new Blob([JSON.stringify(reviewedEnvelope, null, 2)], {
         type: "application/json",
       }),
     );
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `exercise-tracker-guest-${envelope.exportId}.json`;
+    anchor.download = `exercise-tracker-guest-${reviewedEnvelope.exportId}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
   async function confirmImport() {
-    if (!envelope || !canImport) return;
-    const result = await importGuestProfile(envelope);
-    if (!result.ok) return setMessage(result.error);
+    if (!reviewedEnvelope) return;
+    if (!canImport) {
+      try {
+        localStorage.setItem(
+          GUEST_STORAGE_KEY,
+          JSON.stringify(reviewedEnvelope),
+        );
+        setEnvelope(reviewedEnvelope);
+        setPendingEnvelope(null);
+        setMessage(t("Guest export imported into this browser."));
+      } catch {
+        setMessage(
+          t(
+            "Guest data could not be saved. Browser storage may be unavailable or full.",
+          ),
+        );
+      }
+      return;
+    }
+    const result = await importGuestProfile(reviewedEnvelope);
+    if (!result.ok) return setMessage(t(result.error));
+    const shouldClearBrowserData =
+      !pendingEnvelope || envelope?.exportId === pendingEnvelope.exportId;
     try {
-      localStorage.removeItem(GUEST_STORAGE_KEY);
+      if (shouldClearBrowserData) localStorage.removeItem(GUEST_STORAGE_KEY);
     } catch {
       return setMessage(
-        "Profile imported, but guest data could not be cleared from this browser.",
+        t(
+          "Profile imported, but guest data could not be cleared from this browser.",
+        ),
       );
     }
-    setEnvelope(null);
+    if (shouldClearBrowserData) setEnvelope(null);
+    setPendingEnvelope(null);
     setMessage(
       result.alreadyImported
-        ? "This export was already imported."
-        : "Guest profile imported successfully.",
+        ? t("This export was already imported.")
+        : t("Guest profile imported successfully."),
     );
   }
   return (
     <section className="max-w-xl space-y-4">
       <p>
-        Guest data is device/browser-specific, is not backed up, and may be
-        cleared by the browser.
+        {t(
+          "Guest data is device/browser-specific, is not backed up, and may be cleared by the browser.",
+        )}
       </p>
-      {envelope ? (
+      <label className="block">
+        {t("Import a guest JSON export")}
+        <input
+          type="file"
+          accept="application/json,.json"
+          onChange={chooseFile}
+          className="mt-1 block w-full"
+        />
+      </label>
+      {reviewedEnvelope ? (
         <div className="rounded border p-4">
-          <h2 className="font-semibold">Review preferences</h2>
+          <h2 className="font-semibold">
+            {pendingEnvelope
+              ? t("Review selected preferences")
+              : t("Review preferences")}
+          </h2>
           <dl>
-            <dt>Display name</dt>
-            <dd>{envelope.profile.displayName || "Not set"}</dd>
-            <dt>Language</dt>
-            <dd>{envelope.profile.locale}</dd>
-            <dt>Timezone</dt>
-            <dd>{envelope.profile.timezone}</dd>
-            <dt>Units</dt>
-            <dd>{envelope.profile.unitSystem}</dd>
+            <dt>{t("Display name")}</dt>
+            <dd>{reviewedEnvelope.profile.displayName || t("Not set")}</dd>
+            <dt>{t("Language")}</dt>
+            <dd>{reviewedEnvelope.profile.locale}</dd>
+            <dt>{t("Timezone")}</dt>
+            <dd>{reviewedEnvelope.profile.timezone}</dd>
+            <dt>{t("Units")}</dt>
+            <dd>{reviewedEnvelope.profile.unitSystem}</dd>
           </dl>
         </div>
       ) : (
-        <p>No guest profile found.</p>
+        <p>{t("No guest profile found.")}</p>
       )}
       <div className="flex flex-wrap gap-3">
-        {envelope ? (
+        {reviewedEnvelope ? (
           <>
             <button onClick={download} className="rounded border px-4 py-2">
-              Export JSON
+              {t("Export JSON")}
             </button>
-            {canImport ? (
+            {canImport || pendingEnvelope ? (
               <button
                 onClick={confirmImport}
                 className="rounded bg-blue-600 px-4 py-2 text-white"
               >
-                Confirm import
+                {t("Confirm import")}
               </button>
             ) : null}
             <button
               onClick={clear}
               className="rounded border border-red-600 px-4 py-2 text-red-700"
             >
-              Clear guest data
+              {t("Clear guest data")}
             </button>
           </>
         ) : null}
@@ -108,7 +190,7 @@ export function GuestImport({ canImport }: { canImport: boolean }) {
           href="/dashboard"
           className="rounded border border-blue-600 px-4 py-2 text-blue-700"
         >
-          Continue to dashboard
+          {t("Continue to dashboard")}
         </Link>
       </div>
       <p aria-live="polite">{message}</p>

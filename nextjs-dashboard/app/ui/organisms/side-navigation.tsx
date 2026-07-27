@@ -89,7 +89,7 @@ export function SideNavigation({
           </form>
         ) : (
           <Link className="px-3 py-3 text-blue-700" href="/login">
-            Log in
+            {t("Log in")}
           </Link>
         )}
       </nav>

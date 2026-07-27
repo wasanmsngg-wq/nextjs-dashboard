@@ -2,7 +2,8 @@ export const locales = ["en", "th"] as const;
 export type Locale = (typeof locales)[number];
 
 export const defaultLocale: Locale = "en";
-export const localeCookie = "acme_locale";
+export const localeCookie = "exercise_tracker_locale";
+export const legacyLocaleCookie = "acme_locale";
 
 export function isLocale(value: string | undefined): value is Locale {
   return locales.includes(value as Locale);
