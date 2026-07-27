@@ -2,7 +2,7 @@
 
 Issue: #19 — Production Foundation
 
-Status: Automated Phase 1 verification complete
+Status: Phase 1 automated and owner acceptance verification complete
 Environment restriction: disposable local Supabase only; no production or Preview
 connections are used by this test suite.
 
@@ -18,7 +18,7 @@ connections are used by this test suite.
 | Authentication      | Login/logout, session persistence, recovery/update-password entry points, callback allowlisting, and safe callbacks   | Unit, contract, authenticated Playwright, hosted owner   | Implemented; recovery delivery deferred |
 | Authorization       | Admin RLS, profile isolation, and old-route concealment                                                               | Integration and Playwright                               | Implemented                             |
 | Localization        | Complete English and Thai states                                                                                      | Unit and Playwright                                      | Implemented                             |
-| Accessibility       | EN/TH axe scans, authenticated admin scans, keyboard/focus lifecycle, status, 320px reflow, and text spacing          | Accessibility and authenticated Playwright suites        | Automated complete; manual AA pending   |
+| Accessibility       | EN/TH axe scans, authenticated admin scans, keyboard/focus lifecycle, status, 320px reflow, and text spacing          | Automated suites and manual acceptance matrix            | Automated and manual acceptance pass    |
 | Responsive/browser  | Chromium, Firefox, WebKit, Pixel-sized, and iPhone-sized smoke                                                        | `playwright.config.ts`                                   | Implemented                             |
 | Security operations | CSP nonce, transport/security headers, generic health responses, production env validation                            | Unit and Playwright                                      | Implemented                             |
 
@@ -118,8 +118,9 @@ bootstrapped in `admins`.
 2. Source-derived English/Thai translation completeness, EN/TH axe scans,
    authenticated administrator scans, keyboard submission/status behavior,
    navigation focus containment/restoration, 320px reflow, and WCAG text spacing
-   are automated and passing. Dated manual WCAG 2.2 AA inspection remains the
-   final accessibility acceptance item.
+   are automated and passing. The product owner completed the dated manual WCAG
+   2.2 AA acceptance matrix, identified the missing admin application shell, and
+   passed the corrected Preview on retest.
 3. Custom SMTP and hosted email-template activation, distributed rate limiting,
    and monitoring are explicitly deferred to production hardening. Token-hash
    callback support and versioned template sources are retained for that release.

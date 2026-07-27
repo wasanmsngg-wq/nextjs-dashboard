@@ -33,7 +33,7 @@ accessibility acceptance is recorded.
 | Keyboard and visible focus     | Dashboard navigation and profile form                                | Focus is always visible and follows a sensible order                                              | Passed — 2026-07-27 |
 | Navigation focus lifecycle     | Mobile-width dashboard                                               | Focus enters the menu, stays contained with Tab/Shift+Tab, and returns to the opener after Escape | Passed — 2026-07-27 |
 | 400% zoom/reflow               | Landing, authentication, dashboard, profile, import, admin customers | Content remains usable without two-dimensional scrolling or hidden controls                       | Passed — 2026-07-27 |
-| Registered profile persistence | Profile settings                                                     | Saved preferences remain after refresh and success is announced                                   | Pending owner       |
+| Registered profile persistence | Profile settings                                                     | Saved preferences remain after refresh and success is announced                                   | Passed — 2026-07-27 |
 
 ## Recording the result
 
@@ -45,8 +45,8 @@ Browser/device: Owner-tested keyboard and low-resolution browser
 
 Reviewer: Product owner
 
-Notes: Translation, keyboard navigation, and low-resolution layout passed. The
-admin customer page was missing the application shell; this was corrected after
-the review and now has automated top-bar/sidebar assertions. Registered profile
-persistence and the corrected hosted admin shell remain pending owner
-confirmation.
+Notes: Translation, keyboard navigation, low-resolution layout, registered
+profile persistence, and the corrected hosted admin shell passed. The initial
+admin-page review found the application shell missing; commit `84aa92a` corrected
+it and added authenticated English/Thai top-bar/sidebar assertions before the
+owner retested it successfully.
