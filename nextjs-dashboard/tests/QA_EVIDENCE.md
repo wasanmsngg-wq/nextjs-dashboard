@@ -99,7 +99,10 @@ integration-provided shared value won over the Preview override and created one
 confirmed user on the shared project. That unintended user was removed. The
 Preview scopes were removed and recreated as single, non-sensitive public
 variables; a fresh environment pull confirmed `qfnobrywiouxiaoirhgg` before
-redeployment. Preview Auth callbacks now use the stable branch alias.
+redeployment. A code-level guard now prefers the isolated Preview variables over
+generic integration variables. Preview Auth callbacks use the stable branch
+alias, and the confirmed `wasanmsngg@gmail.com` staging identity has been
+bootstrapped in `admins`.
 
 ## Current findings
 
