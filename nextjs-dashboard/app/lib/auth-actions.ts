@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/app/lib/supabase/server";
 import { safeRedirectPath } from "@/app/lib/redirects";
-import { readPublicEnv } from "@/app/lib/env";
+import { resolveSiteUrl } from "@/app/lib/env";
 
 export type AuthState = { error?: string; message?: string };
 
@@ -33,7 +33,7 @@ export async function signup(
   formData: FormData,
 ): Promise<AuthState> {
   const supabase = await createSupabaseServerClient();
-  const origin = readPublicEnv().NEXT_PUBLIC_SITE_URL;
+  const origin = resolveSiteUrl();
   const { error } = await supabase.auth.signUp({
     ...credentials(formData),
     options: {
@@ -55,7 +55,7 @@ export async function requestPasswordReset(
   if (typeof email !== "string" || !email.trim())
     return { error: "Enter your email address." };
   const supabase = await createSupabaseServerClient();
-  const origin = readPublicEnv().NEXT_PUBLIC_SITE_URL;
+  const origin = resolveSiteUrl();
   await supabase.auth.resetPasswordForEmail(email.trim(), {
     redirectTo: `${origin}/auth/confirm?next=/settings/profile`,
   });

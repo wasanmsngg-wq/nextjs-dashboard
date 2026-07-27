@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readServerEnv } from "@/app/lib/env";
+import { readServerEnv, resolveSiteUrl } from "@/app/lib/env";
 import { profileSchema } from "@/app/lib/profile-validation";
 import { safeRedirectPath } from "@/app/lib/redirects";
 import { redact } from "@/app/lib/observability";
@@ -25,6 +25,28 @@ describe("foundation security contracts", () => {
         APP_ENV: "production",
       }),
     ).toThrow("distributed rate limiting");
+  });
+
+  it("derives the review origin from Vercel without weakening production", () => {
+    expect(
+      resolveSiteUrl({
+        ...publicEnv,
+        NODE_ENV: "production",
+        APP_ENV: "preview",
+        VERCEL_URL: "exercise-tracker-review.vercel.app",
+      }),
+    ).toBe("https://exercise-tracker-review.vercel.app");
+    expect(() =>
+      resolveSiteUrl({
+        NEXT_PUBLIC_SUPABASE_URL: "https://staging.supabase.co",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+          "staging-publishable-key-long-enough",
+        NODE_ENV: "production",
+        APP_ENV: "production",
+        RATE_LIMIT_ADAPTER: "distributed",
+        ERROR_REPORTER_ADAPTER: "sentry",
+      }),
+    ).toThrow("Production URLs");
   });
 
   it("allowlists local redirect paths", () => {
