@@ -1,21 +1,21 @@
-import AcmeLogo from '@/app/ui/acme-logo';
-import LoginForm from '@/app/ui/login-form';
+import { login } from "@/app/lib/auth-actions";
+import { safeRedirectPath } from "@/app/lib/redirects";
+import { AuthForm } from "@/app/ui/auth-form";
 
 export default async function LoginPage({
   searchParams,
-}: Readonly<{
+}: {
   searchParams: Promise<{ callbackUrl?: string }>;
-}>) {
-  const { callbackUrl } = await searchParams;
-
+}) {
+  const params = await searchParams;
+  const callbackUrl =
+    typeof params.callbackUrl === "string" &&
+    safeRedirectPath(params.callbackUrl, "") === params.callbackUrl
+      ? params.callbackUrl
+      : undefined;
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-md">
-        <div className="mb-4 flex h-20 items-center rounded-lg bg-blue-500 px-6 text-white">
-          <AcmeLogo />
-        </div>
-        <LoginForm callbackUrl={callbackUrl} />
-      </div>
+    <main className="p-6">
+      <AuthForm action={login} mode="login" callbackUrl={callbackUrl} />
     </main>
   );
 }

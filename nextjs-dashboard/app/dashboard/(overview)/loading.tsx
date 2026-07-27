@@ -1,4 +1,4 @@
-import RouteLoadingAnnouncer from '@/app/ui/molecules/route-loading-announcer';
+import RouteLoadingAnnouncer from "@/app/ui/molecules/route-loading-announcer";
 
 export default function Loading() {
   return (

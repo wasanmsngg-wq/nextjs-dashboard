@@ -1,12 +1,15 @@
 import AppShell from "@/app/ui/organisms/app-shell";
-import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { getAuthorization } from "@/app/lib/authorization";
 
-export default async function Layout({children}: Readonly<{ children: React.ReactNode }>){
-    const session = await auth();
-    if (!session) redirect('/login?callbackUrl=/dashboard');
-
-    return (
-        <AppShell>{children}</AppShell>
-    )
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, isAdmin } = await getAuthorization();
+  return (
+    <AppShell userEmail={user?.email} isAdmin={isAdmin}>
+      {children}
+    </AppShell>
+  );
 }

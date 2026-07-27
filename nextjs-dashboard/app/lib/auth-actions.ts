@@ -1,39 +1,69 @@
-'use server';
+"use server";
 
-import { AuthError } from 'next-auth';
-import { signIn, signOut } from '@/auth';
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/app/lib/supabase/server";
+import { safeRedirectPath } from "@/app/lib/redirects";
+import { readPublicEnv } from "@/app/lib/env";
 
-export type LoginState = {
-  error?: string;
-};
+export type AuthState = { error?: string; message?: string };
 
-function safeCallbackUrl(value: FormDataEntryValue | null) {
-  return typeof value === 'string' &&
-    value.startsWith('/') &&
-    !value.startsWith('//')
-    ? value
-    : '/dashboard';
+function credentials(formData: FormData) {
+  const email = formData.get("email");
+  const password = formData.get("password");
+  return {
+    email: typeof email === "string" ? email.trim() : "",
+    password: typeof password === "string" ? password : "",
+  };
 }
 
-export async function authenticate(
-  _previousState: LoginState,
+export async function login(
+  _state: AuthState,
   formData: FormData,
-): Promise<LoginState> {
-  try {
-    await signIn('credentials', {
-      username: formData.get('username'),
-      password: formData.get('password'),
-      redirectTo: safeCallbackUrl(formData.get('callbackUrl')),
-    });
-    return {};
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: 'Invalid username or password.' };
-    }
-    throw error;
-  }
+): Promise<AuthState> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithPassword(
+    credentials(formData),
+  );
+  if (error) return { error: "Email or password is incorrect." };
+  redirect(safeRedirectPath(formData.get("callbackUrl")));
+}
+
+export async function signup(
+  _state: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const supabase = await createSupabaseServerClient();
+  const origin = readPublicEnv().NEXT_PUBLIC_SITE_URL;
+  const { error } = await supabase.auth.signUp({
+    ...credentials(formData),
+    options: {
+      emailRedirectTo: `${origin}/auth/confirm?next=/onboarding/import`,
+    },
+  });
+  return error
+    ? {
+        error: "Unable to create the account. Check the details and try again.",
+      }
+    : { message: "Check your email to verify your account." };
+}
+
+export async function requestPasswordReset(
+  _state: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = formData.get("email");
+  if (typeof email !== "string" || !email.trim())
+    return { error: "Enter your email address." };
+  const supabase = await createSupabaseServerClient();
+  const origin = readPublicEnv().NEXT_PUBLIC_SITE_URL;
+  await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: `${origin}/auth/confirm?next=/settings/profile`,
+  });
+  return { message: "If an account exists, a recovery link has been sent." };
 }
 
 export async function logout() {
-  await signOut({ redirectTo: '/login' });
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut();
+  redirect("/login");
 }

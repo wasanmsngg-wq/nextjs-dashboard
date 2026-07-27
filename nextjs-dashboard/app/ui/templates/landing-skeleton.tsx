@@ -1,5 +1,5 @@
-import RouteLoadingAnnouncer from '@/app/ui/molecules/route-loading-announcer';
-import { SkeletonBlock } from '@/app/ui/atoms/skeleton-block';
+import RouteLoadingAnnouncer from "@/app/ui/molecules/route-loading-announcer";
+import { SkeletonBlock } from "@/app/ui/atoms/skeleton-block";
 
 export function LandingPageSkeleton() {
   return (

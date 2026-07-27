@@ -1,11 +1,11 @@
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 import {
   defaultLocale,
   isLocale,
   localeCookie,
   type Locale,
-} from '@/app/i18n/config';
-import { translate } from '@/app/i18n/dictionaries';
+} from "@/app/i18n/config";
+import { translate } from "@/app/i18n/dictionaries";
 
 export async function getLocale(): Promise<Locale> {
   const value = (await cookies()).get(localeCookie)?.value;

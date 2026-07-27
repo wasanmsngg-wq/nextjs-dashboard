@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   createContext,
@@ -7,16 +7,13 @@ import {
   useMemo,
   useState,
   type ReactNode,
-} from 'react';
-import { useRouter } from 'next/navigation';
-import { ConfigProvider } from 'antd';
-import enUS from 'antd/locale/en_US';
-import thTH from 'antd/locale/th_TH';
-import {
-  localeCookie,
-  type Locale,
-} from '@/app/i18n/config';
-import { translate } from '@/app/i18n/dictionaries';
+} from "react";
+import { useRouter } from "next/navigation";
+import { ConfigProvider } from "antd";
+import enUS from "antd/locale/en_US";
+import thTH from "antd/locale/th_TH";
+import { localeCookie, type Locale } from "@/app/i18n/config";
+import { translate } from "@/app/i18n/dictionaries";
 
 type I18nContextValue = {
   locale: Locale;
@@ -58,7 +55,7 @@ export function I18nProvider({
 
   return (
     <I18nContext.Provider value={value}>
-      <ConfigProvider locale={locale === 'th' ? thTH : enUS}>
+      <ConfigProvider locale={locale === "th" ? thTH : enUS}>
         {children}
       </ConfigProvider>
     </I18nContext.Provider>
@@ -68,7 +65,7 @@ export function I18nProvider({
 export function useI18n() {
   const context = useContext(I18nContext);
   if (!context) {
-    throw new Error('useI18n must be used inside I18nProvider');
+    throw new Error("useI18n must be used inside I18nProvider");
   }
   return context;
 }

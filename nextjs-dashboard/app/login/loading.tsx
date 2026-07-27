@@ -1,4 +1,4 @@
-import { SkeletonBlock } from '@/app/ui/atoms/skeleton-block';
+import { SkeletonBlock } from "@/app/ui/atoms/skeleton-block";
 
 export default function LoginLoading() {
   return (

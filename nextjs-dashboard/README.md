@@ -1,41 +1,39 @@
-# Next.js Dashboard
+# Exercise Tracker
 
-A localized English/Thai dashboard built with the Next.js App Router,
-Tailwind CSS, Ant Design, PostgreSQL, and a hybrid Atomic Design architecture.
-
-The application currently provides an authenticated empty dashboard and a
-searchable customer directory.
+Exercise Tracker is a bilingual English/Thai Next.js application with Supabase
+Auth, browser-only guest profiles, registered profile preferences, and an
+administrator-only customer directory.
 
 ## Development
 
+Use Node 24 and pnpm 11.15.1. Copy `.env.example` to an ignored `.env.local`,
+then use a local or isolated staging Supabase project. Never place a service-role
+or secret key in this application.
+
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
+pnpm supabase start
+pnpm db:reset
 pnpm dev
 ```
 
-Authentication uses a single environment-configured account. Configure these
-values in an ignored local environment file:
-
-```dotenv
-AUTH_SECRET=<random secret>
-AUTH_ADMIN_USERNAME=<username>
-AUTH_ADMIN_PASSWORD_HASH=<bcrypt password hash>
-POSTGRES_URL=<PostgreSQL connection URL>
-```
-
-The browser tests additionally read test login values from the ignored
-`.env.auth.local` file:
-
-```dotenv
-AUTH_TEST_USERNAME=<username>
-AUTH_TEST_PASSWORD=<password>
-```
+The initial administrator is bootstrapped out-of-band using the instructions in
+`supabase/README.md`; real administrator IDs do not belong in migrations or seed
+data.
 
 ## Verification
 
 ```bash
+pnpm format:check
+pnpm lint
+pnpm typecheck
 pnpm test
+pnpm test:integration
 pnpm build
 pnpm test:e2e
+pnpm audit:prod
 git diff --check
 ```
+
+Integration tests require the disposable local Supabase stack. Production
+migrations, deployments, releases, and tags are outside this branch.

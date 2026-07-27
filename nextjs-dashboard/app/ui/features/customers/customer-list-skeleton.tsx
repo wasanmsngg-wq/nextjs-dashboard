@@ -1,7 +1,9 @@
-import RouteLoadingAnnouncer from '@/app/ui/molecules/route-loading-announcer';
+import RouteLoadingAnnouncer from "@/app/ui/molecules/route-loading-announcer";
 
 function SkeletonLabel({ width }: { width: string }) {
-  return <span className={`block h-4 animate-pulse rounded bg-gray-200 ${width}`} />;
+  return (
+    <span className={`block h-4 animate-pulse rounded bg-gray-200 ${width}`} />
+  );
 }
 export function CustomersPageSkeleton() {
   return (
@@ -19,7 +21,7 @@ export function CustomersPageSkeleton() {
         <table className="hidden min-w-full md:table" aria-hidden="true">
           <thead>
             <tr>
-              {['w-16', 'w-14'].map((width, index) => (
+              {["w-16", "w-14"].map((width, index) => (
                 <th key={index} className="px-4 py-5">
                   <SkeletonLabel width={width} />
                 </th>

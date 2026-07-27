@@ -65,12 +65,12 @@ and release plans. They must not be silently added to the MVP.
 One lead agent coordinates the work. The following bounded roles can run in
 parallel when their files do not overlap:
 
-| Role | Primary responsibility | Required output |
-| --- | --- | --- |
-| Lead | Scope, architecture, task breakdown, integration, release decision | Updated plan, integration branch, release notes |
-| Developer | Implement one bounded vertical slice | Code, migrations, focused automated tests |
-| QA | Create acceptance tests, exploratory checks, accessibility checks | Test evidence, reproducible defect reports |
-| Reviewer | Review security, correctness, maintainability, and migration safety | Findings classified as blocking or follow-up |
+| Role      | Primary responsibility                                              | Required output                                 |
+| --------- | ------------------------------------------------------------------- | ----------------------------------------------- |
+| Lead      | Scope, architecture, task breakdown, integration, release decision  | Updated plan, integration branch, release notes |
+| Developer | Implement one bounded vertical slice                                | Code, migrations, focused automated tests       |
+| QA        | Create acceptance tests, exploratory checks, accessibility checks   | Test evidence, reproducible defect reports      |
+| Reviewer  | Review security, correctness, maintainability, and migration safety | Findings classified as blocking or follow-up    |
 
 Working rules:
 
@@ -128,15 +128,15 @@ production-safe work.
 
 Start in `0.x` while validating the product:
 
-| Version | Intended milestone |
-| --- | --- |
+| Version  | Intended milestone                                       |
+| -------- | -------------------------------------------------------- |
 | `v0.1.0` | Foundation, account profile, CI, and production baseline |
-| `v0.2.0` | Workout templates and workout session checklist |
-| `v0.3.0` | Performance history and progress visualization |
-| `v0.4.0` | Food, meal, calorie, and nutrient tracking |
-| `v0.5.0` | Target calculators and integrated dashboard |
-| `v0.9.0` | Feature-complete release candidate |
-| `v1.0.0` | Audited, documented, production-ready MVP |
+| `v0.2.0` | Workout templates and workout session checklist          |
+| `v0.3.0` | Performance history and progress visualization           |
+| `v0.4.0` | Food, meal, calorie, and nutrient tracking               |
+| `v0.5.0` | Target calculators and integrated dashboard              |
+| `v0.9.0` | Feature-complete release candidate                       |
+| `v1.0.0` | Audited, documented, production-ready MVP                |
 
 Every release requires an annotated Git tag, generated changelog, migration
 notes, deployment evidence, and rollback instructions.
@@ -511,6 +511,7 @@ Test account:
 - [ ] Automated checks passed
 
 Evidence:
+
 - Screenshots/video:
 - Test output:
 - Database/migration check:
@@ -533,4 +534,3 @@ Execute these in order:
 - [ ] Implement profile/timezone/unit preferences as the first vertical slice.
 - [ ] Run developer, QA, and reviewer passes.
 - [ ] Merge, deploy, verify, and tag `v0.1.0`.
-
