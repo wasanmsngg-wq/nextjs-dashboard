@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    working-directory: nextjs-dashboard
+
 env:
   APP_ENV: test
   NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
@@ -34,6 +38,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          cache-dependency-path: nextjs-dashboard/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm supabase start
       - run: pnpm db:reset
@@ -62,6 +67,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          cache-dependency-path: nextjs-dashboard/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm supabase start
       - run: pnpm db:reset
