@@ -24,6 +24,8 @@ connections are used by this test suite.
 
 ## Manual acceptance checks
 
+Record results in `tests/MANUAL_ACCESSIBILITY.md`.
+
 - Verify guest warnings state that data is browser/device-specific, is not backed up,
   and may be cleared.
 - Verify import comparison does not modify account data before explicit confirmation
