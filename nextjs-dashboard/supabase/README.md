@@ -31,3 +31,25 @@ insert into public.admins (user_id) values ('SUPABASE_AUTH_USER_UUID');
 ```
 
 Do not place a real user UUID in migrations or seed data.
+
+## Recovery rehearsal evidence
+
+On 2026-07-27, the isolated staging project's `public` application data was
+exported with `supabase db dump --linked --data-only --schema public`. The
+disposable local stack was reset from committed migrations, its seeded
+application rows were cleared, a synthetic local Auth identity was created for
+the restored administrator foreign key, and the staging dump was restored into
+local PostgreSQL with `ON_ERROR_STOP=1`.
+
+Post-restore verification confirmed:
+
+- two synthetic customer rows;
+- two synthetic revenue rows;
+- one administrator linked only to the synthetic local Auth identity;
+- RLS still enabled on all five protected application tables;
+- the committed `health_check` RPC returned `{"status":"ok"}`.
+
+The temporary dump was deleted immediately and was never committed. No hosted
+database was reset or used as a restore target. This rehearses logical recovery
+from isolated staging into a disposable target; provider-managed backup
+retention and point-in-time recovery remain production release requirements.

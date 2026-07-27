@@ -33,6 +33,8 @@ pnpm build
 pnpm test:e2e
 pnpm audit:prod
 git diff --check
+# Or run the complete local gate (requires the local Supabase stack):
+pnpm verify:all
 ```
 
 Integration tests require the disposable local Supabase stack. Production
