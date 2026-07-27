@@ -106,13 +106,16 @@ bootstrapped in `admins`.
 
 ## Current findings
 
-1. Signup verification, login, and authenticated administrator access were
-   exercised by the owner against isolated Preview. Recovery delivery and session
-   refresh still need a controlled hosted test.
+1. Signup verification, login, authenticated administrator access, and the guest
+   import empty state were exercised by the owner against isolated Preview.
+   Recovery delivery is deferred with custom SMTP; the built-in staging mailer is
+   limited to two authentication emails per hour.
 2. English/Thai localization and automated WCAG A/AA scans are complete. Manual
    WCAG 2.2 AA inspection remains before this release can be declared accessible.
-3. Custom SMTP, distributed rate limiting, and monitoring are explicitly deferred
-   to production hardening. Production environment validation continues to reject
-   missing distributed rate limiting and monitoring configuration.
+3. Custom SMTP and hosted email-template activation, distributed rate limiting,
+   and monitoring are explicitly deferred to production hardening. Token-hash
+   callback support and versioned template sources are retained for that release.
+   Production environment validation continues to reject missing distributed rate
+   limiting and monitoring configuration.
 4. Merge, production deployment, migration, and tagging are outside this draft-PR
    phase and remain deferred.
