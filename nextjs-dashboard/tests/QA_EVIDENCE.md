@@ -94,6 +94,13 @@ be reconstructed without pre-change evidence, but the owner confirmed that old
 data does not matter. Administrator bootstrap and authenticated browser testing
 remain pending until the selected user completes signup.
 
+An initial signup retry exposed duplicate Vercel variable definitions: the
+integration-provided shared value won over the Preview override and created one
+confirmed user on the shared project. That unintended user was removed. The
+Preview scopes were removed and recreated as single, non-sensitive public
+variables; a fresh environment pull confirmed `qfnobrywiouxiaoirhgg` before
+redeployment. Preview Auth callbacks now use the stable branch alias.
+
 ## Current findings
 
 1. Signup verification delivery, recovery delivery, session refresh, and authenticated
