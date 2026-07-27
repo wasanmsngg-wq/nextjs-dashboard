@@ -27,13 +27,13 @@ accessibility acceptance is recorded.
 
 ## Owner observation matrix
 
-| Check                          | Pages                                                                | Expected result                                                                                   | Status        |
-| ------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------- |
-| English and Thai visual review | Dashboard, profile, import, admin customers                          | Text is understandable, visible, and not clipped or overlapping                                   | Pending owner |
-| Keyboard and visible focus     | Dashboard navigation and profile form                                | Focus is always visible and follows a sensible order                                              | Pending owner |
-| Navigation focus lifecycle     | Mobile-width dashboard                                               | Focus enters the menu, stays contained with Tab/Shift+Tab, and returns to the opener after Escape | Pending owner |
-| 400% zoom/reflow               | Landing, authentication, dashboard, profile, import, admin customers | Content remains usable without two-dimensional scrolling or hidden controls                       | Pending owner |
-| Registered profile persistence | Profile settings                                                     | Saved preferences remain after refresh and success is announced                                   | Pending owner |
+| Check                          | Pages                                                                | Expected result                                                                                   | Status              |
+| ------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------- |
+| English and Thai visual review | Dashboard, profile, import, admin customers                          | Text is understandable, visible, and not clipped or overlapping                                   | Passed — 2026-07-27 |
+| Keyboard and visible focus     | Dashboard navigation and profile form                                | Focus is always visible and follows a sensible order                                              | Passed — 2026-07-27 |
+| Navigation focus lifecycle     | Mobile-width dashboard                                               | Focus enters the menu, stays contained with Tab/Shift+Tab, and returns to the opener after Escape | Passed — 2026-07-27 |
+| 400% zoom/reflow               | Landing, authentication, dashboard, profile, import, admin customers | Content remains usable without two-dimensional scrolling or hidden controls                       | Passed — 2026-07-27 |
+| Registered profile persistence | Profile settings                                                     | Saved preferences remain after refresh and success is announced                                   | Pending owner       |
 
 ## Recording the result
 
@@ -41,6 +41,12 @@ When all rows pass, replace each status with `Passed — 2026-07-27` and add the
 browser/device used below. If a row fails, record the page, language,
 viewport/zoom, keyboard sequence, expected behavior, and observed behavior.
 
-Browser/device: Pending owner  
-Reviewer: Product owner  
-Notes: Pending owner
+Browser/device: Owner-tested keyboard and low-resolution browser
+
+Reviewer: Product owner
+
+Notes: Translation, keyboard navigation, and low-resolution layout passed. The
+admin customer page was missing the application shell; this was corrected after
+the review and now has automated top-bar/sidebar assertions. Registered profile
+persistence and the corrected hosted admin shell remain pending owner
+confirmation.

@@ -130,6 +130,12 @@ for (const locale of ["en", "th"] as const) {
     await page.goto("/admin/customers");
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("h1")).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: locale === "en" ? "Open navigation" : "เปิดเมนูนำทาง",
+      }),
+    ).toBeVisible();
+    await expect(page.locator("header").first()).toBeVisible();
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
       .analyze();
