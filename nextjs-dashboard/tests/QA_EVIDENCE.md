@@ -74,8 +74,25 @@ overwritten. The migration also removed legacy `public.users`, installed the
 Phase 1 schema, and enabled RLS. Recovery or roll-forward action must be selected
 before any further change.
 
-The intended Preview project remains unmigrated. Auth redirect configuration,
-administrator bootstrap, and hosted authentication testing remain pending.
+After confirming that the old retained directory data was disposable, roll-forward
+recovery completed:
+
+- removed the two deterministic synthetic customer IDs from the shared project,
+  leaving its six original customer rows;
+- migrated and seeded the intended isolated Preview project
+  `qfnobrywiouxiaoirhgg`;
+- verified the Preview project has two synthetic customers, two synthetic revenue
+  rows, five RLS-enabled protected tables, and nine policies;
+- replaced the Vercel Preview runtime URL and publishable key without changing
+  their Production-scoped values;
+- configured the isolated project's Auth site URL and exact confirmation redirect
+  URLs;
+- redeployed Preview and confirmed readiness returns `{"status":"ready"}`.
+
+The January and February values previously upserted on the shared project cannot
+be reconstructed without pre-change evidence, but the owner confirmed that old
+data does not matter. Administrator bootstrap and authenticated browser testing
+remain pending until the selected user completes signup.
 
 ## Current findings
 
