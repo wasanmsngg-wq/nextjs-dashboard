@@ -27,15 +27,16 @@ describe("foundation security contracts", () => {
     ).toThrow("distributed rate limiting");
   });
 
-  it("derives the review origin from Vercel without weakening production", () => {
+  it("uses a stable configured review origin with a Vercel fallback", () => {
     expect(
       resolveSiteUrl({
         ...publicEnv,
+        NEXT_PUBLIC_SITE_URL: "https://stable-review.vercel.app/",
         NODE_ENV: "production",
         APP_ENV: "preview",
         VERCEL_URL: "exercise-tracker-review.vercel.app",
       }),
-    ).toBe("https://exercise-tracker-review.vercel.app");
+    ).toBe("https://stable-review.vercel.app");
     expect(
       resolveSiteUrl({
         ...publicEnv,

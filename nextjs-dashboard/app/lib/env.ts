@@ -77,11 +77,11 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
 
 export function resolveSiteUrl(input: EnvironmentInput = process.env) {
   const env = readServerEnv(input);
-  if (env.APP_ENV === "preview" && env.VERCEL_URL) {
-    return `https://${env.VERCEL_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "")}`;
-  }
   if (env.NEXT_PUBLIC_SITE_URL) {
     return env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
+  }
+  if (env.APP_ENV === "preview" && env.VERCEL_URL) {
+    return `https://${env.VERCEL_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "")}`;
   }
   if (env.NODE_ENV !== "production") {
     return "http://localhost:3000";
