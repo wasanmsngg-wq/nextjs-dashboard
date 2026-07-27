@@ -17,7 +17,7 @@ export default async function Page() {
           />
           <h1 className={`${lusitana.className} antialiased text-xl text-gray-800 md:text-3xl md:leading-normal`}>
             <strong>{t('Welcome to Acme.')}</strong>{' '}
-            {t('Manage your hospital support network from one place.')}
+            {t('Manage your work from one place.')}
           </h1>
       </>}
       action={

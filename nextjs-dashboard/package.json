@@ -3,9 +3,6 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbopack",
-    "dev:load-test": "node scripts/run-with-load-test-env.cjs dev --turbopack",
-    "build:load-test": "node scripts/run-with-load-test-env.cjs build",
-    "start:load-test": "node scripts/run-with-load-test-env.cjs start",
     "start": "next start",
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "playwright test"
@@ -16,7 +13,7 @@
     "@tailwindcss/forms": "^0.5.10",
     "antd": "^6.5.1",
     "autoprefixer": "10.4.20",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "next": "latest",
     "next-auth": "5.0.0-beta.25",
@@ -26,20 +23,12 @@
     "react-dom": "latest",
     "tailwindcss": "3.4.17",
     "typescript": "5.7.3",
-    "use-debounce": "^10.0.6",
     "zod": "^3.25.17"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1",
-    "@types/bcrypt": "^5.0.2",
     "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "bcrypt",
-      "sharp"
-    ]
   }
 }

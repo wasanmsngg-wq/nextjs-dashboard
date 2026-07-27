@@ -26,7 +26,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run start:load-test -- -p 3002',
+    command: 'npm start -- -p 3002',
     url: 'http://127.0.0.1:3002',
     reuseExistingServer: true,
     timeout: 30_000,

@@ -1,13 +1,12 @@
 import Image from 'next/image';
-import { FormattedCustomersTable } from '@/app/lib/definitions';
+import type { Customer } from '@/app/lib/definitions';
 import { getTranslations } from '@/app/i18n/server';
-import { CustomerSummary } from './customer-summary';
 import { EmptyState } from '@/app/ui/atoms/empty-state';
 
 export default async function CustomersTable({
   customers,
 }: {
-  customers: FormattedCustomersTable[];
+  customers: Customer[];
 }) {
   const { t } = await getTranslations();
   return (
@@ -21,7 +20,7 @@ export default async function CustomersTable({
                     key={customer.id}
                     className="mb-2 w-full rounded-md bg-white p-4"
                   >
-                    <div className="flex items-center justify-between border-b pb-4">
+                    <div className="flex items-center justify-between">
                       <div>
                         <div className="mb-2 flex items-center">
                           <div className="flex items-center gap-3">
@@ -40,7 +39,6 @@ export default async function CustomersTable({
                         </p>
                       </div>
                     </div>
-                    <CustomerSummary pendingLabel={t('payment.pending')} paidLabel={t('Paid')} pending={customer.total_pending} paid={customer.total_paid} invoiceText={t('{count} invoices', { count: customer.total_invoices })} />
                   </div>
                 ))}
               </div>
@@ -52,15 +50,6 @@ export default async function CustomersTable({
                     </th>
                     <th scope="col" className="px-3 py-5 font-medium">
                       {t('Email')}
-                    </th>
-                    <th scope="col" className="px-3 py-5 font-medium">
-                      {t('Total Invoices')}
-                    </th>
-                    <th scope="col" className="px-3 py-5 font-medium">
-                      {t('Total Pending')}
-                    </th>
-                    <th scope="col" className="px-4 py-5 font-medium">
-                      {t('Total Paid')}
                     </th>
                   </tr>
                 </thead>
@@ -82,15 +71,6 @@ export default async function CustomersTable({
                       </td>
                       <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
                         {customer.email}
-                      </td>
-                      <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
-                        {customer.total_invoices}
-                      </td>
-                      <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
-                        {customer.total_pending}
-                      </td>
-                      <td className="whitespace-nowrap bg-white px-4 py-5 text-sm group-first-of-type:rounded-md group-last-of-type:rounded-md">
-                        {customer.total_paid}
                       </td>
                     </tr>
                   ))}

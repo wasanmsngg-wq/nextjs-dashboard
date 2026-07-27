@@ -1,78 +1,41 @@
 # Next.js Dashboard
 
-A localized English/Thai dashboard built with the Next.js App Router, Tailwind
-CSS, Ant Design, PostgreSQL, and a hybrid Atomic Design architecture.
+A localized English/Thai dashboard built with the Next.js App Router,
+Tailwind CSS, Ant Design, PostgreSQL, and a hybrid Atomic Design architecture.
 
-## UI architecture
-
-Shared, domain-neutral UI lives under `app/ui`:
-
-- `atoms/` contains visual primitives with no routing, data, or domain imports.
-- `molecules/` contains small reusable interactions such as search, locale,
-  pagination, page-size, profile-row, and metric-card controls.
-- `organisms/` contains complete shared sections such as the application shell,
-  navigation, dialogs, and table containers.
-- `templates/` defines fetch-free page composition through React slots.
-- `features/` groups customer, dashboard, hospital, and invoice presentation.
-
-App Router `page.tsx` files retain URL parsing and server-data composition.
-Route-local `loading.tsx` boundaries retain streaming behavior. Database access,
-server actions, validation, and pagination rules remain in `app/lib`.
-
-The migration source of truth and verification record is
-`docs/atomic-design-migration-plan.md`.
+The application currently provides an authenticated empty dashboard and a
+searchable customer directory.
 
 ## Development
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Authentication uses a single environment-configured administrator account.
-There is intentionally no registration flow. Configure these values in an
-ignored local environment file:
+Authentication uses a single environment-configured account. Configure these
+values in an ignored local environment file:
 
 ```dotenv
 AUTH_SECRET=<random secret>
-AUTH_ADMIN_USERNAME=<administrator username>
+AUTH_ADMIN_USERNAME=<username>
 AUTH_ADMIN_PASSWORD_HASH=<bcrypt password hash>
+POSTGRES_URL=<PostgreSQL connection URL>
 ```
 
 The browser tests additionally read test login values from the ignored
 `.env.auth.local` file:
 
 ```dotenv
-AUTH_TEST_USERNAME=<administrator username>
-AUTH_TEST_PASSWORD=<administrator password>
+AUTH_TEST_USERNAME=<username>
+AUTH_TEST_PASSWORD=<password>
 ```
 
-Verification:
+## Verification
 
 ```bash
-npx tsc --noEmit
-npm run build:load-test
+pnpm test
+pnpm build
+pnpm test:e2e
 git diff --check
-```
-
-## Local hospital load-test database
-
-The load-test profile runs PostgreSQL 17 on port `5433` and initializes 12,000
-deterministic hospital records.
-
-```bash
-docker compose -f docker-compose.load-test.yml up -d
-npm run dev:load-test
-```
-
-Open `http://localhost:3000/support`.
-
-The connection settings live in `.env.local-load-test`. The seed is idempotent,
-but PostgreSQL initialization scripts run only when the Docker volume is first
-created.
-
-```bash
-docker compose -f docker-compose.load-test.yml ps
-docker compose -f docker-compose.load-test.yml exec postgres-load-test \
-  psql -U hospital -d hospital_load_test -c "SELECT COUNT(*) FROM hospital;"
 ```

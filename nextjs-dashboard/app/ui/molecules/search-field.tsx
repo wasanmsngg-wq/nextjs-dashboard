@@ -2,7 +2,6 @@
 
 import {MagnifyingGlassIcon} from '@heroicons/react/24/outline';
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
-import {useDebouncedCallback} from "use-debounce";
 import {useI18n} from '@/app/i18n/provider';
 import {withSearchQuery} from '@/app/lib/url-state';
 import {useId} from "react";
@@ -15,7 +14,7 @@ export default function Search({placeholder}: Readonly<{ placeholder: string }>)
     const { t } = useI18n();
     const searchId = useId();
 
-    const handleSearch = useDebouncedCallback((term:string) => {
+    const handleSearch = (term:string) => {
         const params = withSearchQuery(new URLSearchParams(searchParams), term);
         const nextUrl = `${pathName}?${params.toString()}`;
         const currentUrl = `${pathName}?${searchParams.toString()}`;
@@ -23,7 +22,7 @@ export default function Search({placeholder}: Readonly<{ placeholder: string }>)
         if (nextUrl !== currentUrl) {
             replace(nextUrl);
         }
-    },300);
+    };
 
 
   return (

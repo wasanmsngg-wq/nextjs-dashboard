@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import clsx from 'clsx';
 import { usePathname } from 'next/navigation';
-import { DocumentDuplicateIcon, HeartIcon, HomeIcon, PowerIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, PowerIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import AcmeLogo from '@/app/ui/acme-logo';
 import { useI18n } from '@/app/i18n/provider';
 import { IconButton } from '@/app/ui/atoms/icon-button';
@@ -11,9 +11,7 @@ import { logout } from '@/app/lib/auth-actions';
 
 const links = [
   { name: 'Home', href: '/dashboard', icon: HomeIcon },
-  { name: 'Invoices', href: '/dashboard/invoices', icon: DocumentDuplicateIcon },
   { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
-  { name: 'Hospitals', href: '/support', icon: HeartIcon },
 ];
 
 export function SideNavigation({ open, onClose }: { open: boolean; onClose: () => void }) {

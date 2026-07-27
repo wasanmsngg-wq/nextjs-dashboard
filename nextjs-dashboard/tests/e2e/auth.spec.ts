@@ -11,8 +11,6 @@ test('anonymous users are redirected before protected pages render', async ({
   for (const route of [
     '/dashboard',
     '/dashboard/customers',
-    '/dashboard/invoices',
-    '/support',
   ]) {
     await page.goto(route);
     await expect(page).toHaveURL(
@@ -37,13 +35,6 @@ test('invalid credentials do not create a session', async ({ browser }) => {
   await expect(page).toHaveURL(/\/login$/);
 
   await context.close();
-});
-
-test('authenticated admin can access hospital management controls', async ({
-  page,
-}) => {
-  await page.goto('/support');
-  await expect(page.getByRole('button', { name: 'Add hospital' })).toBeVisible();
 });
 
 test('sign out invalidates the session', async ({ page }) => {

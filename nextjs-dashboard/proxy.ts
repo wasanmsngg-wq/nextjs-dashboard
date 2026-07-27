@@ -6,8 +6,7 @@ const { auth } = NextAuth(authConfig);
 
 export default auth((request) => {
   const { pathname, search } = request.nextUrl;
-  const isProtectedRoute =
-    pathname.startsWith('/dashboard') || pathname.startsWith('/support');
+  const isProtectedRoute = pathname.startsWith('/dashboard');
   const isLoginRoute = pathname === '/login';
 
   if (isProtectedRoute && !request.auth) {
@@ -24,5 +23,5 @@ export default auth((request) => {
 });
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/support/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/login'],
 };

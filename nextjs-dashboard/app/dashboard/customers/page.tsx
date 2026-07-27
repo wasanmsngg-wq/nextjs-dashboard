@@ -19,7 +19,7 @@ export default async function Page({
   return (
     <DirectoryTemplate
       title={t('Customers')}
-      description={t('View customers and their invoice totals.')}
+      description={t('View and search customers.')}
       controls={<div className="max-w-xl"><Search placeholder={t('Search customers...')} /></div>}
     >
       <CustomersTable customers={customers} />
