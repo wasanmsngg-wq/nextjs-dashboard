@@ -54,6 +54,28 @@ connections are used by this test suite.
 - [ ] Branch protection configured
 - [ ] Staging backup/restore evidence recorded
 
+## Isolated staging rehearsal
+
+Rehearsed on 2026-07-27 against the isolated Supabase project used only by the
+Vercel Preview environment:
+
+- confirmed the local database URL and Preview public URL resolve to the same
+  staging project before applying changes;
+- dry-ran and then applied migration `20260727050000_production_foundation.sql`;
+- loaded only the committed synthetic seed (`8` customers and `12` revenue rows);
+- confirmed remote and local migration history match;
+- confirmed database lint reports no schema errors;
+- confirmed RLS is enabled on `user_profiles`, `admins`, `guest_imports`,
+  `customers`, and `revenue`, with nine public-schema policies installed;
+- confirmed no profiles or administrators were created by the seed;
+- confirmed the Vercel Preview readiness endpoint returns `{"status":"ready"}`;
+- rendered the landing, authentication, guest dashboard, profile, liveness, and
+  readiness routes through Vercel deployment protection without middleware errors.
+
+Production was not connected to or modified. Auth redirect allowlisting and the
+first staging administrator still require trusted Supabase management access and
+an explicitly selected administrator identity.
+
 ## Current findings
 
 1. Signup verification delivery, recovery delivery, session refresh, and authenticated
