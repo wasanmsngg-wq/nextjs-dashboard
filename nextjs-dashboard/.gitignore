@@ -28,9 +28,13 @@ yarn-debug.log*
 yarn-error.log*
 .dev-*.log
 
-# local env files
-.env*.local
-.env
+# local environment files (the example contract is intentionally tracked)
+.env*
+!.env.example
+
+# Supabase CLI local state
+/supabase/.branches/
+/supabase/.temp/
 
 # vercel
 .vercel

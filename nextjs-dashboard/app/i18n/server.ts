@@ -1,14 +1,18 @@
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 import {
   defaultLocale,
   isLocale,
+  legacyLocaleCookie,
   localeCookie,
   type Locale,
-} from '@/app/i18n/config';
-import { translate } from '@/app/i18n/dictionaries';
+} from "@/app/i18n/config";
+import { translate } from "@/app/i18n/dictionaries";
 
 export async function getLocale(): Promise<Locale> {
-  const value = (await cookies()).get(localeCookie)?.value;
+  const cookieStore = await cookies();
+  const value =
+    cookieStore.get(localeCookie)?.value ??
+    cookieStore.get(legacyLocaleCookie)?.value;
   return isLocale(value) ? value : defaultLocale;
 }
 
