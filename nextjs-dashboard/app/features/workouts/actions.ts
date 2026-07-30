@@ -369,16 +369,37 @@ export async function replaceWorkoutSet(input: {
   return saveWorkoutSet({ ...input, expectedVersion: current.version });
 }
 
-export async function completeWorkout(sessionId: string, mutationId: string) {
+const completionCancellationsSchema = z
+  .array(
+    z.object({
+      exerciseId: uuidSchema,
+      reason: cancellationReasonSchema,
+    }),
+  )
+  .max(100)
+  .refine(
+    (items) =>
+      new Set(items.map((item) => item.exerciseId)).size === items.length,
+  );
+
+export async function completeWorkout(
+  sessionId: string,
+  mutationId: string,
+  cancellations: unknown,
+) {
+  const parsedCancellations =
+    completionCancellationsSchema.safeParse(cancellations);
   if (
     !uuidSchema.safeParse(sessionId).success ||
-    !uuidSchema.safeParse(mutationId).success
+    !uuidSchema.safeParse(mutationId).success ||
+    !parsedCancellations.success
   )
     return { ok: false as const, error: "The workout could not be completed." };
   const result = await authenticatedOperation("workout.complete", async (db) =>
     db.rpc("complete_workout", {
       requested_session_id: sessionId,
       requested_mutation_id: mutationId,
+      requested_cancellations: parsedCancellations.data as unknown as Json,
     }),
   );
   if (!result.ok || result.data.error)

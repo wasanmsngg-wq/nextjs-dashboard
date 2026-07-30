@@ -358,7 +358,11 @@ export type Database = {
         Returns: number;
       };
       complete_workout: {
-        Args: { requested_mutation_id: string; requested_session_id: string };
+        Args: {
+          requested_cancellations: Json;
+          requested_mutation_id: string;
+          requested_session_id: string;
+        };
         Returns: boolean;
       };
       discard_workout: {

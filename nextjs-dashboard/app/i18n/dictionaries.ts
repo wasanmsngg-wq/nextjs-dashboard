@@ -330,6 +330,10 @@ const th: Record<string, string> = {
     "หยุดตัวจับเวลาเซตที่กำลังทำงานก่อนทำการฝึกนี้ให้เสร็จ",
   "The completed workout becomes read-only.":
     "การฝึกที่เสร็จแล้วจะเปลี่ยนเป็นแบบอ่านอย่างเดียว",
+  "Cancel unfinished exercises?": "ยกเลิกท่าออกกำลังกายที่ยังไม่เสร็จหรือไม่",
+  "Unfinished exercises will be canceled and kept in workout history. Enter a reason for each one.":
+    "ท่าออกกำลังกายที่ยังไม่เสร็จจะถูกยกเลิกและเก็บไว้ในประวัติการฝึก โปรดระบุเหตุผลสำหรับแต่ละท่า",
+  "Reason for {exercise}": "เหตุผลสำหรับ {exercise}",
   "Discard this workout?": "ละทิ้งการฝึกนี้หรือไม่",
   "This cannot be undone.": "การดำเนินการนี้ย้อนกลับไม่ได้",
   "Discard this workout? This cannot be undone.":

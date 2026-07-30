@@ -162,3 +162,19 @@ test("workout sets retain elapsed time independently from tracking mode", async 
   assert.match(sql, /requested_elapsed_seconds integer/i);
   assert.match(sql, /elapsed_seconds = requested_elapsed_seconds/i);
 });
+
+test("workout completion requires reasons for unfinished exercises", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730190000_complete_workout_cancellations.sql",
+    ),
+    "utf8",
+  );
+  assert.match(sql, /requested_cancellations jsonb/i);
+  assert.match(sql, /unfinished exercise requires cancellation/i);
+  assert.match(sql, /status = 'canceled'/i);
+  assert.match(sql, /cancellation_reason = trim/i);
+});

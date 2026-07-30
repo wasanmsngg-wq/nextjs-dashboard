@@ -208,13 +208,15 @@ test("registered user creates a template and completes an immutable workout", as
   await cancellationDialog
     .getByRole("button", { name: "Cancel exercise" })
     .click();
+  await expect(
+    page.getByRole("status").filter({
+      hasText: "Exercise canceled and kept in the workout record.",
+    }),
+  ).toBeVisible();
   await expect(page.getByText("Canceled", { exact: true })).toBeVisible();
   await expect(cancellationDialog).toBeHidden();
   await expect(
     page.getByRole("paragraph").filter({ hasText: "Shoulder discomfort" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Exercise canceled and kept in the workout record."),
   ).toBeVisible();
   await page.getByRole("button", { name: "Discard workout" }).click();
   await page
@@ -278,17 +280,36 @@ test("registered user creates a template and completes an immutable workout", as
   await expect(firstSet.getByLabel("Set notes")).toHaveValue(
     "queued while offline",
   );
+  await page.getByLabel("Add exercise").selectOption({
+    label: "Browser Curl",
+  });
+  await page.getByLabel("Sets").fill("1");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Browser Curl" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Complete workout" }).click();
   const completionDialog = page.getByRole("dialog", {
-    name: "Complete this workout?",
+    name: "Cancel unfinished exercises?",
   });
+  const completionButton = completionDialog.getByRole("button", {
+    name: "Complete workout",
+  });
+  await expect(completionButton).toBeDisabled();
   await completionDialog
-    .getByRole("button", { name: "Complete workout" })
-    .click();
+    .getByLabel("Reason for Browser Curl")
+    .fill("Session time ended");
+  for (const textarea of await completionDialog.locator("textarea").all()) {
+    if (!(await textarea.inputValue()))
+      await textarea.fill("Session time ended");
+  }
+  await expect(completionButton).toBeEnabled();
+  await completionButton.click();
   await expect(page.getByText("Workout completed.")).toBeVisible();
   await expect(page.getByText("Completed workout — read only")).toBeVisible();
   await expect(firstSet.getByRole("checkbox")).toBeDisabled();
   await expect(completionDialog).toBeHidden();
+  await expect(page.getByText("Session time ended").first()).toBeVisible();
 
   await expectAccessibleResponsivePage(page);
 });

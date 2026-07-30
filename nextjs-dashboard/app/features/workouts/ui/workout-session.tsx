@@ -105,6 +105,9 @@ export function WorkoutSession({
   const [setCount, setSetCount] = useState(3);
   const [dialog, setDialog] = useState<SessionDialog>(null);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [completionReasons, setCompletionReasons] = useState<
+    Record<string, string>
+  >({});
   const [dialogPending, setDialogPending] = useState(false);
   const [activeTimer, setActiveTimer] = useState<ActiveSetTimer | null>(null);
   const [timerNow, setTimerNow] = useState(() => Date.now());
@@ -428,12 +431,29 @@ export function WorkoutSession({
       ? (exercises.find((exercise) => exercise.id === dialog.exerciseId) ??
         null)
       : null;
+  const unfinishedExercises = exercises.filter(
+    (exercise) =>
+      exercise.status === "active" &&
+      exercise.sets.some((set) => !set.completed),
+  );
+  const completionReasonsValid = unfinishedExercises.every((exercise) => {
+    const length = completionReasons[exercise.id]?.trim().length ?? 0;
+    return length >= 3 && length <= 500;
+  });
 
   async function confirmWorkoutCompletion() {
     if (activeTimer) return;
     setDialogPending(true);
     await flushPendingSetWrites();
-    const result = await completeWorkout(sessionId, crypto.randomUUID());
+    const cancellations = unfinishedExercises.map((exercise) => ({
+      exerciseId: exercise.id,
+      reason: completionReasons[exercise.id]?.trim() ?? "",
+    }));
+    const result = await completeWorkout(
+      sessionId,
+      crypto.randomUUID(),
+      cancellations,
+    );
     setDialogPending(false);
     notify(
       result.ok ? "success" : "error",
@@ -441,6 +461,22 @@ export function WorkoutSession({
     );
     if (!result.ok) return;
     setDialog(null);
+    setExercises((current) =>
+      current.map((exercise) => {
+        const cancellation = cancellations.find(
+          (item) => item.exerciseId === exercise.id,
+        );
+        return cancellation
+          ? {
+              ...exercise,
+              status: "canceled",
+              cancellationReason: cancellation.reason,
+              canceledAt: new Date().toISOString(),
+            }
+          : exercise;
+      }),
+    );
+    setCompletionReasons({});
     setSessionStatus("completed");
     await purgeWorkoutMutations(userId, sessionId);
     router.refresh();
@@ -856,7 +892,16 @@ export function WorkoutSession({
       {!exercises.length ? <p>{t("Add an exercise to begin.")}</p> : null}
       {editable ? (
         <div className="fixed inset-x-0 bottom-0 z-30 flex flex-wrap justify-center gap-3 border-t bg-white/95 p-3 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur sm:sticky sm:rounded-2xl sm:border">
-          <Button onClick={() => setDialog({ kind: "complete" })}>
+          <Button
+            onClick={() => {
+              setCompletionReasons(
+                Object.fromEntries(
+                  unfinishedExercises.map((exercise) => [exercise.id, ""]),
+                ),
+              );
+              setDialog({ kind: "complete" });
+            }}
+          >
             {t("Complete workout")}
           </Button>
           <Button
@@ -945,19 +990,61 @@ export function WorkoutSession({
       </Dialog>
       <Dialog
         open={dialog?.kind === "complete"}
-        title={t("Complete this workout?")}
+        title={t(
+          unfinishedExercises.length
+            ? "Cancel unfinished exercises?"
+            : "Complete this workout?",
+        )}
         confirmLabel={t("Complete workout")}
         cancelLabel={t("Continue workout")}
-        confirmDisabled={activeTimer !== null}
+        confirmDisabled={activeTimer !== null || !completionReasonsValid}
         loading={dialogPending}
-        onCancel={() => setDialog(null)}
+        onCancel={() => {
+          setDialog(null);
+          setCompletionReasons({});
+        }}
         onConfirm={() => void confirmWorkoutCompletion()}
       >
-        <p className="text-slate-600">
-          {activeTimer
-            ? t("Stop the active set timer before completing this workout.")
-            : t("The completed workout becomes read-only.")}
-        </p>
+        {activeTimer ? (
+          <p className="text-slate-600">
+            {t("Stop the active set timer before completing this workout.")}
+          </p>
+        ) : unfinishedExercises.length ? (
+          <>
+            <p className="text-slate-600">
+              {t(
+                "Unfinished exercises will be canceled and kept in workout history. Enter a reason for each one.",
+              )}
+            </p>
+            <div className="mt-4 max-h-[50vh] space-y-4 overflow-y-auto pr-1">
+              {unfinishedExercises.map((exercise) => (
+                <label
+                  className="block text-sm font-semibold text-slate-800"
+                  key={exercise.id}
+                >
+                  {t("Reason for {exercise}", { exercise: exercise.name })}
+                  <textarea
+                    className="input mt-2 min-h-24"
+                    minLength={3}
+                    maxLength={500}
+                    required
+                    value={completionReasons[exercise.id] ?? ""}
+                    onChange={(event) =>
+                      setCompletionReasons((current) => ({
+                        ...current,
+                        [exercise.id]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="text-slate-600">
+            {t("The completed workout becomes read-only.")}
+          </p>
+        )}
       </Dialog>
       <Dialog
         open={dialog?.kind === "discard"}

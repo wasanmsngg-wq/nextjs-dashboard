@@ -126,11 +126,13 @@ begin
   ), 'set elapsed time must persist independently from workout measurements';
   assert public.complete_workout(
     '55000000-0000-4000-8000-000000000001',
-    '56000000-0000-4000-8000-000000000002'
+    '56000000-0000-4000-8000-000000000002',
+    '[]'::jsonb
   );
   assert public.complete_workout(
     '55000000-0000-4000-8000-000000000001',
-    '56000000-0000-4000-8000-000000000002'
+    '56000000-0000-4000-8000-000000000002',
+    '[]'::jsonb
   );
   perform public.start_workout(
     '55000000-0000-4000-8000-000000000003', null
@@ -212,6 +214,45 @@ begin
   assert public.discard_workout(
     '55000000-0000-4000-8000-000000000003'
   ), 'an empty-start workout with newly added exercises must be discardable';
+  perform public.start_workout(
+    '55000000-0000-4000-8000-000000000004', null
+  );
+  perform public.add_workout_exercise(
+    '55000000-0000-4000-8000-000000000004',
+    '53000000-0000-4000-8000-000000000005',
+    '51000000-0000-4000-8000-000000000001',
+    array['54000000-0000-4000-8000-000000000006'::uuid]
+  );
+  begin
+    perform public.complete_workout(
+      '55000000-0000-4000-8000-000000000004',
+      '56000000-0000-4000-8000-000000000005',
+      '[]'::jsonb
+    );
+    raise exception 'unfinished exercise completed without cancellation';
+  exception when raise_exception then
+    if sqlerrm = 'unfinished exercise completed without cancellation' then
+      raise;
+    end if;
+  end;
+  assert public.complete_workout(
+    '55000000-0000-4000-8000-000000000004',
+    '56000000-0000-4000-8000-000000000006',
+    '[{
+      "exerciseId":"53000000-0000-4000-8000-000000000005",
+      "reason":"Ran out of available training time"
+    }]'::jsonb
+  );
+  assert (
+    select status = 'completed' from public.workout_sessions
+    where id='55000000-0000-4000-8000-000000000004'
+  ), 'the workout must complete after every unfinished exercise is accounted for';
+  assert (
+    select status = 'canceled'
+      and cancellation_reason = 'Ran out of available training time'
+    from public.workout_session_exercises
+    where id='53000000-0000-4000-8000-000000000005'
+  ), 'completion must retain unfinished exercises with their reasons';
   begin
     update public.workout_sessions set notes='changed'
       where id='55000000-0000-4000-8000-000000000001';
