@@ -20,8 +20,10 @@ import {
 } from "@/app/domain";
 import {
   addWorkoutExercise,
+  cancelWorkoutExercise,
   completeWorkout,
   discardWorkout,
+  removeWorkoutExercise,
   replaceWorkoutSet,
   saveWorkoutSet,
 } from "../actions";
@@ -32,14 +34,45 @@ import {
   removeWorkoutMutation,
 } from "../data/workout-queue";
 import { useI18n } from "@/app/i18n/provider";
+import { Button } from "@/app/ui/atoms/button";
+import { Surface } from "@/app/ui/atoms/surface";
+import { Dialog } from "@/app/ui/molecules/dialog";
+import { Toast, type ToastNotice } from "@/app/ui/molecules/toast";
+
+type SessionSet = WorkoutSetInput & {
+  targetReps: number | null;
+  targetLoadGrams: number | null;
+  targetDurationSeconds: number | null;
+  targetDistanceMeters: number | null;
+  targetRpe: number | null;
+};
 
 type SessionExercise = {
   id: string;
   name: string;
   trackingMode: TrackingMode;
-  sets: WorkoutSetInput[];
+  status: "active" | "canceled";
+  cancellationReason: string | null;
+  canceledAt: string | null;
+  sets: SessionSet[];
 };
-type ExerciseOption = { id: string; name: string };
+type ExerciseOption = {
+  id: string;
+  name: string;
+  trackingMode: TrackingMode;
+};
+
+type SessionDialog =
+  | { kind: "remove" | "cancel"; exerciseId: string }
+  | { kind: "complete" | "discard" | "replace" }
+  | null;
+
+type ActiveSetTimer = {
+  exerciseId: string;
+  setId: string;
+  startedAt: number;
+  baseSeconds: number;
+};
 
 export function WorkoutSession({
   sessionId,
@@ -65,91 +98,146 @@ export function WorkoutSession({
   const [exercises, setExercises] = useState(initialExercises);
   const [sessionStatus, setSessionStatus] = useState(status);
   const [autosave, setAutosave] = useState<WorkoutAutosaveState>("idle");
-  const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState<ToastNotice | null>(null);
   const [selectedExercise, setSelectedExercise] = useState(
     exerciseOptions[0]?.id ?? "",
   );
   const [setCount, setSetCount] = useState(3);
+  const [dialog, setDialog] = useState<SessionDialog>(null);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [completionReasons, setCompletionReasons] = useState<
+    Record<string, string>
+  >({});
+  const [dialogPending, setDialogPending] = useState(false);
+  const [activeTimer, setActiveTimer] = useState<ActiveSetTimer | null>(null);
+  const [timerNow, setTimerNow] = useState(() => Date.now());
   const version = useRef(initialVersion);
-  const syncing = useRef(false);
+  const syncPromise = useRef<Promise<void> | null>(null);
+  const pendingSetWrites = useRef(new Set<Promise<void>>());
   const editable = sessionStatus === "in_progress";
 
+  const notify = useCallback((type: ToastNotice["type"], message: string) => {
+    setNotice({ id: Date.now(), type, message });
+  }, []);
+
+  const updateAutosave = useCallback(
+    (next: WorkoutAutosaveState) => {
+      setAutosave(next);
+      if (next === "saved") notify("success", t("Changes saved."));
+      if (next === "offline")
+        notify("warning", t("Offline — changes will retry when connected."));
+      if (next === "conflict")
+        notify(
+          "warning",
+          t("This workout changed elsewhere. Reload the server copy."),
+        );
+      if (next === "error")
+        notify("error", t("Save failed. Your changes remain on this device."));
+    },
+    [notify, t],
+  );
+
+  useEffect(() => {
+    if (!activeTimer) return;
+    const interval = window.setInterval(() => setTimerNow(Date.now()), 1_000);
+    return () => window.clearInterval(interval);
+  }, [activeTimer]);
+
   const syncQueue = useCallback(async () => {
-    if (syncing.current || !navigator.onLine) return;
-    syncing.current = true;
-    try {
-      while (true) {
-        const queued = await listWorkoutMutations(userId, sessionId);
-        if (!queued.length) break;
-        for (const mutation of queued) {
-          setAutosave("saving");
-          const result = await saveWorkoutSet({
-            ...mutation,
-            expectedVersion: version.current,
-          });
-          if (!result.ok) {
-            setAutosave(result.conflict ? "conflict" : "error");
-            return;
+    if (syncPromise.current) return syncPromise.current;
+    if (!navigator.onLine) return;
+    const operation = (async () => {
+      try {
+        while (true) {
+          const queued = await listWorkoutMutations(userId, sessionId);
+          if (!queued.length) break;
+          for (const mutation of queued) {
+            updateAutosave("saving");
+            const result = await saveWorkoutSet({
+              ...mutation,
+              expectedVersion: version.current,
+            });
+            if (!result.ok) {
+              updateAutosave(result.conflict ? "conflict" : "error");
+              return;
+            }
+            version.current = result.version ?? version.current;
+            await removeWorkoutMutation(mutation.mutationId);
           }
-          version.current = result.version ?? version.current;
-          await removeWorkoutMutation(mutation.mutationId);
         }
+        updateAutosave("saved");
+      } catch {
+        updateAutosave(navigator.onLine ? "error" : "offline");
       }
-      setAutosave("saved");
-    } catch {
-      setAutosave(navigator.onLine ? "error" : "offline");
+    })();
+    syncPromise.current = operation;
+    try {
+      await operation;
     } finally {
-      syncing.current = false;
+      if (syncPromise.current === operation) syncPromise.current = null;
     }
-  }, [sessionId, userId]);
+  }, [sessionId, updateAutosave, userId]);
 
   useEffect(() => {
     if (!editable) return;
     const online = () => void syncQueue();
-    const offline = () => setAutosave("offline");
+    const offline = () => updateAutosave("offline");
     window.addEventListener("online", online);
     window.addEventListener("offline", offline);
     return () => {
       window.removeEventListener("online", online);
       window.removeEventListener("offline", offline);
     };
-  }, [editable, syncQueue]);
+  }, [editable, syncQueue, updateAutosave]);
 
-  async function queueSet(set: WorkoutSetInput) {
-    const mutation: WorkoutMutation = {
-      schemaVersion: 1,
-      mutationId: crypto.randomUUID(),
-      userId,
-      sessionId,
-      expectedVersion: version.current,
-      set,
-    };
-    try {
-      await enqueueWorkoutMutation(mutation);
-      if (!navigator.onLine) return setAutosave("offline");
-      await syncQueue();
-    } catch {
-      setAutosave("error");
-    }
+  function queueSet(set: WorkoutSetInput) {
+    const operation = (async () => {
+      const mutation: WorkoutMutation = {
+        schemaVersion: 1,
+        mutationId: crypto.randomUUID(),
+        userId,
+        sessionId,
+        expectedVersion: version.current,
+        set,
+      };
+      try {
+        await enqueueWorkoutMutation(mutation);
+        if (!navigator.onLine) {
+          updateAutosave("offline");
+          return;
+        }
+        await syncQueue();
+      } catch {
+        updateAutosave("error");
+      }
+    })();
+    pendingSetWrites.current.add(operation);
+    void operation.finally(() => pendingSetWrites.current.delete(operation));
+    return operation;
+  }
+
+  async function flushPendingSetWrites() {
+    await Promise.all([...pendingSetWrites.current]);
+    await syncQueue();
   }
 
   async function replaceWithDeviceCopy() {
-    setAutosave("saving");
+    updateAutosave("saving");
     try {
       const queued = await listWorkoutMutations(userId, sessionId);
       for (const mutation of queued) {
         const result = await replaceWorkoutSet(mutation);
         if (!result.ok) {
-          setAutosave("error");
+          updateAutosave("error");
           return;
         }
         version.current = result.version ?? version.current;
         await removeWorkoutMutation(mutation.mutationId);
       }
-      setAutosave("saved");
+      updateAutosave("saved");
       router.refresh();
     } catch {
-      setAutosave("error");
+      updateAutosave("error");
     }
   }
 
@@ -189,6 +277,232 @@ export function WorkoutSession({
 
   const loadUnit = unitSystem === "us" ? "lb" : "kg";
   const distanceUnit = unitSystem === "us" ? "mi" : "km";
+
+  async function addExercise() {
+    const selected = exerciseOptions.find(
+      (exercise) => exercise.id === selectedExercise,
+    );
+    if (!selected) return;
+    const result = await addWorkoutExercise(
+      sessionId,
+      selectedExercise,
+      setCount,
+    );
+    notify(
+      result.ok ? "success" : "error",
+      t(result.ok ? "Exercise added." : result.error),
+    );
+    if (!result.ok) return;
+    version.current = result.version;
+    setExercises((current) => [
+      ...current,
+      {
+        id: result.sessionExerciseId,
+        name: selected.name,
+        trackingMode: selected.trackingMode,
+        status: "active",
+        cancellationReason: null,
+        canceledAt: null,
+        sets: result.setIds.map((id, position) => ({
+          id,
+          position,
+          completed: false,
+          reps: null,
+          loadGrams: null,
+          durationSeconds: null,
+          distanceMeters: null,
+          elapsedSeconds: 0,
+          rpe: null,
+          notes: "",
+          targetReps: null,
+          targetLoadGrams: null,
+          targetDurationSeconds: null,
+          targetDistanceMeters: null,
+          targetRpe: null,
+        })),
+      },
+    ]);
+  }
+
+  async function clearQueuedExerciseSets(exercise: SessionExercise) {
+    const setIds = new Set(exercise.sets.map((set) => set.id));
+    const queued = await listWorkoutMutations(userId, sessionId);
+    await Promise.all(
+      queued
+        .filter((mutation) => setIds.has(mutation.set.id))
+        .map((mutation) => removeWorkoutMutation(mutation.mutationId)),
+    );
+  }
+
+  async function removeExercise(exercise: SessionExercise) {
+    setDialogPending(true);
+    await flushPendingSetWrites();
+    const result = await removeWorkoutExercise(
+      sessionId,
+      exercise.id,
+      version.current,
+    );
+    setDialogPending(false);
+    if (!result.ok) {
+      notify("error", t(result.error));
+      return;
+    }
+    version.current = result.version;
+    await clearQueuedExerciseSets(exercise);
+    setExercises((current) =>
+      current.filter((candidate) => candidate.id !== exercise.id),
+    );
+    setDialog(null);
+    notify("success", t("Exercise removed."));
+  }
+
+  async function cancelExercise(exercise: SessionExercise) {
+    setDialogPending(true);
+    await flushPendingSetWrites();
+    const result = await cancelWorkoutExercise(
+      sessionId,
+      exercise.id,
+      version.current,
+      cancellationReason,
+    );
+    setDialogPending(false);
+    if (!result.ok) {
+      notify("error", t(result.error));
+      return;
+    }
+    const normalizedReason = cancellationReason.trim();
+    version.current = result.version;
+    await clearQueuedExerciseSets(exercise);
+    setExercises((current) =>
+      current.map((candidate) =>
+        candidate.id === exercise.id
+          ? {
+              ...candidate,
+              status: "canceled",
+              cancellationReason: normalizedReason,
+              canceledAt: new Date().toISOString(),
+            }
+          : candidate,
+      ),
+    );
+    setDialog(null);
+    setCancellationReason("");
+    notify("success", t("Exercise canceled and kept in the workout record."));
+  }
+
+  function displayedElapsedSeconds(exerciseId: string, set: WorkoutSetInput) {
+    if (activeTimer?.exerciseId !== exerciseId || activeTimer.setId !== set.id)
+      return set.elapsedSeconds;
+    return Math.min(
+      604_800,
+      activeTimer.baseSeconds +
+        Math.floor((timerNow - activeTimer.startedAt) / 1_000),
+    );
+  }
+
+  function startSetTimer(exerciseId: string, set: WorkoutSetInput) {
+    if (activeTimer) return;
+    setTimerNow(Date.now());
+    setActiveTimer({
+      exerciseId,
+      setId: set.id,
+      startedAt: Date.now(),
+      baseSeconds: set.elapsedSeconds,
+    });
+  }
+
+  function stopSetTimer(exerciseId: string, set: WorkoutSetInput) {
+    if (activeTimer?.exerciseId !== exerciseId || activeTimer.setId !== set.id)
+      return;
+    const elapsedSeconds = displayedElapsedSeconds(exerciseId, set);
+    setActiveTimer(null);
+    updateSet(exerciseId, set.id, { elapsedSeconds }, true);
+    notify("success", t("Set timer saved."));
+  }
+
+  function resetSetTimer(exerciseId: string, set: WorkoutSetInput) {
+    if (activeTimer?.setId === set.id) setActiveTimer(null);
+    updateSet(exerciseId, set.id, { elapsedSeconds: 0 }, true);
+    notify("info", t("Set timer reset."));
+  }
+
+  const dialogExercise =
+    dialog && "exerciseId" in dialog
+      ? (exercises.find((exercise) => exercise.id === dialog.exerciseId) ??
+        null)
+      : null;
+  const unfinishedExercises = exercises.filter(
+    (exercise) =>
+      exercise.status === "active" &&
+      exercise.sets.some((set) => !set.completed),
+  );
+  const completionReasonsValid = unfinishedExercises.every((exercise) => {
+    const length = completionReasons[exercise.id]?.trim().length ?? 0;
+    return length >= 3 && length <= 500;
+  });
+
+  async function confirmWorkoutCompletion() {
+    if (activeTimer) return;
+    setDialogPending(true);
+    await flushPendingSetWrites();
+    const cancellations = unfinishedExercises.map((exercise) => ({
+      exerciseId: exercise.id,
+      reason: completionReasons[exercise.id]?.trim() ?? "",
+    }));
+    const result = await completeWorkout(
+      sessionId,
+      crypto.randomUUID(),
+      cancellations,
+    );
+    setDialogPending(false);
+    notify(
+      result.ok ? "success" : "error",
+      t(result.ok ? "Workout completed." : result.error),
+    );
+    if (!result.ok) return;
+    setDialog(null);
+    setExercises((current) =>
+      current.map((exercise) => {
+        const cancellation = cancellations.find(
+          (item) => item.exerciseId === exercise.id,
+        );
+        return cancellation
+          ? {
+              ...exercise,
+              status: "canceled",
+              cancellationReason: cancellation.reason,
+              canceledAt: new Date().toISOString(),
+            }
+          : exercise;
+      }),
+    );
+    setCompletionReasons({});
+    setSessionStatus("completed");
+    await purgeWorkoutMutations(userId, sessionId);
+    router.refresh();
+  }
+
+  async function confirmWorkoutDiscard() {
+    setDialogPending(true);
+    const result = await discardWorkout(sessionId);
+    setDialogPending(false);
+    if (!result.ok) {
+      notify("error", t(result.error));
+      return;
+    }
+    setDialog(null);
+    setActiveTimer(null);
+    await purgeWorkoutMutations(userId, sessionId);
+    router.push("/workouts");
+  }
+
+  async function confirmDeviceCopyReplacement() {
+    setDialogPending(true);
+    await replaceWithDeviceCopy();
+    setDialogPending(false);
+    setDialog(null);
+  }
+
   return (
     <main className="mx-auto max-w-6xl space-y-6 pb-24">
       <header className="rounded-3xl bg-gradient-to-br from-slate-900 to-blue-900 p-6 text-white shadow-lg sm:p-8">
@@ -219,7 +533,7 @@ export function WorkoutSession({
         </div>
       </header>
       {editable ? (
-        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+        <Surface as="section">
           <h2 className="text-lg font-bold">{t("Add another exercise")}</h2>
           <div className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_auto_auto]">
             <label className="font-semibold text-gray-800">
@@ -247,272 +561,614 @@ export function WorkoutSession({
                 onChange={(event) => setSetCount(Number(event.target.value))}
               />
             </label>
-            <button
-              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:bg-gray-300"
-              disabled={!selectedExercise}
-              onClick={async () => {
-                const result = await addWorkoutExercise(
-                  sessionId,
-                  selectedExercise,
-                  setCount,
-                );
-                setMessage(result.ok ? t("Exercise added.") : t(result.error));
-                if (result.ok) router.refresh();
-              }}
-            >
+            <Button disabled={!selectedExercise} onClick={addExercise}>
               {t("Add")}
-            </button>
+            </Button>
           </div>
-        </section>
+        </Surface>
       ) : null}
       <ol className="space-y-5">
         {exercises.map((exercise) => {
           const fields = fieldsForTrackingMode(exercise.trackingMode);
+          const exerciseEditable = editable && exercise.status === "active";
+          const plannedExercise = exercise.sets.some(hasPlannedTarget);
           return (
-            <li
-              className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+            <Surface
+              as="li"
+              className="overflow-hidden"
+              padding="none"
               key={exercise.id}
             >
-              <div className="border-b bg-gray-50 px-5 py-4">
-                <h2 className="text-lg font-bold text-gray-950">
-                  {exercise.name}
-                </h2>
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b bg-gray-50 px-5 py-4">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-lg font-bold text-gray-950">
+                      {exercise.name}
+                    </h2>
+                    {exercise.status === "canceled" ? (
+                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
+                        {t("Canceled")}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-sm font-medium text-gray-600">
+                    {t("{completed} of {total} sets complete", {
+                      completed: exercise.sets.filter((set) => set.completed)
+                        .length,
+                      total: exercise.sets.length,
+                    })}
+                    <span aria-hidden="true"> · </span>
+                    {t("Exercise time: {time}", {
+                      time: formatElapsedTime(
+                        exercise.sets.reduce(
+                          (total, set) =>
+                            total + displayedElapsedSeconds(exercise.id, set),
+                          0,
+                        ),
+                      ),
+                    })}
+                  </p>
+                </div>
+                {exerciseEditable ? (
+                  <div className="flex flex-wrap gap-1">
+                    {!plannedExercise ? (
+                      <Button
+                        size="small"
+                        variant="quiet"
+                        onClick={() => {
+                          setDialog({
+                            exerciseId: exercise.id,
+                            kind: "remove",
+                          });
+                          setCancellationReason("");
+                        }}
+                      >
+                        {t("Remove")}
+                      </Button>
+                    ) : null}
+                    <Button
+                      size="small"
+                      variant="quiet"
+                      onClick={() => {
+                        setDialog({
+                          exerciseId: exercise.id,
+                          kind: "cancel",
+                        });
+                        setCancellationReason("");
+                      }}
+                    >
+                      {t("Cancel exercise")}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
+              {exercise.status === "canceled" ? (
+                <div className="border-b border-amber-200 bg-amber-50 px-5 py-3">
+                  <p className="text-sm font-semibold text-amber-950">
+                    {t("Cancellation reason")}
+                  </p>
+                  <p className="mt-1 text-sm text-amber-900">
+                    {exercise.cancellationReason}
+                  </p>
+                </div>
+              ) : null}
               <ol className="mt-3 space-y-3">
-                {exercise.sets.map((set, index) => (
-                  <li
-                    className="mx-4 grid items-end gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 sm:grid-cols-3 lg:grid-cols-6"
-                    key={set.id}
-                  >
-                    <label className="flex min-h-11 items-center gap-2 font-medium">
-                      <input
-                        type="checkbox"
-                        className="h-5 w-5"
-                        checked={set.completed}
-                        disabled={!editable}
-                        onChange={(event) =>
-                          updateSet(
-                            exercise.id,
-                            set.id,
-                            { completed: event.target.checked },
-                            true,
-                          )
-                        }
-                      />
-                      {t("Set {number}", { number: index + 1 })}
-                    </label>
-                    {fields.reps ? (
-                      <SetNumber
-                        label={t("Reps")}
-                        value={set.reps}
-                        disabled={!editable}
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, { reps: next })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    ) : null}
-                    {fields.load ? (
-                      <SetNumber
-                        label={`${t("Load")} (${loadUnit})`}
-                        step={0.5}
-                        disabled={!editable}
-                        value={
-                          set.loadGrams === null
-                            ? null
-                            : convertMass(
-                                set.loadGrams,
-                                "grams",
-                                unitSystem === "us" ? "pounds" : "kilograms",
-                                2,
+                {exercise.sets.map((set, index) => {
+                  const setTimerActive =
+                    activeTimer?.exerciseId === exercise.id &&
+                    activeTimer.setId === set.id;
+                  const elapsedSeconds = displayedElapsedSeconds(
+                    exercise.id,
+                    set,
+                  );
+                  return (
+                    <li
+                      className="mx-4 rounded-xl border border-gray-200 bg-gray-50 p-4"
+                      key={set.id}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <label className="flex min-h-11 items-center gap-2 font-semibold">
+                          <input
+                            type="checkbox"
+                            className="h-5 w-5"
+                            checked={set.completed}
+                            disabled={
+                              !exerciseEditable ||
+                              setTimerActive ||
+                              (!set.completed &&
+                                !hasRequiredActual(exercise.trackingMode, set))
+                            }
+                            onChange={(event) =>
+                              updateSet(
+                                exercise.id,
+                                set.id,
+                                { completed: event.target.checked },
+                                true,
                               )
-                        }
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, {
-                            loadGrams:
-                              next === null
-                                ? null
-                                : Math.round(
-                                    convertMass(
-                                      next,
-                                      unitSystem === "us"
-                                        ? "pounds"
-                                        : "kilograms",
-                                      "grams",
-                                    ),
-                                  ),
-                          })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    ) : null}
-                    {fields.duration ? (
-                      <SetNumber
-                        label={`${t("Duration")} (${t("seconds")})`}
-                        value={set.durationSeconds}
-                        disabled={!editable}
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, {
-                            durationSeconds: next,
-                          })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    ) : null}
-                    {fields.distance ? (
-                      <SetNumber
-                        label={`${t("Distance")} (${distanceUnit})`}
-                        step={0.1}
-                        disabled={!editable}
-                        value={
-                          set.distanceMeters === null
-                            ? null
-                            : convertDistance(
-                                set.distanceMeters,
-                                "meters",
-                                unitSystem === "us" ? "miles" : "kilometers",
-                                2,
-                              )
-                        }
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, {
-                            distanceMeters:
-                              next === null
-                                ? null
-                                : Math.round(
-                                    convertDistance(
-                                      next,
-                                      unitSystem === "us"
-                                        ? "miles"
-                                        : "kilometers",
-                                      "meters",
-                                    ),
-                                  ),
-                          })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    ) : null}
-                    <SetNumber
-                      label="RPE"
-                      min={1}
-                      max={10}
-                      step={0.5}
-                      value={set.rpe}
-                      disabled={!editable}
-                      optional
-                      onChange={(next) =>
-                        updateSet(exercise.id, set.id, { rpe: next })
-                      }
-                      onSave={() => saveCurrentSet(exercise.id, set.id)}
-                    />
-                    <label className="text-sm sm:col-span-3 lg:col-span-6">
-                      {t("Set notes")}
-                      <input
-                        className="input mt-1"
-                        maxLength={2_000}
-                        value={set.notes}
-                        disabled={!editable}
-                        onChange={(event) =>
-                          updateSet(exercise.id, set.id, {
-                            notes: event.target.value,
-                          })
-                        }
-                        onBlur={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    </label>
-                  </li>
-                ))}
+                            }
+                          />
+                          {t("Set {number}", { number: index + 1 })}
+                        </label>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className="min-w-20 font-mono text-sm font-bold text-slate-700"
+                            aria-label={t("Set time: {time}", {
+                              time: formatElapsedTime(elapsedSeconds),
+                            })}
+                          >
+                            {formatElapsedTime(elapsedSeconds)}
+                          </span>
+                          {exerciseEditable ? (
+                            setTimerActive ? (
+                              <Button
+                                size="small"
+                                variant="secondary"
+                                onClick={() => stopSetTimer(exercise.id, set)}
+                              >
+                                {t("Stop timer")}
+                              </Button>
+                            ) : (
+                              <Button
+                                size="small"
+                                variant="secondary"
+                                disabled={activeTimer !== null}
+                                onClick={() => startSetTimer(exercise.id, set)}
+                              >
+                                {t("Start timer")}
+                              </Button>
+                            )
+                          ) : null}
+                          {exerciseEditable && elapsedSeconds > 0 ? (
+                            <Button
+                              size="small"
+                              variant="quiet"
+                              disabled={activeTimer !== null && !setTimerActive}
+                              onClick={() => resetSetTimer(exercise.id, set)}
+                            >
+                              {t("Reset")}
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <PlannedTarget
+                          set={set}
+                          unitSystem={unitSystem}
+                          translate={t}
+                        />
+                        <div>
+                          {hasPlannedTarget(set) ? (
+                            <h3 className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                              {t("Actual result")}
+                            </h3>
+                          ) : null}
+                          <div className="mt-2 grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            {fields.reps ? (
+                              <SetNumber
+                                label={t("Reps")}
+                                value={set.reps}
+                                disabled={!exerciseEditable}
+                                onChange={(next) =>
+                                  updateSet(exercise.id, set.id, { reps: next })
+                                }
+                                onSave={() =>
+                                  saveCurrentSet(exercise.id, set.id)
+                                }
+                              />
+                            ) : null}
+                            {fields.load ? (
+                              <SetNumber
+                                label={`${t("Load")} (${loadUnit})`}
+                                step={0.5}
+                                disabled={!exerciseEditable}
+                                value={
+                                  set.loadGrams === null
+                                    ? null
+                                    : convertMass(
+                                        set.loadGrams,
+                                        "grams",
+                                        unitSystem === "us"
+                                          ? "pounds"
+                                          : "kilograms",
+                                        2,
+                                      )
+                                }
+                                onChange={(next) =>
+                                  updateSet(exercise.id, set.id, {
+                                    loadGrams:
+                                      next === null
+                                        ? null
+                                        : Math.round(
+                                            convertMass(
+                                              next,
+                                              unitSystem === "us"
+                                                ? "pounds"
+                                                : "kilograms",
+                                              "grams",
+                                            ),
+                                          ),
+                                  })
+                                }
+                                onSave={() =>
+                                  saveCurrentSet(exercise.id, set.id)
+                                }
+                              />
+                            ) : null}
+                            {fields.duration ? (
+                              <SetNumber
+                                label={`${t("Duration")} (${t("seconds")})`}
+                                value={set.durationSeconds}
+                                disabled={!exerciseEditable}
+                                onChange={(next) =>
+                                  updateSet(exercise.id, set.id, {
+                                    durationSeconds: next,
+                                  })
+                                }
+                                onSave={() =>
+                                  saveCurrentSet(exercise.id, set.id)
+                                }
+                              />
+                            ) : null}
+                            {fields.distance ? (
+                              <SetNumber
+                                label={`${t("Distance")} (${distanceUnit})`}
+                                step={0.1}
+                                disabled={!exerciseEditable}
+                                value={
+                                  set.distanceMeters === null
+                                    ? null
+                                    : convertDistance(
+                                        set.distanceMeters,
+                                        "meters",
+                                        unitSystem === "us"
+                                          ? "miles"
+                                          : "kilometers",
+                                        2,
+                                      )
+                                }
+                                onChange={(next) =>
+                                  updateSet(exercise.id, set.id, {
+                                    distanceMeters:
+                                      next === null
+                                        ? null
+                                        : Math.round(
+                                            convertDistance(
+                                              next,
+                                              unitSystem === "us"
+                                                ? "miles"
+                                                : "kilometers",
+                                              "meters",
+                                            ),
+                                          ),
+                                  })
+                                }
+                                onSave={() =>
+                                  saveCurrentSet(exercise.id, set.id)
+                                }
+                              />
+                            ) : null}
+                            <SetNumber
+                              label="RPE"
+                              min={1}
+                              max={10}
+                              step={0.5}
+                              value={set.rpe}
+                              disabled={!exerciseEditable}
+                              optional
+                              onChange={(next) =>
+                                updateSet(exercise.id, set.id, { rpe: next })
+                              }
+                              onSave={() => saveCurrentSet(exercise.id, set.id)}
+                            />
+                            <label className="text-sm sm:col-span-2 lg:col-span-4">
+                              {t("Set notes")}
+                              <input
+                                className="input mt-1"
+                                maxLength={2_000}
+                                value={set.notes}
+                                disabled={!exerciseEditable}
+                                onChange={(event) =>
+                                  updateSet(exercise.id, set.id, {
+                                    notes: event.target.value,
+                                  })
+                                }
+                                onBlur={() =>
+                                  saveCurrentSet(exercise.id, set.id)
+                                }
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
               </ol>
               <div className="h-4" />
-            </li>
+            </Surface>
           );
         })}
       </ol>
-      {!exercises.length ? <p>{t("Add an exercise to begin.")}</p> : null}
+      {!exercises.length ? (
+        <div className="space-y-1 text-slate-600">
+          <p>{t("Add an exercise to begin.")}</p>
+          <p className="text-sm">
+            {t("Add at least one exercise before completing this workout.")}
+          </p>
+        </div>
+      ) : null}
       {editable ? (
         <div className="fixed inset-x-0 bottom-0 z-30 flex flex-wrap justify-center gap-3 border-t bg-white/95 p-3 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur sm:sticky sm:rounded-2xl sm:border">
-          <button
-            className="rounded-xl bg-green-700 px-5 py-3 font-semibold text-white hover:bg-green-800"
-            onClick={async () => {
-              if (!confirm(t("Complete this workout?"))) return;
-              await syncQueue();
-              const result = await completeWorkout(
-                sessionId,
-                crypto.randomUUID(),
+          <Button
+            disabled={!exercises.length}
+            onClick={() => {
+              setCompletionReasons(
+                Object.fromEntries(
+                  unfinishedExercises.map((exercise) => [exercise.id, ""]),
+                ),
               );
-              setMessage(result.ok ? t("Workout completed.") : t(result.error));
-              if (result.ok) {
-                setSessionStatus("completed");
-                await purgeWorkoutMutations(userId, sessionId);
-                router.refresh();
-              }
+              setDialog({ kind: "complete" });
             }}
           >
             {t("Complete workout")}
-          </button>
-          <button
-            className="rounded-xl border border-red-300 px-5 py-3 font-semibold text-red-700 hover:bg-red-50"
-            onClick={async () => {
-              if (!confirm(t("Discard this workout? This cannot be undone.")))
-                return;
-              const result = await discardWorkout(sessionId);
-              if (result.ok) {
-                await purgeWorkoutMutations(userId, sessionId);
-                router.push("/workouts");
-              } else setMessage(t(result.error));
-            }}
+          </Button>
+          <Button
+            onClick={() => setDialog({ kind: "discard" })}
+            variant="danger"
           >
             {t("Discard workout")}
-          </button>
+          </Button>
           {autosave === "error" || autosave === "conflict" ? (
-            <button className="rounded border px-4 py-2" onClick={syncQueue}>
+            <Button onClick={syncQueue} variant="secondary">
               {t("Retry save")}
-            </button>
+            </Button>
           ) : null}
           {autosave === "conflict" ? (
             <>
-              <button
-                className="rounded border px-4 py-2"
+              <Button
                 onClick={async () => {
                   await purgeWorkoutMutations(userId, sessionId);
                   router.refresh();
                 }}
+                variant="secondary"
               >
                 {t("Reload server copy")}
-              </button>
-              <button
-                className="rounded border px-4 py-2"
-                onClick={() => {
-                  if (
-                    confirm(
-                      t("Replace the server workout with this device copy?"),
-                    )
-                  )
-                    void replaceWithDeviceCopy();
-                }}
+              </Button>
+              <Button
+                onClick={() => setDialog({ kind: "replace" })}
+                variant="secondary"
               >
                 {t("Keep this device copy")}
-              </button>
+              </Button>
             </>
           ) : null}
         </div>
       ) : null}
-      <p aria-live="polite" className="font-medium">
-        {autosave === "saving"
-          ? t("Saving...")
-          : autosave === "saved"
-            ? t("Saved")
-            : autosave === "offline"
-              ? t("Offline — changes will retry when connected.")
-              : autosave === "conflict"
-                ? t("This workout changed elsewhere. Reload the server copy.")
-                : autosave === "error"
-                  ? t("Save failed. Your changes remain on this device.")
-                  : ""}
-      </p>
-      <p aria-live="polite">{message}</p>
+      <Toast notice={notice} />
+      <Dialog
+        open={dialog?.kind === "remove"}
+        title={t("Remove this exercise?")}
+        confirmLabel={t("Remove exercise")}
+        cancelLabel={t("Keep exercise")}
+        confirmVariant="danger"
+        loading={dialogPending}
+        onCancel={() => setDialog(null)}
+        onConfirm={() => {
+          if (dialogExercise) void removeExercise(dialogExercise);
+        }}
+      >
+        <p className="text-slate-600">
+          {t(
+            "Only an exercise without recorded results can be removed. Use cancel to preserve recorded work.",
+          )}
+        </p>
+      </Dialog>
+      <Dialog
+        open={dialog?.kind === "cancel"}
+        title={t("Cancel exercise")}
+        confirmLabel={t("Cancel exercise")}
+        cancelLabel={t("Keep exercise")}
+        confirmVariant="danger"
+        confirmDisabled={cancellationReason.trim().length < 3}
+        loading={dialogPending}
+        onCancel={() => {
+          setDialog(null);
+          setCancellationReason("");
+        }}
+        onConfirm={() => {
+          if (dialogExercise) void cancelExercise(dialogExercise);
+        }}
+      >
+        <label className="text-sm font-semibold text-slate-800">
+          {t("Why are you canceling this exercise?")}
+          <textarea
+            className="input mt-2 min-h-28"
+            minLength={3}
+            maxLength={500}
+            required
+            value={cancellationReason}
+            onChange={(event) => setCancellationReason(event.target.value)}
+          />
+        </label>
+        <p className="mt-2 text-sm text-slate-500">
+          {t(
+            "The reason is saved with this workout and cannot be removed from its history.",
+          )}
+        </p>
+      </Dialog>
+      <Dialog
+        open={dialog?.kind === "complete"}
+        title={t(
+          unfinishedExercises.length
+            ? "Cancel unfinished exercises?"
+            : "Complete this workout?",
+        )}
+        confirmLabel={t("Complete workout")}
+        cancelLabel={t("Continue workout")}
+        confirmDisabled={activeTimer !== null || !completionReasonsValid}
+        loading={dialogPending}
+        onCancel={() => {
+          setDialog(null);
+          setCompletionReasons({});
+        }}
+        onConfirm={() => void confirmWorkoutCompletion()}
+      >
+        {activeTimer ? (
+          <p className="text-slate-600">
+            {t("Stop the active set timer before completing this workout.")}
+          </p>
+        ) : unfinishedExercises.length ? (
+          <>
+            <p className="text-slate-600">
+              {t(
+                "Unfinished exercises will be canceled and kept in workout history. Enter a reason for each one.",
+              )}
+            </p>
+            <div className="mt-4 max-h-[50vh] space-y-4 overflow-y-auto pr-1">
+              {unfinishedExercises.map((exercise) => (
+                <label
+                  className="block text-sm font-semibold text-slate-800"
+                  key={exercise.id}
+                >
+                  {t("Reason for {exercise}", { exercise: exercise.name })}
+                  <textarea
+                    className="input mt-2 min-h-24"
+                    minLength={3}
+                    maxLength={500}
+                    required
+                    value={completionReasons[exercise.id] ?? ""}
+                    onChange={(event) =>
+                      setCompletionReasons((current) => ({
+                        ...current,
+                        [exercise.id]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="text-slate-600">
+            {t("The completed workout becomes read-only.")}
+          </p>
+        )}
+      </Dialog>
+      <Dialog
+        open={dialog?.kind === "discard"}
+        title={t("Discard this workout?")}
+        confirmLabel={t("Discard workout")}
+        cancelLabel={t("Continue workout")}
+        confirmVariant="danger"
+        loading={dialogPending}
+        onCancel={() => setDialog(null)}
+        onConfirm={() => void confirmWorkoutDiscard()}
+      >
+        <p className="text-slate-600">{t("This cannot be undone.")}</p>
+      </Dialog>
+      <Dialog
+        open={dialog?.kind === "replace"}
+        title={t("Replace the server workout?")}
+        confirmLabel={t("Keep this device copy")}
+        cancelLabel={t("Cancel")}
+        loading={dialogPending}
+        onCancel={() => setDialog(null)}
+        onConfirm={() => void confirmDeviceCopyReplacement()}
+      >
+        <p className="text-slate-600">
+          {t("The server workout will be replaced with this device copy.")}
+        </p>
+      </Dialog>
     </main>
+  );
+}
+
+function formatElapsedTime(totalSeconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(safeSeconds / 3_600);
+  const minutes = Math.floor((safeSeconds % 3_600) / 60);
+  const seconds = safeSeconds % 60;
+  return hours > 0
+    ? [hours, minutes, seconds]
+        .map((part) => String(part).padStart(2, "0"))
+        .join(":")
+    : [minutes, seconds].map((part) => String(part).padStart(2, "0")).join(":");
+}
+
+function hasRequiredActual(mode: TrackingMode, set: WorkoutSetInput) {
+  const fields = fieldsForTrackingMode(mode);
+  return (
+    (!fields.reps || set.reps !== null) &&
+    (!fields.load || set.loadGrams !== null) &&
+    (!fields.duration || set.durationSeconds !== null) &&
+    (!fields.distance || set.distanceMeters !== null)
+  );
+}
+
+function hasPlannedTarget(set: SessionSet) {
+  return (
+    set.targetReps !== null ||
+    set.targetLoadGrams !== null ||
+    set.targetDurationSeconds !== null ||
+    set.targetDistanceMeters !== null ||
+    set.targetRpe !== null
+  );
+}
+
+function PlannedTarget({
+  set,
+  unitSystem,
+  translate,
+}: {
+  set: SessionSet;
+  unitSystem: UnitSystem;
+  translate: (key: string, values?: Record<string, string | number>) => string;
+}) {
+  const values: string[] = [];
+  if (set.targetReps !== null)
+    values.push(`${set.targetReps} ${translate("Reps").toLocaleLowerCase()}`);
+  if (set.targetLoadGrams !== null) {
+    const unit = unitSystem === "us" ? "lb" : "kg";
+    values.push(
+      `${convertMass(
+        set.targetLoadGrams,
+        "grams",
+        unitSystem === "us" ? "pounds" : "kilograms",
+        2,
+      )} ${unit}`,
+    );
+  }
+  if (set.targetDurationSeconds !== null)
+    values.push(
+      `${set.targetDurationSeconds} ${translate("seconds").toLocaleLowerCase()}`,
+    );
+  if (set.targetDistanceMeters !== null) {
+    const unit = unitSystem === "us" ? "mi" : "km";
+    values.push(
+      `${convertDistance(
+        set.targetDistanceMeters,
+        "meters",
+        unitSystem === "us" ? "miles" : "kilometers",
+        2,
+      )} ${unit}`,
+    );
+  }
+  if (set.targetRpe !== null) values.push(`RPE ${set.targetRpe}`);
+  if (!values.length) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        {translate("Planned target")}
+      </span>
+      {values.map((value) => (
+        <span
+          className="rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold text-blue-900"
+          key={value}
+        >
+          {value}
+        </span>
+      ))}
+    </div>
   );
 }
 

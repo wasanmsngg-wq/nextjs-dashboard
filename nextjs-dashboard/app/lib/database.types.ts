@@ -212,6 +212,8 @@ export type Database = {
       };
       workout_session_exercises: {
         Row: {
+          canceled_at: string | null;
+          cancellation_reason: string | null;
           completed: boolean;
           created_at: string;
           exercise_id: string | null;
@@ -219,6 +221,7 @@ export type Database = {
           id: string;
           position: number;
           session_id: string;
+          status: Database["public"]["Enums"]["workout_session_exercise_status"];
           tracking_mode: Database["public"]["Enums"]["exercise_tracking_mode"];
         };
         Insert: Omit<
@@ -236,6 +239,7 @@ export type Database = {
           created_at: string;
           distance_meters: number | null;
           duration_seconds: number | null;
+          elapsed_seconds: number;
           id: string;
           load_grams: number | null;
           notes: string;
@@ -243,6 +247,11 @@ export type Database = {
           reps: number | null;
           rpe: number | null;
           session_exercise_id: string;
+          target_distance_meters: number | null;
+          target_duration_seconds: number | null;
+          target_load_grams: number | null;
+          target_reps: number | null;
+          target_rpe: number | null;
           updated_at: string;
         };
         Insert: Omit<
@@ -314,11 +323,29 @@ export type Database = {
         };
         Returns: boolean;
       };
+      remove_workout_exercise: {
+        Args: {
+          requested_expected_version: number;
+          requested_session_exercise_id: string;
+          requested_session_id: string;
+        };
+        Returns: number;
+      };
+      cancel_workout_exercise: {
+        Args: {
+          requested_expected_version: number;
+          requested_reason: string;
+          requested_session_exercise_id: string;
+          requested_session_id: string;
+        };
+        Returns: number;
+      };
       save_workout_set: {
         Args: {
           requested_completed: boolean;
           requested_distance_meters: number | null;
           requested_duration_seconds: number | null;
+          requested_elapsed_seconds: number;
           requested_expected_version: number;
           requested_load_grams: number | null;
           requested_mutation_id: string;
@@ -331,7 +358,11 @@ export type Database = {
         Returns: number;
       };
       complete_workout: {
-        Args: { requested_mutation_id: string; requested_session_id: string };
+        Args: {
+          requested_cancellations: Json;
+          requested_mutation_id: string;
+          requested_session_id: string;
+        };
         Returns: boolean;
       };
       discard_workout: {
@@ -343,6 +374,7 @@ export type Database = {
       exercise_tracking_mode:
         "reps_load" | "reps" | "duration" | "distance_duration";
       workout_session_status: "in_progress" | "completed";
+      workout_session_exercise_status: "active" | "canceled";
     };
     CompositeTypes: Record<string, never>;
   };

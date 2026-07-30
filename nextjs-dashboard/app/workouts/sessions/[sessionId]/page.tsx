@@ -31,7 +31,7 @@ export default async function WorkoutSessionPage({
       .maybeSingle(),
     supabase
       .from("exercises")
-      .select("id,name,name_en,name_th")
+      .select("id,name,name_en,name_th,tracking_mode")
       .is("archived_at", null),
   ]);
   if (sessionError || profileError || libraryError)
@@ -41,7 +41,9 @@ export default async function WorkoutSessionPage({
   const { t } = await getTranslations();
   const { data: sessionExercises, error: exercisesError } = await supabase
     .from("workout_session_exercises")
-    .select("id,exercise_name_snapshot,tracking_mode,position")
+    .select(
+      "id,exercise_name_snapshot,tracking_mode,position,status,cancellation_reason,canceled_at",
+    )
     .eq("session_id", sessionId)
     .order("position");
   const ids = (sessionExercises ?? []).map((exercise) => exercise.id);
@@ -49,7 +51,7 @@ export default async function WorkoutSessionPage({
     ? await supabase
         .from("workout_sets")
         .select(
-          "id,session_exercise_id,position,completed,reps,load_grams,duration_seconds,distance_meters,rpe,notes",
+          "id,session_exercise_id,position,completed,reps,load_grams,duration_seconds,distance_meters,elapsed_seconds,rpe,notes,target_reps,target_load_grams,target_duration_seconds,target_distance_meters,target_rpe",
         )
         .in("session_exercise_id", ids)
         .order("position")
@@ -66,6 +68,7 @@ export default async function WorkoutSessionPage({
       unitSystem={profile?.unit_system ?? "metric"}
       exerciseOptions={(library ?? []).map((exercise) => ({
         id: exercise.id,
+        trackingMode: exercise.tracking_mode,
         name:
           exercise.name ??
           (locale === "th" ? exercise.name_th : exercise.name_en) ??
@@ -75,6 +78,9 @@ export default async function WorkoutSessionPage({
         id: exercise.id,
         name: exercise.exercise_name_snapshot,
         trackingMode: exercise.tracking_mode,
+        status: exercise.status,
+        cancellationReason: exercise.cancellation_reason,
+        canceledAt: exercise.canceled_at,
         sets: (sets ?? [])
           .filter((set) => set.session_exercise_id === exercise.id)
           .map((set) => ({
@@ -85,8 +91,14 @@ export default async function WorkoutSessionPage({
             loadGrams: set.load_grams,
             durationSeconds: set.duration_seconds,
             distanceMeters: set.distance_meters,
+            elapsedSeconds: set.elapsed_seconds,
             rpe: set.rpe,
             notes: set.notes,
+            targetReps: set.target_reps,
+            targetLoadGrams: set.target_load_grams,
+            targetDurationSeconds: set.target_duration_seconds,
+            targetDistanceMeters: set.target_distance_meters,
+            targetRpe: set.target_rpe,
           })),
       }))}
     />

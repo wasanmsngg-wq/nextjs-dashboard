@@ -95,3 +95,87 @@ test("the corrective migration constrains guided exercise categories", async () 
   ])
     assert.match(sql, new RegExp(`'${category}'`));
 });
+
+test("workout sets preserve template targets separately from actual results", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730130000_workout_checklist.sql",
+    ),
+    "utf8",
+  );
+  for (const column of [
+    "target_reps",
+    "target_load_grams",
+    "target_duration_seconds",
+    "target_distance_meters",
+    "target_rpe",
+  ]) {
+    assert.match(sql, new RegExp(`add column ${column}`, "i"));
+  }
+  assert.match(sql, /requested_completed and[\s\S]*requested_reps is null/i);
+  assert.match(
+    sql,
+    /function public\.reject_completed_session_mutation\(\)[\s\S]*security definer/i,
+  );
+});
+
+test("workout exercise outcomes retain cancellations and restrict removal", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730150000_workout_exercise_outcomes.sql",
+    ),
+    "utf8",
+  );
+  for (const contract of [
+    "workout_session_exercise_status",
+    "cancellation_reason",
+    "remove_workout_exercise",
+    "cancel_workout_exercise",
+    "planned exercise cannot be removed",
+    "recorded exercise cannot be removed",
+    "se.status = 'active'",
+  ])
+    assert.match(
+      sql,
+      new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+      `exercise outcome migration must include ${contract}`,
+    );
+});
+
+test("workout sets retain elapsed time independently from tracking mode", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730170000_workout_set_elapsed_time.sql",
+    ),
+    "utf8",
+  );
+  assert.match(sql, /add column elapsed_seconds integer not null default 0/i);
+  assert.match(sql, /requested_elapsed_seconds integer/i);
+  assert.match(sql, /elapsed_seconds = requested_elapsed_seconds/i);
+});
+
+test("workout completion requires reasons for unfinished exercises", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730190000_complete_workout_cancellations.sql",
+    ),
+    "utf8",
+  );
+  assert.match(sql, /requested_cancellations jsonb/i);
+  assert.match(sql, /unfinished exercise requires cancellation/i);
+  assert.match(sql, /workout requires at least one exercise/i);
+  assert.match(sql, /status = 'canceled'/i);
+  assert.match(sql, /cancellation_reason = trim/i);
+});

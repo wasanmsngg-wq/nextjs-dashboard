@@ -286,9 +286,58 @@ const th: Record<string, string> = {
   Distance: "ระยะทาง",
   "Set notes": "บันทึกของเซต",
   "Add an exercise to begin.": "เพิ่มท่าออกกำลังกายเพื่อเริ่ม",
+  "Add at least one exercise before completing this workout.":
+    "เพิ่มท่าออกกำลังกายอย่างน้อยหนึ่งท่าก่อนทำการฝึกนี้ให้เสร็จ",
+  Plan: "แผน",
+  Actual: "ผลจริง",
+  "No target": "ไม่มีเป้าหมาย",
+  "Planned target": "เป้าหมายตามแผน",
+  "Actual result": "ผลลัพธ์จริง",
+  Canceled: "ยกเลิกแล้ว",
+  "Cancel exercise": "ยกเลิกท่าออกกำลังกาย",
+  "Cancellation reason": "เหตุผลที่ยกเลิก",
+  "Remove this exercise?": "นำท่าออกกำลังกายนี้ออกหรือไม่",
+  "Only an exercise without recorded results can be removed. Use cancel to preserve recorded work.":
+    "นำออกได้เฉพาะท่าที่ยังไม่มีผลการฝึกที่บันทึกไว้ ใช้การยกเลิกเพื่อเก็บผลการฝึกไว้",
+  "Keep exercise": "เก็บท่าออกกำลังกายไว้",
+  "Remove exercise": "นำท่าออกกำลังกายออก",
+  "Why are you canceling this exercise?": "เหตุใดคุณจึงยกเลิกท่าออกกำลังกายนี้",
+  "The reason is saved with this workout and cannot be removed from its history.":
+    "เหตุผลจะถูกบันทึกไว้กับการออกกำลังกายนี้และไม่สามารถลบออกจากประวัติได้",
+  "Exercise removed.": "นำท่าออกกำลังกายออกแล้ว",
+  "Exercise canceled and kept in the workout record.":
+    "ยกเลิกท่าออกกำลังกายและเก็บไว้ในบันทึกการฝึกแล้ว",
+  "Enter a cancellation reason of 3 to 500 characters.":
+    "กรุณาระบุเหตุผลในการยกเลิกตั้งแต่ 3 ถึง 500 ตัวอักษร",
+  "This exercise has recorded results. Cancel it to keep those results in workout history.":
+    "ท่าออกกำลังกายนี้มีผลการฝึกที่บันทึกไว้แล้ว โปรดยกเลิกท่าเพื่อเก็บผลไว้ในประวัติการฝึก",
+  "A planned exercise cannot be removed. Cancel it to keep the plan in workout history.":
+    "ไม่สามารถนำท่าออกกำลังกายตามแผนออกได้ โปรดยกเลิกท่าเพื่อเก็บแผนไว้ในประวัติการฝึก",
+  "The exercise could not be updated.": "ไม่สามารถอัปเดตท่าออกกำลังกายได้",
+  "{completed} of {total} sets complete":
+    "เสร็จแล้ว {completed} จาก {total} เซต",
+  "Exercise time: {time}": "เวลารวมของท่า: {time}",
+  "Set time: {time}": "เวลาเซต: {time}",
+  "Start timer": "เริ่มจับเวลา",
+  "Stop timer": "หยุดจับเวลา",
+  Reset: "รีเซ็ต",
+  "Set timer saved.": "บันทึกเวลาเซตแล้ว",
+  "Set timer reset.": "รีเซ็ตเวลาเซตแล้ว",
+  "Changes saved.": "บันทึกการเปลี่ยนแปลงแล้ว",
   "Complete this workout?": "ทำการออกกำลังกายนี้ให้เสร็จหรือไม่",
   "Workout completed.": "ทำการออกกำลังกายเสร็จแล้ว",
   "Complete workout": "ทำการออกกำลังกายให้เสร็จ",
+  "Continue workout": "ฝึกต่อ",
+  "Stop the active set timer before completing this workout.":
+    "หยุดตัวจับเวลาเซตที่กำลังทำงานก่อนทำการฝึกนี้ให้เสร็จ",
+  "The completed workout becomes read-only.":
+    "การฝึกที่เสร็จแล้วจะเปลี่ยนเป็นแบบอ่านอย่างเดียว",
+  "Cancel unfinished exercises?": "ยกเลิกท่าออกกำลังกายที่ยังไม่เสร็จหรือไม่",
+  "Unfinished exercises will be canceled and kept in workout history. Enter a reason for each one.":
+    "ท่าออกกำลังกายที่ยังไม่เสร็จจะถูกยกเลิกและเก็บไว้ในประวัติการฝึก โปรดระบุเหตุผลสำหรับแต่ละท่า",
+  "Reason for {exercise}": "เหตุผลสำหรับ {exercise}",
+  "Discard this workout?": "ละทิ้งการฝึกนี้หรือไม่",
+  "This cannot be undone.": "การดำเนินการนี้ย้อนกลับไม่ได้",
   "Discard this workout? This cannot be undone.":
     "ละทิ้งการออกกำลังกายนี้หรือไม่ การดำเนินการนี้ย้อนกลับไม่ได้",
   "Discard workout": "ละทิ้งการออกกำลังกาย",
@@ -297,6 +346,9 @@ const th: Record<string, string> = {
   "Keep this device copy": "ใช้ข้อมูลจากอุปกรณ์นี้",
   "Replace the server workout with this device copy?":
     "แทนที่การออกกำลังกายบนเซิร์ฟเวอร์ด้วยข้อมูลจากอุปกรณ์นี้หรือไม่",
+  "Replace the server workout?": "แทนที่การฝึกบนเซิร์ฟเวอร์หรือไม่",
+  "The server workout will be replaced with this device copy.":
+    "การฝึกบนเซิร์ฟเวอร์จะถูกแทนที่ด้วยข้อมูลจากอุปกรณ์นี้",
   Saved: "บันทึกแล้ว",
   "Offline — changes will retry when connected.":
     "ออฟไลน์ — ระบบจะลองบันทึกอีกครั้งเมื่อเชื่อมต่อ",

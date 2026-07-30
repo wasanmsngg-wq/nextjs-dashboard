@@ -12,6 +12,7 @@ import { getOperationalServices } from "@/app/lib/operations/factory";
 import { runGuardedOperation } from "@/app/lib/operations/guard";
 import { getRequestId } from "@/app/lib/operations/request";
 import type { Json } from "@/app/lib/database.types";
+import { z } from "zod";
 
 type ActionResult<T> =
   { ok: true; data: T } | { ok: false; error: string; conflict?: boolean };
@@ -192,22 +193,114 @@ export async function addWorkoutExercise(
     setCount > 20
   )
     return { ok: false as const, error: "Check the exercise and set count." };
+  const sessionExerciseId = crypto.randomUUID();
+  const setIds = Array.from({ length: setCount }, () => crypto.randomUUID());
   const result = await authenticatedOperation(
     "workout.addExercise",
-    async (db) =>
-      db.rpc("add_workout_exercise", {
+    async (db) => {
+      const write = await db.rpc("add_workout_exercise", {
         requested_session_id: sessionId,
-        requested_session_exercise_id: crypto.randomUUID(),
+        requested_session_exercise_id: sessionExerciseId,
         requested_exercise_id: exerciseId,
-        requested_set_ids: Array.from({ length: setCount }, () =>
-          crypto.randomUUID(),
-        ),
-      }),
+        requested_set_ids: setIds,
+      });
+      if (write.error) return write;
+      return db
+        .from("workout_sessions")
+        .select("version")
+        .eq("id", sessionId)
+        .single();
+    },
   );
   if (!result.ok || result.data.error)
     return { ok: false as const, error: "The exercise could not be added." };
   revalidatePath(`/workouts/sessions/${sessionId}`);
-  return { ok: true as const };
+  return {
+    ok: true as const,
+    sessionExerciseId,
+    setIds,
+    version: result.data.data.version,
+  };
+}
+
+function exerciseOutcomeError(
+  error: { code?: string; message?: string } | null,
+) {
+  return {
+    ok: false as const,
+    error:
+      error?.code === "40001"
+        ? "This workout changed on another device."
+        : error?.message?.includes("planned exercise cannot be removed")
+          ? "A planned exercise cannot be removed. Cancel it to keep the plan in workout history."
+          : error?.message?.includes("recorded exercise cannot be removed")
+            ? "This exercise has recorded results. Cancel it to keep those results in workout history."
+            : "The exercise could not be updated.",
+    conflict: error?.code === "40001",
+  };
+}
+
+export async function removeWorkoutExercise(
+  sessionId: string,
+  sessionExerciseId: string,
+  expectedVersion: number,
+) {
+  if (
+    !uuidSchema.safeParse(sessionId).success ||
+    !uuidSchema.safeParse(sessionExerciseId).success ||
+    !Number.isInteger(expectedVersion) ||
+    expectedVersion < 1
+  )
+    return { ok: false as const, error: "The exercise could not be removed." };
+  const result = await authenticatedOperation(
+    "workout.removeExercise",
+    async (db) =>
+      db.rpc("remove_workout_exercise", {
+        requested_session_id: sessionId,
+        requested_session_exercise_id: sessionExerciseId,
+        requested_expected_version: expectedVersion,
+      }),
+  );
+  if (!result.ok) return { ok: false as const, error: result.error };
+  if (result.data.error) return exerciseOutcomeError(result.data.error);
+  revalidatePath(`/workouts/sessions/${sessionId}`);
+  return { ok: true as const, version: result.data.data };
+}
+
+const cancellationReasonSchema = z.string().trim().min(3).max(500);
+
+export async function cancelWorkoutExercise(
+  sessionId: string,
+  sessionExerciseId: string,
+  expectedVersion: number,
+  reason: string,
+) {
+  const parsedReason = cancellationReasonSchema.safeParse(reason);
+  if (
+    !uuidSchema.safeParse(sessionId).success ||
+    !uuidSchema.safeParse(sessionExerciseId).success ||
+    !Number.isInteger(expectedVersion) ||
+    expectedVersion < 1 ||
+    !parsedReason.success
+  )
+    return {
+      ok: false as const,
+      error: "Enter a cancellation reason of 3 to 500 characters.",
+    };
+  const result = await authenticatedOperation(
+    "workout.cancelExercise",
+    async (db) =>
+      db.rpc("cancel_workout_exercise", {
+        requested_session_id: sessionId,
+        requested_session_exercise_id: sessionExerciseId,
+        requested_expected_version: expectedVersion,
+        requested_reason: parsedReason.data,
+      }),
+  );
+  if (!result.ok) return { ok: false as const, error: result.error };
+  if (result.data.error) return exerciseOutcomeError(result.data.error);
+  revalidatePath(`/workouts/sessions/${sessionId}`);
+  return { ok: true as const, version: result.data.data };
 }
 
 export async function saveWorkoutSet(input: {
@@ -238,6 +331,7 @@ export async function saveWorkoutSet(input: {
       requested_load_grams: set.data.loadGrams,
       requested_duration_seconds: set.data.durationSeconds,
       requested_distance_meters: set.data.distanceMeters,
+      requested_elapsed_seconds: set.data.elapsedSeconds,
       requested_rpe: set.data.rpe,
       requested_notes: set.data.notes,
     }),
@@ -275,16 +369,37 @@ export async function replaceWorkoutSet(input: {
   return saveWorkoutSet({ ...input, expectedVersion: current.version });
 }
 
-export async function completeWorkout(sessionId: string, mutationId: string) {
+const completionCancellationsSchema = z
+  .array(
+    z.object({
+      exerciseId: uuidSchema,
+      reason: cancellationReasonSchema,
+    }),
+  )
+  .max(100)
+  .refine(
+    (items) =>
+      new Set(items.map((item) => item.exerciseId)).size === items.length,
+  );
+
+export async function completeWorkout(
+  sessionId: string,
+  mutationId: string,
+  cancellations: unknown,
+) {
+  const parsedCancellations =
+    completionCancellationsSchema.safeParse(cancellations);
   if (
     !uuidSchema.safeParse(sessionId).success ||
-    !uuidSchema.safeParse(mutationId).success
+    !uuidSchema.safeParse(mutationId).success ||
+    !parsedCancellations.success
   )
     return { ok: false as const, error: "The workout could not be completed." };
   const result = await authenticatedOperation("workout.complete", async (db) =>
     db.rpc("complete_workout", {
       requested_session_id: sessionId,
       requested_mutation_id: mutationId,
+      requested_cancellations: parsedCancellations.data as unknown as Json,
     }),
   );
   if (!result.ok || result.data.error)

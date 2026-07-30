@@ -26,3 +26,7 @@ with:
    and relevant Playwright projects before completion.
 10. Update `nextjs-dashboard/docs/UI_DESIGN_SYSTEM.md` when changing the
     design-system contract.
+11. When designing UX/UI, ensure it is modern and properly aligned.
+12. Use shared dialogs and toast notifications for confirmations, prompted
+    input, and transient feedback. Never use browser `alert`, `confirm`, or
+    `prompt` in product UI.

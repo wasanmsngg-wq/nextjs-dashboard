@@ -76,10 +76,18 @@ select public.start_workout(
 do $$
 declare
   set_id uuid;
+  session_exercise_id uuid;
   first_version integer;
   retry_version integer;
 begin
   assert (select count(*) from public.workout_sessions where status='in_progress') = 1;
+  assert (
+    select target_reps = 8 and target_load_grams = 20000
+      and reps is null and load_grams is null
+    from public.workout_sets ws
+    join public.workout_session_exercises se on se.id=ws.session_exercise_id
+    where se.session_id='55000000-0000-4000-8000-000000000001'
+  ), 'template targets must be separate from blank actual results';
   begin
     perform public.start_workout(
       '55000000-0000-4000-8000-000000000002', null
@@ -87,29 +95,174 @@ begin
   exception when unique_violation then
     raise exception 'start_workout should resume rather than violate uniqueness';
   end;
-  select ws.id into set_id from public.workout_sets ws
+  select ws.id, se.id into set_id, session_exercise_id
+    from public.workout_sets ws
     join public.workout_session_exercises se on se.id=ws.session_exercise_id
     where se.session_id='55000000-0000-4000-8000-000000000001';
+  begin
+    perform public.remove_workout_exercise(
+      '55000000-0000-4000-8000-000000000001',
+      session_exercise_id,
+      1
+    );
+    raise exception 'planned exercise unexpectedly removed';
+  exception when raise_exception then
+    if sqlerrm = 'planned exercise unexpectedly removed' then raise; end if;
+  end;
   first_version := public.save_workout_set(
     '56000000-0000-4000-8000-000000000001',
     '55000000-0000-4000-8000-000000000001',
-    1,set_id,true,10,22500,null,null,8,'felt good'
+    1,set_id,true,10,22500,null,null,8,'felt good',65
   );
   retry_version := public.save_workout_set(
     '56000000-0000-4000-8000-000000000001',
     '55000000-0000-4000-8000-000000000001',
-    1,set_id,true,10,22500,null,null,8,'felt good'
+    1,set_id,true,10,22500,null,null,8,'felt good',65
   );
   assert first_version = 2 and retry_version = 2,
     'a duplicate mutation must return the original resulting version';
+  assert (
+    select elapsed_seconds = 65 from public.workout_sets where id=set_id
+  ), 'set elapsed time must persist independently from workout measurements';
   assert public.complete_workout(
     '55000000-0000-4000-8000-000000000001',
-    '56000000-0000-4000-8000-000000000002'
+    '56000000-0000-4000-8000-000000000002',
+    '[]'::jsonb
   );
   assert public.complete_workout(
     '55000000-0000-4000-8000-000000000001',
-    '56000000-0000-4000-8000-000000000002'
+    '56000000-0000-4000-8000-000000000002',
+    '[]'::jsonb
   );
+  perform public.start_workout(
+    '55000000-0000-4000-8000-000000000003', null
+  );
+  begin
+    perform public.complete_workout(
+      '55000000-0000-4000-8000-000000000003',
+      '56000000-0000-4000-8000-000000000007',
+      '[]'::jsonb
+    );
+    raise exception 'empty workout unexpectedly completed';
+  exception when raise_exception then
+    if sqlerrm = 'empty workout unexpectedly completed' then raise; end if;
+  end;
+  perform public.add_workout_exercise(
+    '55000000-0000-4000-8000-000000000003',
+    '53000000-0000-4000-8000-000000000003',
+    '51000000-0000-4000-8000-000000000001',
+    array[
+      '54000000-0000-4000-8000-000000000003'::uuid,
+      '54000000-0000-4000-8000-000000000004'::uuid
+    ]
+  );
+  assert (
+    select reps is null and load_grams is null
+      and target_reps is null and target_load_grams is null
+    from public.workout_sets
+    where id='54000000-0000-4000-8000-000000000003'
+  ), 'an ad-hoc exercise must start without planned or actual values';
+  assert public.remove_workout_exercise(
+    '55000000-0000-4000-8000-000000000003',
+    '53000000-0000-4000-8000-000000000003',
+    2
+  ) = 3, 'an untouched exercise must be removable';
+  assert not exists (
+    select 1 from public.workout_session_exercises
+    where id='53000000-0000-4000-8000-000000000003'
+  ), 'removal must delete the exercise and its sets';
+  perform public.add_workout_exercise(
+    '55000000-0000-4000-8000-000000000003',
+    '53000000-0000-4000-8000-000000000004',
+    '51000000-0000-4000-8000-000000000001',
+    array['54000000-0000-4000-8000-000000000005'::uuid]
+  );
+  assert public.save_workout_set(
+    '56000000-0000-4000-8000-000000000003',
+    '55000000-0000-4000-8000-000000000003',
+    4,
+    '54000000-0000-4000-8000-000000000005',
+    true,8,20000,null,null,7,'recorded before cancellation',42
+  ) = 5;
+  begin
+    perform public.remove_workout_exercise(
+      '55000000-0000-4000-8000-000000000003',
+      '53000000-0000-4000-8000-000000000004',
+      5
+    );
+    raise exception 'recorded exercise unexpectedly removed';
+  exception when raise_exception then
+    if sqlerrm = 'recorded exercise unexpectedly removed' then raise; end if;
+  end;
+  assert public.cancel_workout_exercise(
+    '55000000-0000-4000-8000-000000000003',
+    '53000000-0000-4000-8000-000000000004',
+    5,
+    'Equipment became unavailable'
+  ) = 6;
+  assert (
+    select status = 'canceled'
+      and cancellation_reason = 'Equipment became unavailable'
+      and canceled_at is not null
+    from public.workout_session_exercises
+    where id='53000000-0000-4000-8000-000000000004'
+  ), 'cancellation must retain the exercise and normalized reason';
+  begin
+    perform public.save_workout_set(
+      '56000000-0000-4000-8000-000000000004',
+      '55000000-0000-4000-8000-000000000003',
+      6,
+      '54000000-0000-4000-8000-000000000005',
+      true,9,21000,null,null,7,'should be rejected',50
+    );
+    raise exception 'canceled exercise unexpectedly accepted a set update';
+  exception when raise_exception then
+    if sqlerrm = 'canceled exercise unexpectedly accepted a set update' then
+      raise;
+    end if;
+  end;
+  assert public.discard_workout(
+    '55000000-0000-4000-8000-000000000003'
+  ), 'an empty-start workout with newly added exercises must be discardable';
+  perform public.start_workout(
+    '55000000-0000-4000-8000-000000000004', null
+  );
+  perform public.add_workout_exercise(
+    '55000000-0000-4000-8000-000000000004',
+    '53000000-0000-4000-8000-000000000005',
+    '51000000-0000-4000-8000-000000000001',
+    array['54000000-0000-4000-8000-000000000006'::uuid]
+  );
+  begin
+    perform public.complete_workout(
+      '55000000-0000-4000-8000-000000000004',
+      '56000000-0000-4000-8000-000000000005',
+      '[]'::jsonb
+    );
+    raise exception 'unfinished exercise completed without cancellation';
+  exception when raise_exception then
+    if sqlerrm = 'unfinished exercise completed without cancellation' then
+      raise;
+    end if;
+  end;
+  assert public.complete_workout(
+    '55000000-0000-4000-8000-000000000004',
+    '56000000-0000-4000-8000-000000000006',
+    '[{
+      "exerciseId":"53000000-0000-4000-8000-000000000005",
+      "reason":"Ran out of available training time"
+    }]'::jsonb
+  );
+  assert (
+    select status = 'completed' from public.workout_sessions
+    where id='55000000-0000-4000-8000-000000000004'
+  ), 'the workout must complete after every unfinished exercise is accounted for';
+  assert (
+    select status = 'canceled'
+      and cancellation_reason = 'Ran out of available training time'
+    from public.workout_session_exercises
+    where id='53000000-0000-4000-8000-000000000005'
+  ), 'completion must retain unfinished exercises with their reasons';
   begin
     update public.workout_sessions set notes='changed'
       where id='55000000-0000-4000-8000-000000000001';

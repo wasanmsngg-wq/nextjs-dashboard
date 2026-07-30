@@ -27,6 +27,9 @@ published:
 - [x] A staging schema backup was captured before the corrective migration.
 - [x] Corrected protected Vercel Preview and synthetic-user acceptance pass;
       the temporary user and automation bypass were removed afterward.
+- [x] Empty-start sessions, immediate exercise insertion, Plan/Actual target
+      snapshots, and authenticated discard are covered by local integration and
+      Chromium/iPhone browser tests.
 
 - [ ] Create, edit, and archive a custom exercise.
 - [ ] Create, reorder, edit, duplicate, and archive a template.
