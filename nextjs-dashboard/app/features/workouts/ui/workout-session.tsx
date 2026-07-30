@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  ArrowLeftIcon,
+  CheckCircleIcon,
+  CloudIcon,
+} from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -57,6 +63,7 @@ export function WorkoutSession({
   const { t } = useI18n();
   const router = useRouter();
   const [exercises, setExercises] = useState(initialExercises);
+  const [sessionStatus, setSessionStatus] = useState(status);
   const [autosave, setAutosave] = useState<WorkoutAutosaveState>("idle");
   const [message, setMessage] = useState("");
   const [selectedExercise, setSelectedExercise] = useState(
@@ -65,7 +72,7 @@ export function WorkoutSession({
   const [setCount, setSetCount] = useState(3);
   const version = useRef(initialVersion);
   const syncing = useRef(false);
-  const editable = status === "in_progress";
+  const editable = sessionStatus === "in_progress";
 
   const syncQueue = useCallback(async () => {
     if (syncing.current || !navigator.onLine) return;
@@ -183,66 +190,98 @@ export function WorkoutSession({
   const loadUnit = unitSystem === "us" ? "lb" : "kg";
   const distanceUnit = unitSystem === "us" ? "mi" : "km";
   return (
-    <main className="space-y-6 p-4 md:p-8">
-      <div>
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p className="text-gray-600">
-          {editable ? t("Active workout") : t("Completed workout — read only")}
-        </p>
-      </div>
-      {editable ? (
-        <div className="flex max-w-3xl flex-wrap items-end gap-2 rounded border bg-white p-3">
-          <label className="grow">
-            {t("Add exercise")}
-            <select
-              className="mt-1 w-full rounded border p-2"
-              value={selectedExercise}
-              onChange={(event) => setSelectedExercise(event.target.value)}
-            >
-              {exerciseOptions.map((option) => (
-                <option value={option.id} key={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            {t("Sets")}
-            <input
-              className="mt-1 w-20 rounded border p-2"
-              type="number"
-              min={1}
-              max={20}
-              value={setCount}
-              onChange={(event) => setSetCount(Number(event.target.value))}
-            />
-          </label>
-          <button
-            className="rounded border px-4 py-2"
-            onClick={async () => {
-              const result = await addWorkoutExercise(
-                sessionId,
-                selectedExercise,
-                setCount,
-              );
-              setMessage(result.ok ? t("Exercise added.") : t(result.error));
-              if (result.ok) router.refresh();
-            }}
-          >
-            {t("Add")}
-          </button>
+    <main className="mx-auto max-w-6xl space-y-6 pb-24">
+      <header className="rounded-3xl bg-gradient-to-br from-slate-900 to-blue-900 p-6 text-white shadow-lg sm:p-8">
+        <Link
+          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-100 hover:text-white"
+          href="/workouts"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          {t("Back to workouts")}
+        </Link>
+        <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-blue-200">
+              {editable ? t("Workout in progress") : t("Workout summary")}
+            </p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">{title}</h1>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold">
+            {editable ? (
+              <CloudIcon className="h-5 w-5" />
+            ) : (
+              <CheckCircleIcon className="h-5 w-5" />
+            )}
+            {editable
+              ? t("Active workout")
+              : t("Completed workout — read only")}
+          </span>
         </div>
+      </header>
+      {editable ? (
+        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-bold">{t("Add another exercise")}</h2>
+          <div className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_auto_auto]">
+            <label className="font-semibold text-gray-800">
+              {t("Add exercise")}
+              <select
+                className="input mt-1"
+                value={selectedExercise}
+                onChange={(event) => setSelectedExercise(event.target.value)}
+              >
+                {exerciseOptions.map((option) => (
+                  <option value={option.id} key={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="font-semibold text-gray-800">
+              {t("Sets")}
+              <input
+                className="input mt-1 w-24"
+                type="number"
+                min={1}
+                max={20}
+                value={setCount}
+                onChange={(event) => setSetCount(Number(event.target.value))}
+              />
+            </label>
+            <button
+              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:bg-gray-300"
+              disabled={!selectedExercise}
+              onClick={async () => {
+                const result = await addWorkoutExercise(
+                  sessionId,
+                  selectedExercise,
+                  setCount,
+                );
+                setMessage(result.ok ? t("Exercise added.") : t(result.error));
+                if (result.ok) router.refresh();
+              }}
+            >
+              {t("Add")}
+            </button>
+          </div>
+        </section>
       ) : null}
-      <ol className="max-w-4xl space-y-5">
+      <ol className="space-y-5">
         {exercises.map((exercise) => {
           const fields = fieldsForTrackingMode(exercise.trackingMode);
           return (
-            <li className="rounded-lg border bg-white p-4" key={exercise.id}>
-              <h2 className="text-lg font-semibold">{exercise.name}</h2>
+            <li
+              className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+              key={exercise.id}
+            >
+              <div className="border-b bg-gray-50 px-5 py-4">
+                <h2 className="text-lg font-bold text-gray-950">
+                  {exercise.name}
+                </h2>
+              </div>
               <ol className="mt-3 space-y-3">
                 {exercise.sets.map((set, index) => (
                   <li
-                    className="grid items-end gap-2 rounded bg-gray-50 p-3 sm:grid-cols-3 lg:grid-cols-6"
+                    className="mx-4 grid items-end gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 sm:grid-cols-3 lg:grid-cols-6"
                     key={set.id}
                   >
                     <label className="flex min-h-11 items-center gap-2 font-medium">
@@ -370,7 +409,7 @@ export function WorkoutSession({
                     <label className="text-sm sm:col-span-3 lg:col-span-6">
                       {t("Set notes")}
                       <input
-                        className="mt-1 w-full rounded border p-2"
+                        className="input mt-1"
                         maxLength={2_000}
                         value={set.notes}
                         disabled={!editable}
@@ -385,15 +424,16 @@ export function WorkoutSession({
                   </li>
                 ))}
               </ol>
+              <div className="h-4" />
             </li>
           );
         })}
       </ol>
       {!exercises.length ? <p>{t("Add an exercise to begin.")}</p> : null}
       {editable ? (
-        <div className="flex flex-wrap gap-3">
+        <div className="fixed inset-x-0 bottom-0 z-30 flex flex-wrap justify-center gap-3 border-t bg-white/95 p-3 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur sm:sticky sm:rounded-2xl sm:border">
           <button
-            className="rounded bg-green-700 px-5 py-3 font-medium text-white"
+            className="rounded-xl bg-green-700 px-5 py-3 font-semibold text-white hover:bg-green-800"
             onClick={async () => {
               if (!confirm(t("Complete this workout?"))) return;
               await syncQueue();
@@ -403,6 +443,7 @@ export function WorkoutSession({
               );
               setMessage(result.ok ? t("Workout completed.") : t(result.error));
               if (result.ok) {
+                setSessionStatus("completed");
                 await purgeWorkoutMutations(userId, sessionId);
                 router.refresh();
               }
@@ -411,7 +452,7 @@ export function WorkoutSession({
             {t("Complete workout")}
           </button>
           <button
-            className="rounded border border-red-300 px-5 py-3 text-red-700"
+            className="rounded-xl border border-red-300 px-5 py-3 font-semibold text-red-700 hover:bg-red-50"
             onClick={async () => {
               if (!confirm(t("Discard this workout? This cannot be undone.")))
                 return;
@@ -500,7 +541,7 @@ function SetNumber({
     <label className="text-sm">
       {label}
       <input
-        className="mt-1 w-full rounded border p-2"
+        className="input mt-1"
         type="number"
         min={min}
         max={max}

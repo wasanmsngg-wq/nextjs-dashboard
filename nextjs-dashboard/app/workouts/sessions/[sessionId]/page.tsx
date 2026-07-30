@@ -14,33 +14,38 @@ export default async function WorkoutSessionPage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/workouts/sessions/${sessionId}`);
-  const [{ data: session }, { data: profile }, { data: library }] =
-    await Promise.all([
-      supabase
-        .from("workout_sessions")
-        .select("id,template_name_snapshot,status,version,started_at")
-        .eq("id", sessionId)
-        .maybeSingle(),
-      supabase
-        .from("user_profiles")
-        .select("unit_system")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-      supabase
-        .from("exercises")
-        .select("id,name,name_en,name_th")
-        .is("archived_at", null),
-    ]);
+  const [
+    { data: session, error: sessionError },
+    { data: profile, error: profileError },
+    { data: library, error: libraryError },
+  ] = await Promise.all([
+    supabase
+      .from("workout_sessions")
+      .select("id,template_name_snapshot,status,version,started_at")
+      .eq("id", sessionId)
+      .maybeSingle(),
+    supabase
+      .from("user_profiles")
+      .select("unit_system")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("exercises")
+      .select("id,name,name_en,name_th")
+      .is("archived_at", null),
+  ]);
+  if (sessionError || profileError || libraryError)
+    throw new Error("Workout session could not be loaded.");
   if (!session) notFound();
   const locale = await getLocale();
   const { t } = await getTranslations();
-  const { data: sessionExercises } = await supabase
+  const { data: sessionExercises, error: exercisesError } = await supabase
     .from("workout_session_exercises")
     .select("id,exercise_name_snapshot,tracking_mode,position")
     .eq("session_id", sessionId)
     .order("position");
   const ids = (sessionExercises ?? []).map((exercise) => exercise.id);
-  const { data: sets } = ids.length
+  const { data: sets, error: setsError } = ids.length
     ? await supabase
         .from("workout_sets")
         .select(
@@ -48,7 +53,9 @@ export default async function WorkoutSessionPage({
         )
         .in("session_exercise_id", ids)
         .order("position")
-    : { data: [] };
+    : { data: [], error: null };
+  if (exercisesError || setsError)
+    throw new Error("Workout session details could not be loaded.");
   return (
     <WorkoutSession
       sessionId={session.id}

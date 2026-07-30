@@ -81,7 +81,7 @@ describe("foundation security contracts", () => {
     ).toThrow("distributed rate limiting");
   });
 
-  it("uses a stable configured review origin with a Vercel fallback", () => {
+  it("uses the current Vercel deployment origin for previews", () => {
     expect(
       resolveSiteUrl({
         ...publicEnv,
@@ -90,7 +90,7 @@ describe("foundation security contracts", () => {
         APP_ENV: "preview",
         VERCEL_URL: "exercise-tracker-review.vercel.app",
       }),
-    ).toBe("https://stable-review.vercel.app");
+    ).toBe("https://exercise-tracker-review.vercel.app");
     expect(
       resolveSiteUrl({
         ...publicEnv,

@@ -1,7 +1,12 @@
 "use client";
 
+import {
+  ArrowLeftIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   convertDistance,
   convertMass,
@@ -47,8 +52,18 @@ export function TemplateEditor({
   const [selectedExercise, setSelectedExercise] = useState(
     exerciseOptions[0]?.id ?? "",
   );
+  const [exerciseQuery, setExerciseQuery] = useState("");
   const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
   const exerciseById = new Map(exerciseOptions.map((item) => [item.id, item]));
+  const filteredOptions = useMemo(() => {
+    const query = exerciseQuery.trim().toLocaleLowerCase();
+    return query
+      ? exerciseOptions.filter((item) =>
+          item.name.toLocaleLowerCase().includes(query),
+        )
+      : exerciseOptions;
+  }, [exerciseOptions, exerciseQuery]);
   const loadUnit = unitSystem === "us" ? "lb" : "kg";
   const distanceUnit = unitSystem === "us" ? "mi" : "km";
   function defaultSet(mode: TrackingMode): TargetSet {
@@ -62,90 +77,189 @@ export function TemplateEditor({
       targetRpe: null,
     };
   }
+  function updateTargetSet(
+    exerciseId: string,
+    setId: string,
+    change: Partial<TargetSet>,
+  ) {
+    setValue((current) => ({
+      ...current,
+      exercises: current.exercises.map((exercise) =>
+        exercise.id !== exerciseId
+          ? exercise
+          : {
+              ...exercise,
+              sets: exercise.sets.map((set) =>
+                set.id === setId ? { ...set, ...change } : set,
+              ),
+            },
+      ),
+    }));
+  }
   return (
-    <main className="space-y-6 p-4 md:p-8">
-      <h1 className="text-2xl font-semibold">
-        {initial.name
-          ? t("Edit workout template")
-          : t("Create workout template")}
-      </h1>
-      <div className="grid max-w-3xl gap-4">
-        <label>
+    <main className="mx-auto max-w-6xl space-y-8">
+      <header>
+        <Link
+          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
+          href="/workouts"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          {t("Back to workouts")}
+        </Link>
+        <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-blue-700">
+          {t("Workout builder")}
+        </p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-gray-950">
+          {initial.name
+            ? t("Edit workout template")
+            : t("Create workout template")}
+        </h1>
+        <p className="mt-2 max-w-2xl text-gray-600">
+          {t("Choose exercises, set targets, and save a plan you can reuse.")}
+        </p>
+      </header>
+      <section className="grid gap-5 rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
+        <h2 className="text-xl font-bold">{t("Template details")}</h2>
+        <label className="font-semibold text-gray-800">
           {t("Template name")}
           <input
-            className="mt-1 w-full rounded border p-2"
+            className="input mt-1"
             value={value.name}
             maxLength={80}
-            onInput={(event) =>
+            placeholder={t("Example: Full body strength")}
+            onInput={(event) => {
+              const name = event.currentTarget.value;
               setValue((current) => ({
                 ...current,
-                name: event.currentTarget.value,
-              }))
-            }
+                name,
+              }));
+            }}
           />
         </label>
-        <label>
+        <label className="font-semibold text-gray-800">
           {t("Notes")}
           <textarea
-            className="mt-1 w-full rounded border p-2"
+            className="input mt-1 min-h-24"
             value={value.notes}
             maxLength={2_000}
-            onInput={(event) =>
+            placeholder={t("Optional coaching notes or workout goal")}
+            onInput={(event) => {
+              const notes = event.currentTarget.value;
               setValue((current) => ({
                 ...current,
-                notes: event.currentTarget.value,
-              }))
-            }
+                notes,
+              }));
+            }}
           />
         </label>
-      </div>
-      <div className="flex max-w-3xl flex-wrap gap-2">
-        <label className="grow">
-          {t("Add exercise")}
-          <select
-            className="mt-1 w-full rounded border p-2"
-            value={selectedExercise}
-            onChange={(event) => setSelectedExercise(event.target.value)}
-          >
-            {exerciseOptions.map((exercise) => (
-              <option key={exercise.id} value={exercise.id}>
-                {exercise.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          className="self-end rounded border px-4 py-2"
-          type="button"
-          disabled={!selectedExercise || value.exercises.length >= 100}
-          onClick={() => {
-            const selected = exerciseById.get(selectedExercise);
-            if (!selected) return;
-            setValue((current) => ({
-              ...current,
-              exercises: [
-                ...current.exercises,
-                {
-                  id: crypto.randomUUID(),
-                  exerciseId: selected.id,
-                  sets: Array.from({ length: 3 }, () =>
-                    defaultSet(selected.trackingMode),
-                  ),
-                },
-              ],
-            }));
-          }}
-        >
-          {t("Add")}
-        </button>
-      </div>
-      <ol className="max-w-3xl space-y-4">
+      </section>
+      <section className="rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
+        <div>
+          <h2 className="text-xl font-bold">{t("Exercises")}</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            {t("Search your library, then add exercises in workout order.")}
+          </p>
+        </div>
+        {exerciseOptions.length ? (
+          <div className="mt-5 grid items-end gap-3 md:grid-cols-[1fr_1fr_auto]">
+            <label className="font-semibold text-gray-800">
+              {t("Search exercises")}
+              <span className="relative mt-1 block">
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                <input
+                  className="input pl-10"
+                  value={exerciseQuery}
+                  onChange={(event) => {
+                    const query = event.target.value;
+                    setExerciseQuery(query);
+                    const normalized = query.trim().toLocaleLowerCase();
+                    const nextOptions = normalized
+                      ? exerciseOptions.filter((item) =>
+                          item.name.toLocaleLowerCase().includes(normalized),
+                        )
+                      : exerciseOptions;
+                    if (
+                      !nextOptions.some(
+                        (exercise) => exercise.id === selectedExercise,
+                      )
+                    )
+                      setSelectedExercise(nextOptions[0]?.id ?? "");
+                  }}
+                  placeholder={t("Search by exercise name")}
+                />
+              </span>
+            </label>
+            <label className="font-semibold text-gray-800">
+              {t("Add exercise")}
+              <select
+                className="input mt-1"
+                value={selectedExercise}
+                onChange={(event) => setSelectedExercise(event.target.value)}
+              >
+                {!filteredOptions.length ? (
+                  <option value="">{t("No matching exercises")}</option>
+                ) : null}
+                {filteredOptions.map((exercise) => (
+                  <option key={exercise.id} value={exercise.id}>
+                    {exercise.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              type="button"
+              disabled={!selectedExercise || value.exercises.length >= 100}
+              onClick={() => {
+                const selected = exerciseById.get(selectedExercise);
+                if (!selected) return;
+                setValue((current) => ({
+                  ...current,
+                  exercises: [
+                    ...current.exercises,
+                    {
+                      id: crypto.randomUUID(),
+                      exerciseId: selected.id,
+                      sets: Array.from({ length: 3 }, () =>
+                        defaultSet(selected.trackingMode),
+                      ),
+                    },
+                  ],
+                }));
+              }}
+            >
+              {t("Add")}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <h3 className="font-bold text-amber-950">
+              {t("No exercises are available")}
+            </h3>
+            <p className="mt-1 text-sm text-amber-900">
+              {t(
+                "Create an exercise first, then return to build your template.",
+              )}
+            </p>
+            <Link
+              className="mt-3 inline-flex rounded-lg bg-amber-900 px-4 py-2 font-semibold text-white"
+              href="/workouts/exercises"
+            >
+              {t("Open exercise library")}
+            </Link>
+          </div>
+        )}
+      </section>
+      <ol className="space-y-4">
         {value.exercises.map((item, exerciseIndex) => {
           const exercise = exerciseById.get(item.exerciseId);
           if (!exercise) return null;
           const fields = fieldsForTrackingMode(exercise.trackingMode);
           return (
-            <li className="rounded-lg border bg-white p-4" key={item.id}>
+            <li
+              className="rounded-2xl border bg-white p-5 shadow-sm"
+              key={item.id}
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-semibold">{exercise.name}</h2>
                 <div className="flex flex-wrap gap-2">
@@ -154,7 +268,8 @@ export function TemplateEditor({
                     [t("Move down"), 1],
                   ].map(([label, offset]) => (
                     <button
-                      className="rounded border px-3 py-2"
+                      className="rounded-lg border px-3 py-2 text-sm font-semibold"
+                      type="button"
                       key={String(label)}
                       disabled={
                         exerciseIndex + Number(offset) < 0 ||
@@ -175,6 +290,7 @@ export function TemplateEditor({
                   ))}
                   <button
                     className="rounded border border-red-300 px-3 py-2 text-red-700"
+                    type="button"
                     onClick={() =>
                       setValue({
                         ...value,
@@ -201,7 +317,11 @@ export function TemplateEditor({
                       <NumberField
                         label={t("Target reps")}
                         value={set.targetReps}
-                        onChange={(next) => (set.targetReps = next)}
+                        onChange={(next) =>
+                          updateTargetSet(item.id, set.id, {
+                            targetReps: next,
+                          })
+                        }
                       />
                     ) : null}
                     {fields.load ? (
@@ -219,7 +339,7 @@ export function TemplateEditor({
                         }
                         step={0.5}
                         onChange={(next) => {
-                          set.targetLoadGrams =
+                          const targetLoadGrams =
                             next === null
                               ? null
                               : Math.round(
@@ -231,6 +351,9 @@ export function TemplateEditor({
                                     "grams",
                                   ),
                                 );
+                          updateTargetSet(item.id, set.id, {
+                            targetLoadGrams,
+                          });
                         }}
                       />
                     ) : null}
@@ -238,7 +361,11 @@ export function TemplateEditor({
                       <NumberField
                         label={`${t("Target duration")} (${t("seconds")})`}
                         value={set.targetDurationSeconds}
-                        onChange={(next) => (set.targetDurationSeconds = next)}
+                        onChange={(next) =>
+                          updateTargetSet(item.id, set.id, {
+                            targetDurationSeconds: next,
+                          })
+                        }
                       />
                     ) : null}
                     {fields.distance ? (
@@ -256,7 +383,7 @@ export function TemplateEditor({
                               )
                         }
                         onChange={(next) => {
-                          set.targetDistanceMeters =
+                          const targetDistanceMeters =
                             next === null
                               ? null
                               : Math.round(
@@ -268,6 +395,9 @@ export function TemplateEditor({
                                     "meters",
                                   ),
                                 );
+                          updateTargetSet(item.id, set.id, {
+                            targetDistanceMeters,
+                          });
                         }}
                       />
                     ) : null}
@@ -278,16 +408,28 @@ export function TemplateEditor({
                       max={10}
                       step={0.5}
                       optional
-                      onChange={(next) => (set.targetRpe = next)}
+                      onChange={(next) =>
+                        updateTargetSet(item.id, set.id, { targetRpe: next })
+                      }
                     />
                     <button
                       className="rounded border px-3 py-2"
+                      type="button"
                       disabled={item.sets.length === 1}
                       onClick={() => {
-                        item.sets = item.sets.filter(
-                          (candidate) => candidate.id !== set.id,
-                        );
-                        setValue({ ...value });
+                        setValue((current) => ({
+                          ...current,
+                          exercises: current.exercises.map((exercise) =>
+                            exercise.id === item.id
+                              ? {
+                                  ...exercise,
+                                  sets: exercise.sets.filter(
+                                    (candidate) => candidate.id !== set.id,
+                                  ),
+                                }
+                              : exercise,
+                          ),
+                        }));
                       }}
                     >
                       {t("Remove set")}
@@ -297,10 +439,23 @@ export function TemplateEditor({
               </ol>
               <button
                 className="mt-3 rounded border px-3 py-2"
+                type="button"
                 disabled={item.sets.length >= 20}
                 onClick={() => {
-                  item.sets.push(defaultSet(exercise.trackingMode));
-                  setValue({ ...value });
+                  setValue((current) => ({
+                    ...current,
+                    exercises: current.exercises.map((candidate) =>
+                      candidate.id === item.id
+                        ? {
+                            ...candidate,
+                            sets: [
+                              ...candidate.sets,
+                              defaultSet(exercise.trackingMode),
+                            ],
+                          }
+                        : candidate,
+                    ),
+                  }));
                 }}
               >
                 {t("Add set")}
@@ -310,8 +465,11 @@ export function TemplateEditor({
         })}
       </ol>
       <button
-        className="rounded bg-blue-600 px-5 py-3 font-medium text-white"
+        className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
+        disabled={saving || !value.name.trim()}
+        type="button"
         onClick={async () => {
+          setSaving(true);
           setMessage(t("Saving..."));
           const result = await saveTemplate({
             ...value,
@@ -324,11 +482,12 @@ export function TemplateEditor({
               })),
             })),
           });
+          setSaving(false);
           setMessage(result.ok ? t("Template saved.") : t(result.error));
           if (result.ok) router.push("/workouts");
         }}
       >
-        {t("Save template")}
+        {saving ? t("Saving...") : t("Save template")}
       </button>
       <p aria-live="polite">{message}</p>
     </main>
@@ -356,7 +515,7 @@ function NumberField({
     <label className="text-sm">
       {label}
       <input
-        className="mt-1 w-full rounded border p-2"
+        className="input mt-1"
         type="number"
         min={min}
         max={max}

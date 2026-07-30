@@ -135,6 +135,90 @@ const th: Record<string, string> = {
   "Too many searches. Wait and try again.":
     "มีการค้นหามากเกินไป โปรดรอสักครู่แล้วลองอีกครั้ง",
   Workouts: "การออกกำลังกาย",
+  "Back to workouts": "กลับไปหน้าการออกกำลังกาย",
+  "Back to dashboard": "กลับไปหน้าแดชบอร์ด",
+  "Training hub": "ศูนย์การฝึก",
+  "Plan a session, follow your targets, and keep your training moving.":
+    "วางแผน ทำตามเป้าหมาย และฝึกอย่างต่อเนื่อง",
+  "Browse built-in movements or create your own.":
+    "เลือกท่าที่มีอยู่หรือสร้างท่าของคุณเอง",
+  "Build a template": "สร้างเทมเพลต",
+  "Turn your favorite exercises into a reusable plan.":
+    "เปลี่ยนท่าโปรดให้เป็นแผนที่ใช้ซ้ำได้",
+  "Ready when you are": "พร้อมเมื่อคุณพร้อม",
+  "Create a template to make your next workout faster to start.":
+    "สร้างเทมเพลตเพื่อเริ่มการฝึกครั้งถัดไปได้เร็วขึ้น",
+  "Create your first template": "สร้างเทมเพลตแรก",
+  "Build your library": "สร้างคลังท่าของคุณ",
+  "Choose from ready-made exercises or add movements that match your training.":
+    "เลือกท่าที่เตรียมไว้หรือเพิ่มท่าที่เหมาะกับการฝึกของคุณ",
+  "Edit exercise": "แก้ไขท่าออกกำลังกาย",
+  "Create a custom exercise": "สร้างท่าออกกำลังกาย",
+  "Tracking mode controls which fields appear during a workout.":
+    "รูปแบบการบันทึกกำหนดช่องข้อมูลที่แสดงระหว่างการฝึก",
+  "Example: Incline dumbbell press": "ตัวอย่าง: อินไคลน์ดัมเบลเพรส",
+  "Choose a suggestion or type your own equipment.":
+    "เลือกจากคำแนะนำหรือพิมพ์อุปกรณ์ของคุณเอง",
+  "Example: dumbbell": "ตัวอย่าง: ดัมเบล",
+  "Available exercises": "ท่าออกกำลังกายที่มี",
+  "{count} exercises": "{count} ท่า",
+  "Search exercises": "ค้นหาท่าออกกำลังกาย",
+  "Filter by category": "กรองตามหมวดหมู่",
+  "All categories": "ทุกหมวดหมู่",
+  Custom: "กำหนดเอง",
+  "Built in": "มีในระบบ",
+  "No matching exercises": "ไม่พบท่าที่ตรงกัน",
+  "Change the search or category filter and try again.":
+    "เปลี่ยนคำค้นหรือหมวดหมู่แล้วลองอีกครั้ง",
+  "Build strength with resistance or bodyweight.":
+    "เพิ่มความแข็งแรงด้วยแรงต้านหรือน้ำหนักตัว",
+  "Raise your heart rate and improve endurance.":
+    "เพิ่มอัตราการเต้นหัวใจและความทนทาน",
+  "Improve range of motion and movement quality.":
+    "เพิ่มช่วงการเคลื่อนไหวและคุณภาพการเคลื่อนไหว",
+  "Train stability and body control.": "ฝึกความมั่นคงและการควบคุมร่างกาย",
+  "Practice a sport-specific movement.": "ฝึกการเคลื่อนไหวเฉพาะกีฬา",
+  "Use when none of the categories fit.": "ใช้เมื่อไม่มีหมวดหมู่ที่เหมาะสม",
+  "Category: strength": "ความแข็งแรง",
+  "Category: cardio": "คาร์ดิโอ",
+  "Category: mobility": "ความคล่องตัว",
+  "Category: balance": "การทรงตัว",
+  "Category: sport": "กีฬา",
+  "Category: other": "อื่น ๆ",
+  "Equipment: bodyweight": "น้ำหนักตัว",
+  "Equipment: barbell": "บาร์เบล",
+  "Equipment: dumbbell": "ดัมเบล",
+  "Equipment: kettlebell": "เคตเทิลเบล",
+  "Equipment: machine": "เครื่องออกกำลังกาย",
+  "Equipment: cable": "เคเบิล",
+  "Equipment: resistance band": "ยางยืดแรงต้าน",
+  "Equipment: bench": "ม้านั่ง",
+  "Equipment: pull-up bar": "บาร์โหน",
+  "Equipment: cardio machine": "เครื่องคาร์ดิโอ",
+  "Equipment: bicycle": "จักรยาน",
+  "Workout builder": "เครื่องมือสร้างการฝึก",
+  "Choose exercises, set targets, and save a plan you can reuse.":
+    "เลือกท่า ตั้งเป้าหมาย และบันทึกแผนเพื่อใช้ซ้ำ",
+  "Template details": "รายละเอียดเทมเพลต",
+  "Example: Full body strength": "ตัวอย่าง: ความแข็งแรงทั่วร่างกาย",
+  "Optional coaching notes or workout goal": "คำแนะนำหรือเป้าหมาย (ไม่บังคับ)",
+  Exercises: "ท่าออกกำลังกาย",
+  "Search your library, then add exercises in workout order.":
+    "ค้นหาคลังแล้วเพิ่มท่าตามลำดับการฝึก",
+  "Search by exercise name": "ค้นหาด้วยชื่อท่า",
+  "No exercises are available": "ไม่มีท่าออกกำลังกาย",
+  "Create an exercise first, then return to build your template.":
+    "สร้างท่าก่อน แล้วกลับมาสร้างเทมเพลต",
+  "Open exercise library": "เปิดคลังท่าออกกำลังกาย",
+  "Workout in progress": "กำลังออกกำลังกาย",
+  "Workout summary": "สรุปการออกกำลังกาย",
+  "Add another exercise": "เพิ่มท่าอีก",
+  "Unable to load workouts": "ไม่สามารถโหลดการออกกำลังกาย",
+  "Your workout data is temporarily unavailable.":
+    "ข้อมูลการออกกำลังกายไม่พร้อมใช้งานชั่วคราว",
+  "Try again. If the problem continues, check the staging connection.":
+    "ลองอีกครั้ง หากยังมีปัญหาให้ตรวจสอบการเชื่อมต่อ staging",
+  "Try again": "ลองอีกครั้ง",
   "Plan and complete your training.": "วางแผนและทำการฝึกของคุณให้เสร็จ",
   "Log in to plan and track workouts.":
     "เข้าสู่ระบบเพื่อวางแผนและบันทึกการออกกำลังกาย",

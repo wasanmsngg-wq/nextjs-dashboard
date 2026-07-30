@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { trackingModes } from "@/app/domain";
+import { exerciseCategories, trackingModes } from "@/app/domain";
 
 export const uuidSchema = z.string().uuid();
 export const workoutNameSchema = z.string().trim().min(1).max(80);
@@ -9,7 +9,7 @@ export const trackingModeSchema = z.enum(trackingModes);
 export const exerciseInputSchema = z.object({
   name: workoutNameSchema,
   trackingMode: trackingModeSchema,
-  category: z.string().trim().max(40).default("other"),
+  category: z.enum(exerciseCategories).default("other"),
   equipment: z.string().trim().max(80).default(""),
 });
 

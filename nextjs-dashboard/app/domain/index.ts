@@ -19,12 +19,15 @@ export {
   type MassUnit,
 } from "./units";
 export {
+  equipmentSuggestions,
+  exerciseCategories,
   fieldsForTrackingMode,
   trackingModes,
   validateRpe,
   validateSetForMode,
   WORKOUT_QUEUE_DATABASE,
   WORKOUT_QUEUE_STORE,
+  type ExerciseCategory,
   type TrackingMode,
   type WorkoutAutosaveState,
   type WorkoutMutation,

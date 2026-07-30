@@ -15,6 +15,18 @@ published:
 
 ## Manual staging matrix
 
+### Release-candidate workout correction
+
+- [x] Local migration reset applies the corrective category constraint.
+- [x] Custom exercise creation returns an inserted record and survives reload.
+- [x] Category guidance and custom equipment entry are covered by E2E.
+- [x] Multi-character template name and notes remain stable in WebKit.
+- [x] Exercise selection, template save, session completion, and read-only
+      transition pass in Chromium, Firefox, WebKit, Pixel, and iPhone.
+- [x] Preview variables now identify staging project `rnmzyccanuwacsxqpzez`.
+- [x] A staging schema backup was captured before the corrective migration.
+- [ ] Corrected Vercel Preview and synthetic-user acceptance pass.
+
 - [ ] Create, edit, and archive a custom exercise.
 - [ ] Create, reorder, edit, duplicate, and archive a template.
 - [ ] Start from a template and from an empty workout.

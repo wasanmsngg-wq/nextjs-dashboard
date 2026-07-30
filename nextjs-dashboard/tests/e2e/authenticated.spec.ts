@@ -24,6 +24,18 @@ async function login(page: Page) {
   await expect(page).toHaveURL(/\/dashboard$/);
 }
 
+async function expectAccessibleResponsivePage(page: Page) {
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(results.violations).toEqual([]);
+}
+
 test.describe.configure({ mode: "serial" });
 
 async function removeBrowserTestUsers() {
@@ -138,19 +150,34 @@ test("registered user creates a template and completes an immutable workout", as
 }) => {
   await login(page);
   await page.goto("/workouts/exercises");
+  await expect(
+    page.getByRole("link", { name: "Back to workouts" }),
+  ).toBeVisible();
   await page.getByLabel("Exercise name").fill("Browser Curl");
   await page.getByLabel("Tracking mode").selectOption("reps_load");
+  await page.locator('select[name="category"]').selectOption("strength");
+  await page.getByLabel("Equipment").fill("curl bench");
   await page.getByRole("button", { name: "Create exercise" }).click();
   await expect(page.getByText("Exercise saved.")).toBeVisible();
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Browser Curl" }),
   ).toBeVisible();
+  await expect(page.getByText("curl bench")).toBeVisible();
+  await expectAccessibleResponsivePage(page);
 
   await page.goto("/workouts/templates/new");
   await page.getByLabel("Template name").fill("Browser Strength");
+  await page
+    .getByLabel("Notes")
+    .fill("A complete multi-character template description");
+  await expect(page.getByLabel("Template name")).toHaveValue(
+    "Browser Strength",
+  );
+  await page.getByLabel("Search exercises").fill("Squat");
   await page.getByLabel("Add exercise").selectOption({ label: "Squat" });
   await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expectAccessibleResponsivePage(page);
   await page.getByRole("button", { name: "Save template" }).click();
   await expect(page).toHaveURL(/\/workouts$/);
 
@@ -182,14 +209,10 @@ test("registered user creates a template and completes an immutable workout", as
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Complete workout" }).click();
   await expect(page.getByText("Workout completed.")).toBeVisible();
-  await page.reload();
   await expect(page.getByText("Completed workout — read only")).toBeVisible();
   await expect(firstSet.getByRole("checkbox")).toBeDisabled();
 
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-    .analyze();
-  expect(results.violations).toEqual([]);
+  await expectAccessibleResponsivePage(page);
 });
 
 for (const locale of ["en", "th"] as const) {

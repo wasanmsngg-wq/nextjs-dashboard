@@ -8,6 +8,13 @@
 - Add transactional RLS-protected workout persistence, immutable completion,
   idempotent retries, and a same-browser IndexedDB recovery queue.
 - Add responsive, keyboard-accessible English and Thai workout interfaces.
+- Stabilize Preview routing and the staging Supabase connection.
+- Redesign the workout, exercise, template, active-session, and completed-session
+  experiences with clearer responsive navigation and status feedback.
+- Add guided exercise categories, equipment suggestions with custom entry, and
+  explicit workout data-loading failures.
+- Fix multi-character template input, cross-browser state races, and immediate
+  completed-workout feedback.
 
 ## 0.1.0 - Unreleased
 

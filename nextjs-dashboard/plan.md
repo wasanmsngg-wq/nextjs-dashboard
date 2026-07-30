@@ -550,3 +550,17 @@ Execute these in order:
 - [x] Implement profile/timezone/unit preferences as the first vertical slice.
 - [x] Run developer, QA, and reviewer passes.
 - [ ] Merge, deploy, verify, and tag `v0.1.0`.
+
+## 14. v0.2.0 release-candidate stabilization
+
+- [x] Diagnose the empty exercise library as a mismatched Preview Supabase
+      project rather than missing staging data.
+- [x] Remove cross-deployment Preview canonical redirects.
+- [x] Surface workout query and mutation failures instead of treating them as
+      successful empty results.
+- [x] Add guided exercise categories and editable equipment suggestions.
+- [x] Fix deferred form-event access and immutable template editing.
+- [x] Redesign all workout screens with responsive, accessible navigation and
+      clear loading, empty, success, and error states.
+- [x] Add and apply the roll-forward corrective staging migration.
+- [ ] Complete synthetic-user Preview acceptance and attach final CI evidence.

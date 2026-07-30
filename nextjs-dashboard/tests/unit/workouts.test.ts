@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  equipmentSuggestions,
+  exerciseCategories,
   fieldsForTrackingMode,
   validateRpe,
   validateSetForMode,
@@ -19,6 +21,19 @@ const base: WorkoutSetInput = {
 };
 
 describe("workout tracking contracts", () => {
+  it("provides guided categories and equipment suggestions", () => {
+    expect(exerciseCategories).toEqual([
+      "strength",
+      "cardio",
+      "mobility",
+      "balance",
+      "sport",
+      "other",
+    ]);
+    expect(equipmentSuggestions).toContain("dumbbell");
+    expect(equipmentSuggestions).toContain("machine");
+  });
+
   it("exposes only measurements applicable to each tracking mode", () => {
     expect(fieldsForTrackingMode("reps_load")).toEqual({
       reps: true,
