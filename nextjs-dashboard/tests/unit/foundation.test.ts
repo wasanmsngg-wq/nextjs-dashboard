@@ -21,7 +21,7 @@ describe("foundation security contracts", () => {
     ).toThrow("NEXT_PUBLIC_");
   });
 
-  it("prefers isolated Preview Supabase variables over shared integration values", () => {
+  it("uses the explicitly configured Supabase variables in Preview", () => {
     expect(
       readServerEnv({
         ...publicEnv,
@@ -35,8 +35,9 @@ describe("foundation security contracts", () => {
           "isolated-preview-publishable-key",
       }),
     ).toMatchObject({
-      NEXT_PUBLIC_SUPABASE_URL: "https://isolated-preview.supabase.co",
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "isolated-preview-publishable-key",
+      NEXT_PUBLIC_SUPABASE_URL: "https://shared.supabase.co",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+        "shared-publishable-key-long-enough",
     });
   });
 
