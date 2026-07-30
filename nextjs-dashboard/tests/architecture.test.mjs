@@ -29,6 +29,20 @@ test("shared layers do not import database, actions, or server data modules", as
   }
 });
 
+test("feature UI consumes project components instead of Ant Design directly", async () => {
+  const featureRoot = join(process.cwd(), "app", "features");
+  for (const file of (await files(featureRoot)).filter(
+    (name) => name.endsWith(".ts") || name.endsWith(".tsx"),
+  )) {
+    const source = await readFile(file, "utf8");
+    assert.doesNotMatch(
+      source,
+      /from\s+["']antd(?:\/[^"']*)?["']/,
+      `${file} must use app/ui primitives instead of importing Ant Design`,
+    );
+  }
+});
+
 test("every user-facing page has a loading boundary", async () => {
   const app = join(process.cwd(), "app");
   for (const file of (await files(app)).filter((name) =>

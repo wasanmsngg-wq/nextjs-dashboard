@@ -1,0 +1,52 @@
+# Exercise Tracker UI design system
+
+The application uses an atomic component hierarchy backed by Ant Design. New
+feature code must compose these project components instead of importing Ant
+Design directly or inventing new colors, control sizes, and interaction states.
+
+## Source of truth
+
+- `app/ui/theme.ts`: semantic colors, radii, control sizes, and the Ant Design
+  theme configuration.
+- `app/ui/atoms`: single-purpose controls and visual primitives.
+- `app/ui/molecules`: small compositions such as page headings and search
+  fields.
+- `app/ui/organisms`: application navigation and shell structures.
+- `app/ui/templates`: page-level composition without feature data access.
+- `app/features/*/ui`: feature components that consume the shared layers.
+
+Dependencies flow downward: features may use any shared UI layer, templates
+may use organisms/molecules/atoms, and shared UI never imports feature actions
+or database modules.
+
+## Core rules
+
+1. Use `Button` or `ButtonLink` from `app/ui/atoms/button`. Choose one of the
+   semantic variants: `primary`, `secondary`, `quiet`, or `danger`.
+2. Use `Surface` for bordered cards and panels. Do not repeat border, radius,
+   background, and shadow utilities in feature code.
+3. Use `PageHeading` for page identity, supporting copy, and primary actions.
+4. Use semantic values from `designTokens` when a new shared component needs a
+   value that cannot be expressed through the configured Ant component.
+5. Feature code must not import from `antd`. Add or extend a project primitive
+   so accessibility, localization, sizing, and visual behavior remain
+   consistent.
+6. Preserve visible focus, keyboard operation, WCAG 2.2 AA contrast, 44-pixel
+   primary touch targets, English/Thai text expansion, and narrow-screen
+   layouts.
+
+## Adding a component
+
+Start at the smallest reusable level. Add an atom only for one interaction or
+visual responsibility. Combine atoms into a molecule when they repeatedly
+appear together. Use organisms for substantial application regions, and
+templates only for page structure. Include accessible naming and states in the
+component API, add a focused test, and demonstrate the component in a real
+feature before introducing another variant.
+
+## Migration policy
+
+Existing pages are migrated incrementally when they are changed. Any modified
+button, card, page heading, input, selection control, alert, or dialog must be
+moved to the shared system as part of that change. Direct Ant Design imports in
+feature code are rejected by the architecture tests.

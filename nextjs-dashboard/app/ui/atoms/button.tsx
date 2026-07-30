@@ -1,19 +1,44 @@
-import clsx from "clsx";
+"use client";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
+import { Button as AntButton, type ButtonProps as AntButtonProps } from "antd";
+import type { ReactNode } from "react";
+
+export type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
+
+export type ButtonProps = Omit<
+  AntButtonProps,
+  "color" | "danger" | "type" | "variant"
+> & {
+  variant?: ButtonVariant;
+};
+
+const variantProperties: Record<ButtonVariant, AntButtonProps> = {
+  primary: { type: "primary" },
+  secondary: { type: "default" },
+  quiet: { type: "text" },
+  danger: { type: "default", danger: true },
+};
+
+export function Button({
+  variant = "primary",
+  children,
+  ...props
+}: ButtonProps) {
+  return (
+    <AntButton {...variantProperties[variant]} {...props}>
+      {children}
+    </AntButton>
+  );
 }
 
-export function Button({ children, className, ...rest }: ButtonProps) {
+export function ButtonLink({
+  href,
+  children,
+  ...props
+}: ButtonProps & { href: string; children: ReactNode }) {
   return (
-    <button
-      {...rest}
-      className={clsx(
-        "flex h-10 items-center rounded-lg bg-blue-500 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 active:bg-blue-600 aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
-        className,
-      )}
-    >
+    <Button href={href} {...props}>
       {children}
-    </button>
+    </Button>
   );
 }

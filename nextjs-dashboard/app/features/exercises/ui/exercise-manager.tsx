@@ -16,6 +16,9 @@ import {
 } from "@/app/domain";
 import { archiveExercise, saveExercise } from "@/app/features/workouts/actions";
 import { useI18n } from "@/app/i18n/provider";
+import { Button } from "@/app/ui/atoms/button";
+import { Surface } from "@/app/ui/atoms/surface";
+import { PageHeading } from "@/app/ui/molecules/page-heading";
 
 export type ExerciseView = {
   id: string;
@@ -81,19 +84,14 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
           <ArrowLeftIcon className="h-4 w-4" />
           {t("Back to workouts")}
         </Link>
-        <div className="mt-4">
-          <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
-            {t("Build your library")}
-          </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-gray-950">
-            {t("Exercise library")}
-          </h1>
-          <p className="mt-2 max-w-2xl text-gray-600">
-            {t(
-              "Choose from ready-made exercises or add movements that match your training.",
-            )}
-          </p>
-        </div>
+        <PageHeading
+          className="mt-4"
+          description={t(
+            "Choose from ready-made exercises or add movements that match your training.",
+          )}
+          eyebrow={t("Build your library")}
+          title={t("Exercise library")}
+        />
       </header>
 
       <section
@@ -194,24 +192,21 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
             </datalist>
           </Field>
           <div className="flex flex-wrap gap-3 sm:col-span-2">
-            <button
-              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
-              disabled={saving}
-            >
+            <Button disabled={saving} htmlType="submit">
               {saving
                 ? t("Saving...")
                 : editing
                   ? t("Save changes")
                   : t("Create exercise")}
-            </button>
+            </Button>
             {editing ? (
-              <button
-                className="rounded-xl border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
-                type="button"
+              <Button
+                htmlType="button"
                 onClick={cancelEdit}
+                variant="secondary"
               >
                 {t("Cancel")}
-              </button>
+              </Button>
             ) : null}
             <p
               className="min-h-6 self-center font-medium text-gray-700"
@@ -267,8 +262,9 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
         {visibleExercises.length ? (
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleExercises.map((exercise) => (
-              <li
-                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              <Surface
+                as="li"
+                className="transition hover:-translate-y-0.5 hover:shadow-md"
                 key={exercise.id}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -290,14 +286,14 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
                 </p>
                 {exercise.custom ? (
                   <div className="mt-5 flex gap-2 border-t pt-4">
-                    <button
-                      className="rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-gray-50"
+                    <Button
                       onClick={() => beginEdit(exercise)}
+                      size="small"
+                      variant="secondary"
                     >
                       {t("Edit")}
-                    </button>
-                    <button
-                      className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+                    </Button>
+                    <Button
                       onClick={async () => {
                         if (!confirm(t("Archive this exercise?"))) return;
                         const result = await archiveExercise(exercise.id);
@@ -306,12 +302,14 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
                         );
                         if (result.ok) router.refresh();
                       }}
+                      size="small"
+                      variant="danger"
                     >
                       {t("Archive")}
-                    </button>
+                    </Button>
                   </div>
                 ) : null}
-              </li>
+              </Surface>
             ))}
           </ul>
         ) : (

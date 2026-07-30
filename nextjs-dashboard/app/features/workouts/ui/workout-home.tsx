@@ -11,6 +11,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { archiveTemplate, duplicateTemplate, startWorkout } from "../actions";
 import { useI18n } from "@/app/i18n/provider";
+import { Button, ButtonLink } from "@/app/ui/atoms/button";
+import { Surface } from "@/app/ui/atoms/surface";
+import { PageHeading } from "@/app/ui/molecules/page-heading";
 
 type TemplateSummary = { id: string; name: string; notes: string };
 
@@ -32,45 +35,47 @@ export function WorkoutHome({
   }
   return (
     <main className="mx-auto max-w-6xl space-y-8">
-      <header className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6 text-white shadow-lg sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-widest text-blue-100">
-          {t("Training hub")}
-        </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-          {t("Workouts")}
-        </h1>
-        <p className="mt-2 max-w-xl text-blue-50">
-          {t(
+      <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6 shadow-lg sm:p-8">
+        <PageHeading
+          actions={
+            <>
+              {activeSessionId ? (
+                <ButtonLink
+                  className="border-white bg-white text-blue-700"
+                  href={`/workouts/sessions/${activeSessionId}`}
+                  icon={<BoltIcon className="h-5 w-5" />}
+                  variant="secondary"
+                >
+                  {t("Resume active workout")}
+                </ButtonLink>
+              ) : (
+                <Button
+                  className="border-white bg-white text-blue-700"
+                  icon={<BoltIcon className="h-5 w-5" />}
+                  onClick={() => start()}
+                  variant="secondary"
+                >
+                  {t("Start empty workout")}
+                </Button>
+              )}
+              <ButtonLink
+                className="border-white/60 text-white hover:!border-white hover:!text-white"
+                href="/workouts/templates/new"
+                icon={<PlusIcon className="h-5 w-5" />}
+                variant="secondary"
+              >
+                {t("Create template")}
+              </ButtonLink>
+            </>
+          }
+          description={t(
             "Plan a session, follow your targets, and keep your training moving.",
           )}
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          {activeSessionId ? (
-            <Link
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-blue-700 shadow-sm hover:bg-blue-50"
-              href={`/workouts/sessions/${activeSessionId}`}
-            >
-              <BoltIcon className="h-5 w-5" />
-              {t("Resume active workout")}
-            </Link>
-          ) : (
-            <button
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-blue-700 shadow-sm hover:bg-blue-50"
-              onClick={() => start()}
-            >
-              <BoltIcon className="h-5 w-5" />
-              {t("Start empty workout")}
-            </button>
-          )}
-          <Link
-            className="inline-flex items-center gap-2 rounded-xl border border-white/60 px-5 py-3 font-bold text-white hover:bg-white/10"
-            href="/workouts/templates/new"
-          >
-            <PlusIcon className="h-5 w-5" />
-            {t("Create template")}
-          </Link>
-        </div>
-      </header>
+          eyebrow={t("Training hub")}
+          inverse
+          title={t("Workouts")}
+        />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Link
           className="group flex items-center gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
@@ -124,10 +129,7 @@ export function WorkoutHome({
         {templates.length ? (
           <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {templates.map((template) => (
-              <li
-                className="rounded-2xl border bg-white p-5 shadow-sm"
-                key={template.id}
-              >
+              <Surface as="li" key={template.id}>
                 <h3 className="text-lg font-bold text-gray-950">
                   {template.name}
                 </h3>
@@ -135,21 +137,19 @@ export function WorkoutHome({
                   <p className="mt-1 text-sm text-gray-600">{template.notes}</p>
                 ) : null}
                 <div className="mt-5 flex flex-wrap gap-2 border-t pt-4">
-                  <button
-                    className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:bg-gray-300"
+                  <Button
                     disabled={Boolean(activeSessionId)}
                     onClick={() => start(template.id)}
                   >
                     {t("Start")}
-                  </button>
-                  <Link
-                    className="rounded-lg border px-3 py-2 font-semibold hover:bg-gray-50"
+                  </Button>
+                  <ButtonLink
                     href={`/workouts/templates/${template.id}`}
+                    variant="secondary"
                   >
                     {t("Edit")}
-                  </Link>
-                  <button
-                    className="rounded-lg border px-3 py-2 font-semibold hover:bg-gray-50"
+                  </ButtonLink>
+                  <Button
                     onClick={async () => {
                       const result = await duplicateTemplate(
                         template.id,
@@ -160,11 +160,11 @@ export function WorkoutHome({
                       );
                       router.refresh();
                     }}
+                    variant="secondary"
                   >
                     {t("Duplicate")}
-                  </button>
-                  <button
-                    className="rounded-lg border border-red-200 px-3 py-2 font-semibold text-red-700 hover:bg-red-50"
+                  </Button>
+                  <Button
                     onClick={async () => {
                       if (!confirm(t("Archive this template?"))) return;
                       const result = await archiveTemplate(template.id);
@@ -173,11 +173,12 @@ export function WorkoutHome({
                       );
                       router.refresh();
                     }}
+                    variant="danger"
                   >
                     {t("Archive")}
-                  </button>
+                  </Button>
                 </div>
-              </li>
+              </Surface>
             ))}
           </ul>
         ) : (
@@ -190,12 +191,9 @@ export function WorkoutHome({
                 "Create a template to make your next workout faster to start.",
               )}
             </p>
-            <Link
-              className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white"
-              href="/workouts/templates/new"
-            >
+            <ButtonLink className="mt-5" href="/workouts/templates/new">
               {t("Create your first template")}
-            </Link>
+            </ButtonLink>
           </div>
         )}
       </section>

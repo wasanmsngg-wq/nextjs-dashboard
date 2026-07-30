@@ -18,6 +18,7 @@ import {
   type Locale,
 } from "@/app/i18n/config";
 import { translate } from "@/app/i18n/dictionaries";
+import { appTheme } from "@/app/ui/theme";
 
 type I18nContextValue = {
   locale: Locale;
@@ -60,7 +61,7 @@ export function I18nProvider({
 
   return (
     <I18nContext.Provider value={value}>
-      <ConfigProvider locale={locale === "th" ? thTH : enUS}>
+      <ConfigProvider locale={locale === "th" ? thTH : enUS} theme={appTheme}>
         {children}
       </ConfigProvider>
     </I18nContext.Provider>
