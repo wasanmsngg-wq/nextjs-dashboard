@@ -33,6 +33,11 @@ begin
     );
   end if;
 
+  if not exists (
+    select 1 from public.workout_session_exercises
+    where session_id = requested_session_id
+  ) then raise exception 'workout requires at least one exercise'; end if;
+
   if requested_cancellations is null
     or jsonb_typeof(requested_cancellations) <> 'array'
     or jsonb_array_length(requested_cancellations) > 100

@@ -169,6 +169,12 @@ test("registered user creates a template and completes an immutable workout", as
   await page.goto("/workouts");
   await page.getByRole("button", { name: "Start empty workout" }).click();
   await expect(page).toHaveURL(/\/workouts\/sessions\//);
+  await expect(
+    page.getByRole("button", { name: "Complete workout" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText("Add at least one exercise before completing this workout."),
+  ).toBeVisible();
   await page.getByLabel("Add exercise").selectOption({
     label: "Browser Curl",
   });

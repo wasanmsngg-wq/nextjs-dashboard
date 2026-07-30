@@ -175,6 +175,7 @@ test("workout completion requires reasons for unfinished exercises", async () =>
   );
   assert.match(sql, /requested_cancellations jsonb/i);
   assert.match(sql, /unfinished exercise requires cancellation/i);
+  assert.match(sql, /workout requires at least one exercise/i);
   assert.match(sql, /status = 'canceled'/i);
   assert.match(sql, /cancellation_reason = trim/i);
 });

@@ -137,6 +137,16 @@ begin
   perform public.start_workout(
     '55000000-0000-4000-8000-000000000003', null
   );
+  begin
+    perform public.complete_workout(
+      '55000000-0000-4000-8000-000000000003',
+      '56000000-0000-4000-8000-000000000007',
+      '[]'::jsonb
+    );
+    raise exception 'empty workout unexpectedly completed';
+  exception when raise_exception then
+    if sqlerrm = 'empty workout unexpectedly completed' then raise; end if;
+  end;
   perform public.add_workout_exercise(
     '55000000-0000-4000-8000-000000000003',
     '53000000-0000-4000-8000-000000000003',

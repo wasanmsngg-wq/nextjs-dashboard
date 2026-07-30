@@ -889,10 +889,18 @@ export function WorkoutSession({
           );
         })}
       </ol>
-      {!exercises.length ? <p>{t("Add an exercise to begin.")}</p> : null}
+      {!exercises.length ? (
+        <div className="space-y-1 text-slate-600">
+          <p>{t("Add an exercise to begin.")}</p>
+          <p className="text-sm">
+            {t("Add at least one exercise before completing this workout.")}
+          </p>
+        </div>
+      ) : null}
       {editable ? (
         <div className="fixed inset-x-0 bottom-0 z-30 flex flex-wrap justify-center gap-3 border-t bg-white/95 p-3 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur sm:sticky sm:rounded-2xl sm:border">
           <Button
+            disabled={!exercises.length}
             onClick={() => {
               setCompletionReasons(
                 Object.fromEntries(
