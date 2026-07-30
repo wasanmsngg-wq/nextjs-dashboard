@@ -181,6 +181,8 @@ test("registered user creates a template and completes an immutable workout", as
   );
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Complete workout" }).click();
+  await expect(page.getByText("Workout completed.")).toBeVisible();
+  await page.reload();
   await expect(page.getByText("Completed workout — read only")).toBeVisible();
   await expect(firstSet.getByRole("checkbox")).toBeDisabled();
 
