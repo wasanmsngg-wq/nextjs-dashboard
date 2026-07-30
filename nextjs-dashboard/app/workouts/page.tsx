@@ -19,7 +19,10 @@ export default async function WorkoutsPage() {
         </Link>
       </main>
     );
-  const [{ data: templates }, { data: active }] = await Promise.all([
+  const [
+    { data: templates, error: templatesError },
+    { data: active, error: activeError },
+  ] = await Promise.all([
     supabase
       .from("workout_templates")
       .select("id,name,notes")
@@ -31,6 +34,8 @@ export default async function WorkoutsPage() {
       .eq("status", "in_progress")
       .maybeSingle(),
   ]);
+  if (templatesError || activeError)
+    throw new Error("Workout overview could not be loaded.");
   return (
     <WorkoutHome templates={templates ?? []} activeSessionId={active?.id} />
   );

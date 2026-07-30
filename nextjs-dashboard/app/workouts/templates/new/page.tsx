@@ -10,7 +10,10 @@ export default async function NewTemplatePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/workouts/templates/new");
   const locale = await getLocale();
-  const [{ data: exercises }, { data: profile }] = await Promise.all([
+  const [
+    { data: exercises, error: exercisesError },
+    { data: profile, error: profileError },
+  ] = await Promise.all([
     supabase
       .from("exercises")
       .select("id,name,name_en,name_th,tracking_mode")
@@ -21,6 +24,8 @@ export default async function NewTemplatePage() {
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
+  if (exercisesError || profileError)
+    throw new Error("Workout template data could not be loaded.");
   return (
     <TemplateEditor
       initial={{

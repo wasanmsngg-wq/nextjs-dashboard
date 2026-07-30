@@ -15,32 +15,37 @@ export default async function EditTemplatePage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/workouts/templates/${templateId}`);
   const locale = await getLocale();
-  const [{ data: template }, { data: options }, { data: profile }] =
-    await Promise.all([
-      supabase
-        .from("workout_templates")
-        .select("id,name,notes")
-        .eq("id", templateId)
-        .is("archived_at", null)
-        .maybeSingle(),
-      supabase
-        .from("exercises")
-        .select("id,name,name_en,name_th,tracking_mode")
-        .is("archived_at", null),
-      supabase
-        .from("user_profiles")
-        .select("unit_system")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: template, error: templateError },
+    { data: options, error: optionsError },
+    { data: profile, error: profileError },
+  ] = await Promise.all([
+    supabase
+      .from("workout_templates")
+      .select("id,name,notes")
+      .eq("id", templateId)
+      .is("archived_at", null)
+      .maybeSingle(),
+    supabase
+      .from("exercises")
+      .select("id,name,name_en,name_th,tracking_mode")
+      .is("archived_at", null),
+    supabase
+      .from("user_profiles")
+      .select("unit_system")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+  if (templateError || optionsError || profileError)
+    throw new Error("Workout template could not be loaded.");
   if (!template) notFound();
-  const { data: templateExercises } = await supabase
+  const { data: templateExercises, error: exercisesError } = await supabase
     .from("workout_template_exercises")
     .select("id,exercise_id,position")
     .eq("template_id", templateId)
     .order("position");
   const ids = (templateExercises ?? []).map((item) => item.id);
-  const { data: sets } = ids.length
+  const { data: sets, error: setsError } = ids.length
     ? await supabase
         .from("workout_template_sets")
         .select(
@@ -48,7 +53,9 @@ export default async function EditTemplatePage({
         )
         .in("template_exercise_id", ids)
         .order("position")
-    : { data: [] };
+    : { data: [], error: null };
+  if (exercisesError || setsError)
+    throw new Error("Workout template details could not be loaded.");
   return (
     <TemplateEditor
       initial={{

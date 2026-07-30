@@ -46,6 +46,22 @@ values (
   'My lift','reps_load'
 );
 
+do $$
+begin
+  begin
+    insert into public.exercises(user_id,name,tracking_mode,category)
+    values (
+      '50000000-0000-4000-8000-000000000001',
+      'Invalid category',
+      'reps',
+      'mystery'
+    );
+    raise exception 'invalid exercise category unexpectedly accepted';
+  exception when check_violation then
+    null;
+  end;
+end $$;
+
 select public.save_workout_template(
   '52000000-0000-4000-8000-000000000001',
   'Strength A',

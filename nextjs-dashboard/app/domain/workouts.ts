@@ -6,6 +6,29 @@ export const trackingModes = [
 ] as const;
 
 export type TrackingMode = (typeof trackingModes)[number];
+export const exerciseCategories = [
+  "strength",
+  "cardio",
+  "mobility",
+  "balance",
+  "sport",
+  "other",
+] as const;
+export type ExerciseCategory = (typeof exerciseCategories)[number];
+
+export const equipmentSuggestions = [
+  "bodyweight",
+  "barbell",
+  "dumbbell",
+  "kettlebell",
+  "machine",
+  "cable",
+  "resistance band",
+  "bench",
+  "pull-up bar",
+  "cardio machine",
+  "bicycle",
+] as const;
 export type WorkoutSessionStatus = "in_progress" | "completed";
 export type WorkoutAutosaveState =
   "idle" | "saving" | "saved" | "offline" | "error" | "conflict";

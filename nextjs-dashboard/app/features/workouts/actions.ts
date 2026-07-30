@@ -70,13 +70,15 @@ export async function saveExercise(formData: FormData) {
             .update(payload)
             .eq("id", id.data)
             .eq("user_id", userId)
-        : await db.from("exercises").insert(payload);
+            .select("id")
+            .single()
+        : await db.from("exercises").insert(payload).select("id").single();
     },
   );
   if (!result.ok || result.data.error)
     return { ok: false as const, error: "The exercise could not be saved." };
   revalidatePath("/workouts/exercises");
-  return { ok: true as const };
+  return { ok: true as const, id: result.data.data.id };
 }
 
 export async function archiveExercise(id: string) {

@@ -21,7 +21,7 @@ describe("foundation security contracts", () => {
     ).toThrow("NEXT_PUBLIC_");
   });
 
-  it("prefers isolated Preview Supabase variables over shared integration values", () => {
+  it("uses the explicitly configured Supabase variables in Preview", () => {
     expect(
       readServerEnv({
         ...publicEnv,
@@ -35,8 +35,9 @@ describe("foundation security contracts", () => {
           "isolated-preview-publishable-key",
       }),
     ).toMatchObject({
-      NEXT_PUBLIC_SUPABASE_URL: "https://isolated-preview.supabase.co",
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "isolated-preview-publishable-key",
+      NEXT_PUBLIC_SUPABASE_URL: "https://shared.supabase.co",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+        "shared-publishable-key-long-enough",
     });
   });
 
@@ -81,7 +82,7 @@ describe("foundation security contracts", () => {
     ).toThrow("distributed rate limiting");
   });
 
-  it("uses a stable configured review origin with a Vercel fallback", () => {
+  it("uses the current Vercel deployment origin for previews", () => {
     expect(
       resolveSiteUrl({
         ...publicEnv,
@@ -90,7 +91,7 @@ describe("foundation security contracts", () => {
         APP_ENV: "preview",
         VERCEL_URL: "exercise-tracker-review.vercel.app",
       }),
-    ).toBe("https://stable-review.vercel.app");
+    ).toBe("https://exercise-tracker-review.vercel.app");
     expect(
       resolveSiteUrl({
         ...publicEnv,

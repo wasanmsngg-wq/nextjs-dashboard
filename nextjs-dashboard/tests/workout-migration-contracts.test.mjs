@@ -11,6 +11,14 @@ const migration = () =>
     ),
     "utf8",
   );
+const experienceMigration = () =>
+  readFile(
+    join(
+      process.cwd(),
+      "supabase/migrations/20260730110000_workout_experience.sql",
+    ),
+    "utf8",
+  );
 
 test("workout migration enables RLS for every workout relation", async () => {
   const sql = await migration();
@@ -72,4 +80,18 @@ test("the system library contains exactly twelve bilingual exercises", async () 
     [...sql.matchAll(/'20000000-0000-4000-8000-0000000000\d{2}'/g)].length,
     12,
   );
+});
+
+test("the corrective migration constrains guided exercise categories", async () => {
+  const sql = await experienceMigration();
+  assert.match(sql, /exercise_category_value/i);
+  for (const category of [
+    "strength",
+    "cardio",
+    "mobility",
+    "balance",
+    "sport",
+    "other",
+  ])
+    assert.match(sql, new RegExp(`'${category}'`));
 });

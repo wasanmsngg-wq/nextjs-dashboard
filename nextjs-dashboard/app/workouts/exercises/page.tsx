@@ -10,12 +10,13 @@ export default async function ExercisesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/workouts/exercises");
   const locale = await getLocale();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("exercises")
     .select("id,user_id,name,name_en,name_th,tracking_mode,category,equipment")
     .is("archived_at", null)
     .order("system_key")
     .order("name");
+  if (error) throw new Error("Workout exercises could not be loaded.");
   return (
     <ExerciseManager
       exercises={(data ?? []).map((exercise) => ({

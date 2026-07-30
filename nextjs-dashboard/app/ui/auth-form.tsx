@@ -76,7 +76,7 @@ export function AuthForm({
           />
         </label>
       ) : null}
-      <Button className="w-full" disabled={pending}>
+      <Button className="w-full" disabled={pending} htmlType="submit">
         {pending
           ? t("Please wait…")
           : mode === "login"

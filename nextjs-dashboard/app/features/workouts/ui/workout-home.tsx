@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ArrowRightIcon,
+  BoltIcon,
+  BookOpenIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { archiveTemplate, duplicateTemplate, startWorkout } from "../actions";
 import { useI18n } from "@/app/i18n/provider";
+import { Button, ButtonLink } from "@/app/ui/atoms/button";
+import { Surface } from "@/app/ui/atoms/surface";
+import { PageHeading } from "@/app/ui/molecules/page-heading";
 
 type TemplateSummary = { id: string; name: string; notes: string };
 
@@ -25,65 +34,122 @@ export function WorkoutHome({
     router.push(`/workouts/sessions/${result.id}`);
   }
   return (
-    <main className="space-y-6 p-4 md:p-8">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("Workouts")}</h1>
-        <p className="text-gray-600">{t("Plan and complete your training.")}</p>
+    <main className="mx-auto max-w-6xl space-y-8">
+      <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6 shadow-lg sm:p-8">
+        <PageHeading
+          actions={
+            <>
+              {activeSessionId ? (
+                <ButtonLink
+                  className="border-white bg-white text-blue-700"
+                  href={`/workouts/sessions/${activeSessionId}`}
+                  icon={<BoltIcon className="h-5 w-5" />}
+                  variant="secondary"
+                >
+                  {t("Resume active workout")}
+                </ButtonLink>
+              ) : (
+                <Button
+                  className="border-white bg-white text-blue-700"
+                  icon={<BoltIcon className="h-5 w-5" />}
+                  onClick={() => start()}
+                  variant="secondary"
+                >
+                  {t("Start empty workout")}
+                </Button>
+              )}
+              <ButtonLink
+                className="border-white/60 text-white hover:!border-white hover:!text-white"
+                href="/workouts/templates/new"
+                icon={<PlusIcon className="h-5 w-5" />}
+                variant="secondary"
+              >
+                {t("Create template")}
+              </ButtonLink>
+            </>
+          }
+          description={t(
+            "Plan a session, follow your targets, and keep your training moving.",
+          )}
+          eyebrow={t("Training hub")}
+          inverse
+          title={t("Workouts")}
+        />
       </div>
-      {activeSessionId ? (
+      <div className="grid gap-4 sm:grid-cols-2">
         <Link
-          className="inline-flex rounded bg-blue-600 px-4 py-3 font-medium text-white"
-          href={`/workouts/sessions/${activeSessionId}`}
+          className="group flex items-center gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          href="/workouts/exercises"
         >
-          {t("Resume active workout")}
-        </Link>
-      ) : (
-        <button
-          className="rounded bg-blue-600 px-4 py-3 font-medium text-white"
-          onClick={() => start()}
-        >
-          {t("Start empty workout")}
-        </button>
-      )}
-      <div className="flex flex-wrap gap-3">
-        <Link className="rounded border px-4 py-2" href="/workouts/exercises">
-          {t("Manage exercises")}
+          <span className="rounded-xl bg-violet-100 p-3 text-violet-700">
+            <BookOpenIcon className="h-6 w-6" />
+          </span>
+          <span className="grow">
+            <span className="block font-bold text-gray-950">
+              {t("Exercise library")}
+            </span>
+            <span className="text-sm text-gray-600">
+              {t("Browse built-in movements or create your own.")}
+            </span>
+          </span>
+          <ArrowRightIcon className="h-5 w-5 text-gray-400 transition group-hover:translate-x-1" />
         </Link>
         <Link
-          className="rounded border px-4 py-2"
+          className="group flex items-center gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           href="/workouts/templates/new"
         >
-          {t("Create template")}
+          <span className="rounded-xl bg-emerald-100 p-3 text-emerald-700">
+            <PlusIcon className="h-6 w-6" />
+          </span>
+          <span className="grow">
+            <span className="block font-bold text-gray-950">
+              {t("Build a template")}
+            </span>
+            <span className="text-sm text-gray-600">
+              {t("Turn your favorite exercises into a reusable plan.")}
+            </span>
+          </span>
+          <ArrowRightIcon className="h-5 w-5 text-gray-400 transition group-hover:translate-x-1" />
         </Link>
       </div>
       <section aria-labelledby="templates-heading">
-        <h2 id="templates-heading" className="mb-3 text-xl font-semibold">
-          {t("Workout templates")}
-        </h2>
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
+              {t("Ready when you are")}
+            </p>
+            <h2
+              id="templates-heading"
+              className="text-2xl font-bold text-gray-950"
+            >
+              {t("Workout templates")}
+            </h2>
+          </div>
+        </div>
         {templates.length ? (
-          <ul className="grid gap-4 md:grid-cols-2">
+          <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {templates.map((template) => (
-              <li className="rounded-lg border bg-white p-4" key={template.id}>
-                <h3 className="font-semibold">{template.name}</h3>
+              <Surface as="li" key={template.id}>
+                <h3 className="text-lg font-bold text-gray-950">
+                  {template.name}
+                </h3>
                 {template.notes ? (
                   <p className="mt-1 text-sm text-gray-600">{template.notes}</p>
                 ) : null}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    className="rounded bg-blue-600 px-3 py-2 text-white"
+                <div className="mt-5 flex flex-wrap gap-2 border-t pt-4">
+                  <Button
                     disabled={Boolean(activeSessionId)}
                     onClick={() => start(template.id)}
                   >
                     {t("Start")}
-                  </button>
-                  <Link
-                    className="rounded border px-3 py-2"
+                  </Button>
+                  <ButtonLink
                     href={`/workouts/templates/${template.id}`}
+                    variant="secondary"
                   >
                     {t("Edit")}
-                  </Link>
-                  <button
-                    className="rounded border px-3 py-2"
+                  </ButtonLink>
+                  <Button
                     onClick={async () => {
                       const result = await duplicateTemplate(
                         template.id,
@@ -94,11 +160,11 @@ export function WorkoutHome({
                       );
                       router.refresh();
                     }}
+                    variant="secondary"
                   >
                     {t("Duplicate")}
-                  </button>
-                  <button
-                    className="rounded border border-red-300 px-3 py-2 text-red-700"
+                  </Button>
+                  <Button
                     onClick={async () => {
                       if (!confirm(t("Archive this template?"))) return;
                       const result = await archiveTemplate(template.id);
@@ -107,18 +173,33 @@ export function WorkoutHome({
                       );
                       router.refresh();
                     }}
+                    variant="danger"
                   >
                     {t("Archive")}
-                  </button>
+                  </Button>
                 </div>
-              </li>
+              </Surface>
             ))}
           </ul>
         ) : (
-          <p>{t("No workout templates yet.")}</p>
+          <div className="rounded-2xl border border-dashed bg-white p-10 text-center">
+            <h3 className="text-lg font-bold">
+              {t("No workout templates yet.")}
+            </h3>
+            <p className="mt-2 text-gray-600">
+              {t(
+                "Create a template to make your next workout faster to start.",
+              )}
+            </p>
+            <ButtonLink className="mt-5" href="/workouts/templates/new">
+              {t("Create your first template")}
+            </ButtonLink>
+          </div>
         )}
       </section>
-      <p aria-live="polite">{message}</p>
+      <p aria-live="polite" className="font-medium text-gray-700">
+        {message}
+      </p>
     </main>
   );
 }

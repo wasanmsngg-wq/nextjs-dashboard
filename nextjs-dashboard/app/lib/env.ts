@@ -9,10 +9,6 @@ const publicEnvironment = {
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-  NEXT_PUBLIC_PREVIEW_SUPABASE_URL:
-    process.env.NEXT_PUBLIC_PREVIEW_SUPABASE_URL,
-  NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY:
-    process.env.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY,
   APP_ENV: process.env.NEXT_PUBLIC_APP_ENV ?? process.env.APP_ENV,
   VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV,
 };
@@ -47,25 +43,8 @@ function resolveAppEnvironment(input: EnvironmentInput) {
   return input.VERCEL_ENV ?? input.APP_ENV;
 }
 
-function preferIsolatedPreview(input: EnvironmentInput): EnvironmentInput {
-  const environment = resolveAppEnvironment(input);
-  if (
-    environment === "preview" &&
-    input.NEXT_PUBLIC_PREVIEW_SUPABASE_URL &&
-    input.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY
-  ) {
-    return {
-      ...input,
-      NEXT_PUBLIC_SUPABASE_URL: input.NEXT_PUBLIC_PREVIEW_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
-        input.NEXT_PUBLIC_PREVIEW_SUPABASE_PUBLISHABLE_KEY,
-    };
-  }
-  return input;
-}
-
 export function readPublicEnv(input: EnvironmentInput = publicEnvironment) {
-  const parsed = publicSchema.safeParse(preferIsolatedPreview(input));
+  const parsed = publicSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error(
       `Invalid public environment configuration: ${formatError(parsed.error)}`,
@@ -84,7 +63,7 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
     throw new Error("Secret-like values must not use the NEXT_PUBLIC_ prefix.");
   }
 
-  const parsed = serverSchema.safeParse(preferIsolatedPreview(input));
+  const parsed = serverSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error(
       `Invalid server environment configuration: ${formatError(parsed.error)}`,
@@ -143,11 +122,11 @@ export function readServerEnv(input: EnvironmentInput = process.env) {
 
 export function resolveSiteUrl(input: EnvironmentInput = process.env) {
   const env = readServerEnv(input);
-  if (env.NEXT_PUBLIC_SITE_URL) {
-    return env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
-  }
   if (env.APP_ENV === "preview" && env.VERCEL_URL) {
     return `https://${env.VERCEL_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "")}`;
+  }
+  if (env.NEXT_PUBLIC_SITE_URL) {
+    return env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
   }
   if (env.NODE_ENV !== "production") {
     return "http://localhost:3000";
