@@ -325,10 +325,21 @@ Release decisions:
 - Tracking modes are repetitions/load, repetitions, duration, and
   distance/duration.
 - Templates use per-set targets.
+- Session sets retain immutable planned-target snapshots separately from actual
+  results.
 - Keep one active session per user and make completed sessions immutable.
+- Untouched ad-hoc exercises may be removed. Planned exercises and exercises
+  with recorded results must be canceled with a retained reason.
+- Every set may record elapsed stopwatch time independently of its tracking
+  mode; exercise time is the sum of its retained set times.
+- Completing a workout atomically cancels every unfinished active exercise and
+  requires a separate reason for each one.
+- Empty workout sessions cannot be completed.
 - Retain failed active-session mutations in a versioned same-browser IndexedDB
   queue. Conflicts require an explicit server-copy or device-copy choice;
   cross-device merging is deferred.
+- Use shared accessible dialogs and toast notifications for confirmations,
+  prompted input, and transient feedback. Native browser prompts are forbidden.
 - `v0.2.0` is a staging release. Public production deployment remains deferred
   until `v1.0.0`.
 
@@ -337,9 +348,18 @@ Release decisions:
 - [x] Start a session from a template or as an empty workout.
 - [x] Check off sets and exercises with keyboard and touch controls.
 - [x] Log reps, load, time, distance, RPE, and notes.
+- [x] Display planned targets separately from editable actual results.
+- [x] Add exercises during a session without requiring a refresh.
+- [x] Remove untouched ad-hoc exercises and retain canceled exercises with a
+      required reason.
+- [x] Record persisted per-set elapsed time and display exercise totals.
 - [x] Autosave safely and show saving, saved, offline, and error states.
 - [x] Resume an in-progress session.
 - [x] Complete or discard a session with confirmation.
+- [x] Require cancellation reasons for unfinished exercises during completion.
+- [x] Prevent empty sessions from being completed.
+- [x] Replace native browser prompts and bottom status messages with shared
+      dialogs and toast notifications.
 - [x] Prevent duplicate completion on retries or double clicks.
 
 Verification gate:
@@ -349,6 +369,10 @@ Verification gate:
 - [x] Refresh mid-session and confirm no accepted data is lost.
 - [x] Simulate a failed save and verify recovery without duplicate sets.
 - [x] Confirm one user cannot access another user's template or session URL.
+- [x] Confirm set timers and exercise totals persist across refresh.
+- [x] Confirm incomplete completion is atomic and retains every cancellation
+      reason.
+- [x] Confirm empty completion is rejected by both the UI and database.
 
 ### Phase 3 — Performance tracking (`v0.3.0`)
 
@@ -564,3 +588,72 @@ Execute these in order:
       clear loading, empty, success, and error states.
 - [x] Add and apply the roll-forward corrective staging migration.
 - [ ] Complete synthetic-user Preview acceptance and attach final CI evidence.
+
+## 15. Workout-session checklist stabilization (draft PR #27)
+
+Branch: `fix/workout-checklist`
+
+Completed implementation:
+
+- [x] Restore the Phase 0 session checklist with planned-versus-actual set
+      tracking.
+- [x] Allow sessions to start from a template or an empty state.
+- [x] Insert newly added exercises into client state immediately without a
+      refresh or stale session version.
+- [x] Hide planned-target presentation for ad-hoc exercises and display
+      template targets as compact readable values.
+- [x] Add safe removal for untouched ad-hoc exercises.
+- [x] Add retained exercise cancellation status, reason, and timestamp.
+- [x] Restrict planned or recorded exercises to cancellation rather than
+      deletion.
+- [x] Fix authenticated workout discard authorization.
+- [x] Add per-set Start, Stop, and Reset stopwatch controls.
+- [x] Persist elapsed set time through autosave, offline retry, and refresh;
+      derive exercise totals from retained set times.
+- [x] Add reusable shared `Dialog` and `Toast` components.
+- [x] Replace all remaining native product `confirm`, `alert`, and `prompt`
+      usage and add an architecture regression test.
+- [x] Require a separate cancellation reason for every unfinished exercise
+      when completing a workout.
+- [x] Apply unfinished cancellations and workout completion in one database
+      transaction.
+- [x] Disable completion for a session with no exercises and enforce the same
+      rule in PostgreSQL.
+- [x] Add complete English and Thai user-facing text.
+- [x] Update `AGENTS.md` and the UI design-system contract for modern alignment,
+      shared feedback components, and the native-prompt prohibition.
+
+Committed migrations:
+
+- `20260730130000_workout_checklist.sql`: planned-target snapshots and blank
+  actual results.
+- `20260730150000_workout_exercise_outcomes.sql`: exercise removal and retained
+  cancellation outcomes.
+- `20260730170000_workout_set_elapsed_time.sql`: persisted set elapsed time.
+- `20260730190000_complete_workout_cancellations.sql`: atomic completion,
+  required unfinished-exercise reasons, and empty-session rejection.
+
+Verification evidence:
+
+- [x] Disposable local Supabase reset applies the complete migration history.
+- [x] 9 integration tests pass, including ownership, removal, cancellation,
+      elapsed time, atomic completion, and empty-session rejection.
+- [x] 36 unit tests pass.
+- [x] 25 contract and architecture tests pass.
+- [x] Formatting for changed files, linting, and type checking pass.
+- [x] Production build passes.
+- [x] Authenticated workout E2E passes on Chromium and an iPhone-sized project,
+      including accessibility and responsive-overflow checks.
+- [x] Production dependency audit reports no known vulnerabilities.
+- [x] `git diff --check` passes.
+
+Release state:
+
+- [x] The five stabilization commits are pushed to draft PR #27 targeting
+      `main`.
+- [ ] GitHub Actions verification must finish successfully.
+- [ ] Apply the new migrations to isolated staging before Preview acceptance.
+- [ ] Complete manual Preview acceptance with a synthetic user.
+- [ ] Merge approval remains required.
+- [ ] No production migration, deployment, release tag, or production-branch
+      change is authorized by this work.
