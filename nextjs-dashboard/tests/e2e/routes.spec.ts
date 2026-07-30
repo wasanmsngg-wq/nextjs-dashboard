@@ -8,6 +8,7 @@ const routes = [
   "/dashboard",
   "/settings/profile",
   "/onboarding/import",
+  "/workouts",
 ];
 
 test("public and guest routes have one h1 and no horizontal overflow", async ({

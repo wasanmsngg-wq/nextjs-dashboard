@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import {
   HomeIcon,
+  ClipboardDocumentCheckIcon,
   PowerIcon,
   UserGroupIcon,
   XMarkIcon,
@@ -14,8 +15,16 @@ import { useI18n } from "@/app/i18n/provider";
 import { IconButton } from "@/app/ui/atoms/icon-button";
 import { logout } from "@/app/lib/auth-actions";
 import { useEffect, useRef } from "react";
+import { clearWorkoutQueue } from "@/app/features/workouts/data/workout-queue";
 
-const links = [{ name: "Home", href: "/dashboard", icon: HomeIcon }];
+const links = [
+  { name: "Home", href: "/dashboard", icon: HomeIcon },
+  {
+    name: "Workouts",
+    href: "/workouts",
+    icon: ClipboardDocumentCheckIcon,
+  },
+];
 
 export function SideNavigation({
   open,
@@ -108,7 +117,8 @@ export function SideNavigation({
             onClick={onClose}
             className={clsx(
               "flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-sky-50 hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
-              pathname === href && "bg-sky-100 text-blue-600",
+              (pathname === href || pathname.startsWith(`${href}/`)) &&
+                "bg-sky-100 text-blue-600",
             )}
           >
             <Icon className="w-6" />
@@ -117,7 +127,7 @@ export function SideNavigation({
         ))}
         <div className="grow" />
         {userEmail ? (
-          <form action={logout}>
+          <form action={logout} onSubmit={() => void clearWorkoutQueue()}>
             <p className="truncate px-3 text-xs text-gray-500">{userEmail}</p>
             <button
               type="submit"

@@ -10,6 +10,7 @@ const publicAndGuestRoutes = [
   "/dashboard",
   "/settings/profile",
   "/onboarding/import",
+  "/workouts",
 ];
 
 for (const route of publicAndGuestRoutes) {
