@@ -166,6 +166,23 @@ test("registered user creates a template and completes an immutable workout", as
   await expect(page.getByText("curl bench")).toBeVisible();
   await expectAccessibleResponsivePage(page);
 
+  await page.goto("/workouts");
+  await page.getByRole("button", { name: "Start empty workout" }).click();
+  await expect(page).toHaveURL(/\/workouts\/sessions\//);
+  await page.getByLabel("Add exercise").selectOption({
+    label: "Browser Curl",
+  });
+  await page.getByLabel("Sets").fill("2");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Browser Curl" }),
+  ).toBeVisible();
+  await expect(page.getByText("No target").first()).toBeVisible();
+  await expect(page.getByText("Actual", { exact: true }).first()).toBeVisible();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Discard workout" }).click();
+  await expect(page).toHaveURL(/\/workouts$/);
+
   await page.goto("/workouts/templates/new");
   await page.getByLabel("Template name").fill("Browser Strength");
   await page
@@ -186,6 +203,9 @@ test("registered user creates a template and completes an immutable workout", as
     .filter({ hasText: "Browser Strength" });
   await template.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/workouts\/sessions\//);
+  await expect(page.getByText("Plan", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/8 reps/i).first()).toBeVisible();
+  await expect(page.getByText("Actual", { exact: true }).first()).toBeVisible();
   const firstSet = page
     .getByRole("checkbox")
     .first()

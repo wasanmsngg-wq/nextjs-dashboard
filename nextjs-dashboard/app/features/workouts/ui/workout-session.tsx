@@ -32,14 +32,28 @@ import {
   removeWorkoutMutation,
 } from "../data/workout-queue";
 import { useI18n } from "@/app/i18n/provider";
+import { Button } from "@/app/ui/atoms/button";
+import { Surface } from "@/app/ui/atoms/surface";
+
+type SessionSet = WorkoutSetInput & {
+  targetReps: number | null;
+  targetLoadGrams: number | null;
+  targetDurationSeconds: number | null;
+  targetDistanceMeters: number | null;
+  targetRpe: number | null;
+};
 
 type SessionExercise = {
   id: string;
   name: string;
   trackingMode: TrackingMode;
-  sets: WorkoutSetInput[];
+  sets: SessionSet[];
 };
-type ExerciseOption = { id: string; name: string };
+type ExerciseOption = {
+  id: string;
+  name: string;
+  trackingMode: TrackingMode;
+};
 
 export function WorkoutSession({
   sessionId,
@@ -189,6 +203,46 @@ export function WorkoutSession({
 
   const loadUnit = unitSystem === "us" ? "lb" : "kg";
   const distanceUnit = unitSystem === "us" ? "mi" : "km";
+
+  async function addExercise() {
+    const selected = exerciseOptions.find(
+      (exercise) => exercise.id === selectedExercise,
+    );
+    if (!selected) return;
+    const result = await addWorkoutExercise(
+      sessionId,
+      selectedExercise,
+      setCount,
+    );
+    setMessage(result.ok ? t("Exercise added.") : t(result.error));
+    if (!result.ok) return;
+    version.current = result.version;
+    setExercises((current) => [
+      ...current,
+      {
+        id: result.sessionExerciseId,
+        name: selected.name,
+        trackingMode: selected.trackingMode,
+        sets: result.setIds.map((id, position) => ({
+          id,
+          position,
+          completed: false,
+          reps: null,
+          loadGrams: null,
+          durationSeconds: null,
+          distanceMeters: null,
+          rpe: null,
+          notes: "",
+          targetReps: null,
+          targetLoadGrams: null,
+          targetDurationSeconds: null,
+          targetDistanceMeters: null,
+          targetRpe: null,
+        })),
+      },
+    ]);
+  }
+
   return (
     <main className="mx-auto max-w-6xl space-y-6 pb-24">
       <header className="rounded-3xl bg-gradient-to-br from-slate-900 to-blue-900 p-6 text-white shadow-lg sm:p-8">
@@ -219,7 +273,7 @@ export function WorkoutSession({
         </div>
       </header>
       {editable ? (
-        <section className="rounded-2xl border bg-white p-5 shadow-sm">
+        <Surface as="section">
           <h2 className="text-lg font-bold">{t("Add another exercise")}</h2>
           <div className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_auto_auto]">
             <label className="font-semibold text-gray-800">
@@ -247,49 +301,50 @@ export function WorkoutSession({
                 onChange={(event) => setSetCount(Number(event.target.value))}
               />
             </label>
-            <button
-              className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:bg-gray-300"
-              disabled={!selectedExercise}
-              onClick={async () => {
-                const result = await addWorkoutExercise(
-                  sessionId,
-                  selectedExercise,
-                  setCount,
-                );
-                setMessage(result.ok ? t("Exercise added.") : t(result.error));
-                if (result.ok) router.refresh();
-              }}
-            >
+            <Button disabled={!selectedExercise} onClick={addExercise}>
               {t("Add")}
-            </button>
+            </Button>
           </div>
-        </section>
+        </Surface>
       ) : null}
       <ol className="space-y-5">
         {exercises.map((exercise) => {
           const fields = fieldsForTrackingMode(exercise.trackingMode);
           return (
-            <li
-              className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+            <Surface
+              as="li"
+              className="overflow-hidden"
+              padding="none"
               key={exercise.id}
             >
-              <div className="border-b bg-gray-50 px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-gray-50 px-5 py-4">
                 <h2 className="text-lg font-bold text-gray-950">
                   {exercise.name}
                 </h2>
+                <span className="text-sm font-semibold text-gray-600">
+                  {t("{completed} of {total} sets complete", {
+                    completed: exercise.sets.filter((set) => set.completed)
+                      .length,
+                    total: exercise.sets.length,
+                  })}
+                </span>
               </div>
               <ol className="mt-3 space-y-3">
                 {exercise.sets.map((set, index) => (
                   <li
-                    className="mx-4 grid items-end gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 sm:grid-cols-3 lg:grid-cols-6"
+                    className="mx-4 rounded-xl border border-gray-200 bg-gray-50 p-4"
                     key={set.id}
                   >
-                    <label className="flex min-h-11 items-center gap-2 font-medium">
+                    <label className="flex min-h-11 items-center gap-2 font-semibold">
                       <input
                         type="checkbox"
                         className="h-5 w-5"
                         checked={set.completed}
-                        disabled={!editable}
+                        disabled={
+                          !editable ||
+                          (!set.completed &&
+                            !hasRequiredActual(exercise.trackingMode, set))
+                        }
                         onChange={(event) =>
                           updateSet(
                             exercise.id,
@@ -301,139 +356,156 @@ export function WorkoutSession({
                       />
                       {t("Set {number}", { number: index + 1 })}
                     </label>
-                    {fields.reps ? (
-                      <SetNumber
-                        label={t("Reps")}
-                        value={set.reps}
-                        disabled={!editable}
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, { reps: next })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
+                    <div className="mt-2 grid gap-4 md:grid-cols-[minmax(12rem,0.7fr)_minmax(0,2fr)]">
+                      <PlanSummary
+                        set={set}
+                        unitSystem={unitSystem}
+                        translate={t}
                       />
-                    ) : null}
-                    {fields.load ? (
-                      <SetNumber
-                        label={`${t("Load")} (${loadUnit})`}
-                        step={0.5}
-                        disabled={!editable}
-                        value={
-                          set.loadGrams === null
-                            ? null
-                            : convertMass(
-                                set.loadGrams,
-                                "grams",
-                                unitSystem === "us" ? "pounds" : "kilograms",
-                                2,
-                              )
-                        }
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, {
-                            loadGrams:
-                              next === null
-                                ? null
-                                : Math.round(
-                                    convertMass(
-                                      next,
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-wide text-blue-800">
+                          {t("Actual")}
+                        </h3>
+                        <div className="mt-2 grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                          {fields.reps ? (
+                            <SetNumber
+                              label={t("Reps")}
+                              value={set.reps}
+                              disabled={!editable}
+                              onChange={(next) =>
+                                updateSet(exercise.id, set.id, { reps: next })
+                              }
+                              onSave={() => saveCurrentSet(exercise.id, set.id)}
+                            />
+                          ) : null}
+                          {fields.load ? (
+                            <SetNumber
+                              label={`${t("Load")} (${loadUnit})`}
+                              step={0.5}
+                              disabled={!editable}
+                              value={
+                                set.loadGrams === null
+                                  ? null
+                                  : convertMass(
+                                      set.loadGrams,
+                                      "grams",
                                       unitSystem === "us"
                                         ? "pounds"
                                         : "kilograms",
-                                      "grams",
-                                    ),
-                                  ),
-                          })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    ) : null}
-                    {fields.duration ? (
-                      <SetNumber
-                        label={`${t("Duration")} (${t("seconds")})`}
-                        value={set.durationSeconds}
-                        disabled={!editable}
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, {
-                            durationSeconds: next,
-                          })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    ) : null}
-                    {fields.distance ? (
-                      <SetNumber
-                        label={`${t("Distance")} (${distanceUnit})`}
-                        step={0.1}
-                        disabled={!editable}
-                        value={
-                          set.distanceMeters === null
-                            ? null
-                            : convertDistance(
-                                set.distanceMeters,
-                                "meters",
-                                unitSystem === "us" ? "miles" : "kilometers",
-                                2,
-                              )
-                        }
-                        onChange={(next) =>
-                          updateSet(exercise.id, set.id, {
-                            distanceMeters:
-                              next === null
-                                ? null
-                                : Math.round(
-                                    convertDistance(
-                                      next,
+                                      2,
+                                    )
+                              }
+                              onChange={(next) =>
+                                updateSet(exercise.id, set.id, {
+                                  loadGrams:
+                                    next === null
+                                      ? null
+                                      : Math.round(
+                                          convertMass(
+                                            next,
+                                            unitSystem === "us"
+                                              ? "pounds"
+                                              : "kilograms",
+                                            "grams",
+                                          ),
+                                        ),
+                                })
+                              }
+                              onSave={() => saveCurrentSet(exercise.id, set.id)}
+                            />
+                          ) : null}
+                          {fields.duration ? (
+                            <SetNumber
+                              label={`${t("Duration")} (${t("seconds")})`}
+                              value={set.durationSeconds}
+                              disabled={!editable}
+                              onChange={(next) =>
+                                updateSet(exercise.id, set.id, {
+                                  durationSeconds: next,
+                                })
+                              }
+                              onSave={() => saveCurrentSet(exercise.id, set.id)}
+                            />
+                          ) : null}
+                          {fields.distance ? (
+                            <SetNumber
+                              label={`${t("Distance")} (${distanceUnit})`}
+                              step={0.1}
+                              disabled={!editable}
+                              value={
+                                set.distanceMeters === null
+                                  ? null
+                                  : convertDistance(
+                                      set.distanceMeters,
+                                      "meters",
                                       unitSystem === "us"
                                         ? "miles"
                                         : "kilometers",
-                                      "meters",
-                                    ),
-                                  ),
-                          })
-                        }
-                        onSave={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    ) : null}
-                    <SetNumber
-                      label="RPE"
-                      min={1}
-                      max={10}
-                      step={0.5}
-                      value={set.rpe}
-                      disabled={!editable}
-                      optional
-                      onChange={(next) =>
-                        updateSet(exercise.id, set.id, { rpe: next })
-                      }
-                      onSave={() => saveCurrentSet(exercise.id, set.id)}
-                    />
-                    <label className="text-sm sm:col-span-3 lg:col-span-6">
-                      {t("Set notes")}
-                      <input
-                        className="input mt-1"
-                        maxLength={2_000}
-                        value={set.notes}
-                        disabled={!editable}
-                        onChange={(event) =>
-                          updateSet(exercise.id, set.id, {
-                            notes: event.target.value,
-                          })
-                        }
-                        onBlur={() => saveCurrentSet(exercise.id, set.id)}
-                      />
-                    </label>
+                                      2,
+                                    )
+                              }
+                              onChange={(next) =>
+                                updateSet(exercise.id, set.id, {
+                                  distanceMeters:
+                                    next === null
+                                      ? null
+                                      : Math.round(
+                                          convertDistance(
+                                            next,
+                                            unitSystem === "us"
+                                              ? "miles"
+                                              : "kilometers",
+                                            "meters",
+                                          ),
+                                        ),
+                                })
+                              }
+                              onSave={() => saveCurrentSet(exercise.id, set.id)}
+                            />
+                          ) : null}
+                          <SetNumber
+                            label="RPE"
+                            min={1}
+                            max={10}
+                            step={0.5}
+                            value={set.rpe}
+                            disabled={!editable}
+                            optional
+                            onChange={(next) =>
+                              updateSet(exercise.id, set.id, { rpe: next })
+                            }
+                            onSave={() => saveCurrentSet(exercise.id, set.id)}
+                          />
+                          <label className="text-sm sm:col-span-2 lg:col-span-4">
+                            {t("Set notes")}
+                            <input
+                              className="input mt-1"
+                              maxLength={2_000}
+                              value={set.notes}
+                              disabled={!editable}
+                              onChange={(event) =>
+                                updateSet(exercise.id, set.id, {
+                                  notes: event.target.value,
+                                })
+                              }
+                              onBlur={() => saveCurrentSet(exercise.id, set.id)}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ol>
               <div className="h-4" />
-            </li>
+            </Surface>
           );
         })}
       </ol>
       {!exercises.length ? <p>{t("Add an exercise to begin.")}</p> : null}
       {editable ? (
         <div className="fixed inset-x-0 bottom-0 z-30 flex flex-wrap justify-center gap-3 border-t bg-white/95 p-3 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur sm:sticky sm:rounded-2xl sm:border">
-          <button
-            className="rounded-xl bg-green-700 px-5 py-3 font-semibold text-white hover:bg-green-800"
+          <Button
             onClick={async () => {
               if (!confirm(t("Complete this workout?"))) return;
               await syncQueue();
@@ -450,9 +522,8 @@ export function WorkoutSession({
             }}
           >
             {t("Complete workout")}
-          </button>
-          <button
-            className="rounded-xl border border-red-300 px-5 py-3 font-semibold text-red-700 hover:bg-red-50"
+          </Button>
+          <Button
             onClick={async () => {
               if (!confirm(t("Discard this workout? This cannot be undone.")))
                 return;
@@ -462,27 +533,27 @@ export function WorkoutSession({
                 router.push("/workouts");
               } else setMessage(t(result.error));
             }}
+            variant="danger"
           >
             {t("Discard workout")}
-          </button>
+          </Button>
           {autosave === "error" || autosave === "conflict" ? (
-            <button className="rounded border px-4 py-2" onClick={syncQueue}>
+            <Button onClick={syncQueue} variant="secondary">
               {t("Retry save")}
-            </button>
+            </Button>
           ) : null}
           {autosave === "conflict" ? (
             <>
-              <button
-                className="rounded border px-4 py-2"
+              <Button
                 onClick={async () => {
                   await purgeWorkoutMutations(userId, sessionId);
                   router.refresh();
                 }}
+                variant="secondary"
               >
                 {t("Reload server copy")}
-              </button>
-              <button
-                className="rounded border px-4 py-2"
+              </Button>
+              <Button
                 onClick={() => {
                   if (
                     confirm(
@@ -491,9 +562,10 @@ export function WorkoutSession({
                   )
                     void replaceWithDeviceCopy();
                 }}
+                variant="secondary"
               >
                 {t("Keep this device copy")}
-              </button>
+              </Button>
             </>
           ) : null}
         </div>
@@ -513,6 +585,67 @@ export function WorkoutSession({
       </p>
       <p aria-live="polite">{message}</p>
     </main>
+  );
+}
+
+function hasRequiredActual(mode: TrackingMode, set: WorkoutSetInput) {
+  const fields = fieldsForTrackingMode(mode);
+  return (
+    (!fields.reps || set.reps !== null) &&
+    (!fields.load || set.loadGrams !== null) &&
+    (!fields.duration || set.durationSeconds !== null) &&
+    (!fields.distance || set.distanceMeters !== null)
+  );
+}
+
+function PlanSummary({
+  set,
+  unitSystem,
+  translate,
+}: {
+  set: SessionSet;
+  unitSystem: UnitSystem;
+  translate: (key: string, values?: Record<string, string | number>) => string;
+}) {
+  const values: string[] = [];
+  if (set.targetReps !== null)
+    values.push(`${set.targetReps} ${translate("Reps").toLocaleLowerCase()}`);
+  if (set.targetLoadGrams !== null) {
+    const unit = unitSystem === "us" ? "lb" : "kg";
+    values.push(
+      `${convertMass(
+        set.targetLoadGrams,
+        "grams",
+        unitSystem === "us" ? "pounds" : "kilograms",
+        2,
+      )} ${unit}`,
+    );
+  }
+  if (set.targetDurationSeconds !== null)
+    values.push(
+      `${set.targetDurationSeconds} ${translate("seconds").toLocaleLowerCase()}`,
+    );
+  if (set.targetDistanceMeters !== null) {
+    const unit = unitSystem === "us" ? "mi" : "km";
+    values.push(
+      `${convertDistance(
+        set.targetDistanceMeters,
+        "meters",
+        unitSystem === "us" ? "miles" : "kilometers",
+        2,
+      )} ${unit}`,
+    );
+  }
+  if (set.targetRpe !== null) values.push(`RPE ${set.targetRpe}`);
+  return (
+    <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-blue-800">
+        {translate("Plan")}
+      </h3>
+      <p className="mt-1 font-medium text-slate-800">
+        {values.length ? values.join(" · ") : translate("No target")}
+      </p>
+    </div>
   );
 }
 

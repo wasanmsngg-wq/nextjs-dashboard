@@ -80,4 +80,12 @@ describe("workout tracking contracts", () => {
       validateSetForMode("reps_load", { ...base, notes: "x".repeat(2_001) }),
     ).toBe(false);
   });
+
+  it("allows a planned set to remain blank until it is completed", () => {
+    const blank = { ...base, completed: false, reps: null, loadGrams: null };
+    expect(validateSetForMode("reps_load", blank)).toBe(true);
+    expect(validateSetForMode("reps_load", { ...blank, completed: true })).toBe(
+      false,
+    );
+  });
 });

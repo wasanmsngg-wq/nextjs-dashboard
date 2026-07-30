@@ -95,3 +95,29 @@ test("the corrective migration constrains guided exercise categories", async () 
   ])
     assert.match(sql, new RegExp(`'${category}'`));
 });
+
+test("workout sets preserve template targets separately from actual results", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730130000_workout_checklist.sql",
+    ),
+    "utf8",
+  );
+  for (const column of [
+    "target_reps",
+    "target_load_grams",
+    "target_duration_seconds",
+    "target_distance_meters",
+    "target_rpe",
+  ]) {
+    assert.match(sql, new RegExp(`add column ${column}`, "i"));
+  }
+  assert.match(sql, /requested_completed and[\s\S]*requested_reps is null/i);
+  assert.match(
+    sql,
+    /function public\.reject_completed_session_mutation\(\)[\s\S]*security definer/i,
+  );
+});

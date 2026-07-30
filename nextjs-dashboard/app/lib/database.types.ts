@@ -243,6 +243,11 @@ export type Database = {
           reps: number | null;
           rpe: number | null;
           session_exercise_id: string;
+          target_distance_meters: number | null;
+          target_duration_seconds: number | null;
+          target_load_grams: number | null;
+          target_reps: number | null;
+          target_rpe: number | null;
           updated_at: string;
         };
         Insert: Omit<

@@ -286,6 +286,11 @@ const th: Record<string, string> = {
   Distance: "ระยะทาง",
   "Set notes": "บันทึกของเซต",
   "Add an exercise to begin.": "เพิ่มท่าออกกำลังกายเพื่อเริ่ม",
+  Plan: "แผน",
+  Actual: "ผลจริง",
+  "No target": "ไม่มีเป้าหมาย",
+  "{completed} of {total} sets complete":
+    "เสร็จแล้ว {completed} จาก {total} เซต",
   "Complete this workout?": "ทำการออกกำลังกายนี้ให้เสร็จหรือไม่",
   "Workout completed.": "ทำการออกกำลังกายเสร็จแล้ว",
   "Complete workout": "ทำการออกกำลังกายให้เสร็จ",

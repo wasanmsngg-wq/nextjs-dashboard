@@ -80,6 +80,13 @@ declare
   retry_version integer;
 begin
   assert (select count(*) from public.workout_sessions where status='in_progress') = 1;
+  assert (
+    select target_reps = 8 and target_load_grams = 20000
+      and reps is null and load_grams is null
+    from public.workout_sets ws
+    join public.workout_session_exercises se on se.id=ws.session_exercise_id
+    where se.session_id='55000000-0000-4000-8000-000000000001'
+  ), 'template targets must be separate from blank actual results';
   begin
     perform public.start_workout(
       '55000000-0000-4000-8000-000000000002', null
@@ -110,6 +117,21 @@ begin
     '55000000-0000-4000-8000-000000000001',
     '56000000-0000-4000-8000-000000000002'
   );
+  perform public.start_workout(
+    '55000000-0000-4000-8000-000000000003', null
+  );
+  perform public.add_workout_exercise(
+    '55000000-0000-4000-8000-000000000003',
+    '53000000-0000-4000-8000-000000000003',
+    '51000000-0000-4000-8000-000000000001',
+    array[
+      '54000000-0000-4000-8000-000000000003'::uuid,
+      '54000000-0000-4000-8000-000000000004'::uuid
+    ]
+  );
+  assert public.discard_workout(
+    '55000000-0000-4000-8000-000000000003'
+  ), 'an empty-start workout with newly added exercises must be discardable';
   begin
     update public.workout_sessions set notes='changed'
       where id='55000000-0000-4000-8000-000000000001';

@@ -86,29 +86,35 @@ export function validateSetForMode(
   if (set.notes.length > 2_000 || !validateRpe(set.rpe)) return false;
   if (
     (fields.reps
-      ? set.reps === null ||
-        !Number.isInteger(set.reps) ||
-        set.reps < 0 ||
-        set.reps > 1_000
+      ? set.reps !== null &&
+        (!Number.isInteger(set.reps) || set.reps < 0 || set.reps > 1_000)
       : set.reps !== null) ||
     (fields.load
-      ? set.loadGrams === null ||
-        !Number.isInteger(set.loadGrams) ||
-        set.loadGrams < 0 ||
-        set.loadGrams > 2_000_000
+      ? set.loadGrams !== null &&
+        (!Number.isInteger(set.loadGrams) ||
+          set.loadGrams < 0 ||
+          set.loadGrams > 2_000_000)
       : set.loadGrams !== null) ||
     (fields.duration
-      ? set.durationSeconds === null ||
-        !Number.isInteger(set.durationSeconds) ||
-        set.durationSeconds < 0 ||
-        set.durationSeconds > 604_800
+      ? set.durationSeconds !== null &&
+        (!Number.isInteger(set.durationSeconds) ||
+          set.durationSeconds < 0 ||
+          set.durationSeconds > 604_800)
       : set.durationSeconds !== null) ||
     (fields.distance
-      ? set.distanceMeters === null ||
-        !Number.isInteger(set.distanceMeters) ||
-        set.distanceMeters < 0 ||
-        set.distanceMeters > 1_000_000
+      ? set.distanceMeters !== null &&
+        (!Number.isInteger(set.distanceMeters) ||
+          set.distanceMeters < 0 ||
+          set.distanceMeters > 1_000_000)
       : set.distanceMeters !== null)
+  )
+    return false;
+  if (
+    set.completed &&
+    ((fields.reps && set.reps === null) ||
+      (fields.load && set.loadGrams === null) ||
+      (fields.duration && set.durationSeconds === null) ||
+      (fields.distance && set.distanceMeters === null))
   )
     return false;
   return true;

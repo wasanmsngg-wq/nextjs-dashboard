@@ -192,22 +192,34 @@ export async function addWorkoutExercise(
     setCount > 20
   )
     return { ok: false as const, error: "Check the exercise and set count." };
+  const sessionExerciseId = crypto.randomUUID();
+  const setIds = Array.from({ length: setCount }, () => crypto.randomUUID());
   const result = await authenticatedOperation(
     "workout.addExercise",
-    async (db) =>
-      db.rpc("add_workout_exercise", {
+    async (db) => {
+      const write = await db.rpc("add_workout_exercise", {
         requested_session_id: sessionId,
-        requested_session_exercise_id: crypto.randomUUID(),
+        requested_session_exercise_id: sessionExerciseId,
         requested_exercise_id: exerciseId,
-        requested_set_ids: Array.from({ length: setCount }, () =>
-          crypto.randomUUID(),
-        ),
-      }),
+        requested_set_ids: setIds,
+      });
+      if (write.error) return write;
+      return db
+        .from("workout_sessions")
+        .select("version")
+        .eq("id", sessionId)
+        .single();
+    },
   );
   if (!result.ok || result.data.error)
     return { ok: false as const, error: "The exercise could not be added." };
   revalidatePath(`/workouts/sessions/${sessionId}`);
-  return { ok: true as const };
+  return {
+    ok: true as const,
+    sessionExerciseId,
+    setIds,
+    version: result.data.data.version,
+  };
 }
 
 export async function saveWorkoutSet(input: {

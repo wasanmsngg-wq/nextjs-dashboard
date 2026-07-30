@@ -31,7 +31,7 @@ export default async function WorkoutSessionPage({
       .maybeSingle(),
     supabase
       .from("exercises")
-      .select("id,name,name_en,name_th")
+      .select("id,name,name_en,name_th,tracking_mode")
       .is("archived_at", null),
   ]);
   if (sessionError || profileError || libraryError)
@@ -49,7 +49,7 @@ export default async function WorkoutSessionPage({
     ? await supabase
         .from("workout_sets")
         .select(
-          "id,session_exercise_id,position,completed,reps,load_grams,duration_seconds,distance_meters,rpe,notes",
+          "id,session_exercise_id,position,completed,reps,load_grams,duration_seconds,distance_meters,rpe,notes,target_reps,target_load_grams,target_duration_seconds,target_distance_meters,target_rpe",
         )
         .in("session_exercise_id", ids)
         .order("position")
@@ -66,6 +66,7 @@ export default async function WorkoutSessionPage({
       unitSystem={profile?.unit_system ?? "metric"}
       exerciseOptions={(library ?? []).map((exercise) => ({
         id: exercise.id,
+        trackingMode: exercise.tracking_mode,
         name:
           exercise.name ??
           (locale === "th" ? exercise.name_th : exercise.name_en) ??
@@ -87,6 +88,11 @@ export default async function WorkoutSessionPage({
             distanceMeters: set.distance_meters,
             rpe: set.rpe,
             notes: set.notes,
+            targetReps: set.target_reps,
+            targetLoadGrams: set.target_load_grams,
+            targetDurationSeconds: set.target_duration_seconds,
+            targetDistanceMeters: set.target_distance_meters,
+            targetRpe: set.target_rpe,
           })),
       }))}
     />

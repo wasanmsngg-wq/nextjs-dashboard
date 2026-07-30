@@ -48,7 +48,7 @@ export function WorkoutHome({
                 >
                   {t("Resume active workout")}
                 </ButtonLink>
-              ) : (
+              ) : templates.length ? (
                 <Button
                   className="border-white bg-white text-blue-700"
                   icon={<BoltIcon className="h-5 w-5" />}
@@ -57,7 +57,7 @@ export function WorkoutHome({
                 >
                   {t("Start empty workout")}
                 </Button>
-              )}
+              ) : null}
               <ButtonLink
                 className="border-white/60 text-white hover:!border-white hover:!text-white"
                 href="/workouts/templates/new"
@@ -191,9 +191,17 @@ export function WorkoutHome({
                 "Create a template to make your next workout faster to start.",
               )}
             </p>
-            <ButtonLink className="mt-5" href="/workouts/templates/new">
-              {t("Create your first template")}
-            </ButtonLink>
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
+              <Button
+                icon={<BoltIcon className="h-5 w-5" />}
+                onClick={() => start()}
+              >
+                {t("Start empty workout")}
+              </Button>
+              <ButtonLink href="/workouts/templates/new" variant="secondary">
+                {t("Create your first template")}
+              </ButtonLink>
+            </div>
           </div>
         )}
       </section>

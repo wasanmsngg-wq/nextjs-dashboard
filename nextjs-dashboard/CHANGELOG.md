@@ -15,6 +15,10 @@
   explicit workout data-loading failures.
 - Fix multi-character template input, cross-browser state races, and immediate
   completed-workout feedback.
+- Restore empty-workout entry, render newly added exercises without a refresh,
+  and present sessions as planned-versus-actual set checklists.
+- Preserve template targets separately from recorded results and repair
+  authenticated workout discard behavior.
 
 ## 0.1.0 - Unreleased
 
