@@ -11,6 +11,7 @@ export const RATE_LIMIT_POLICIES = {
   profileWrite: { limit: 20, windowSeconds: 60 },
   guestImport: { limit: 10, windowSeconds: 60 },
   customerSearch: { limit: 60, windowSeconds: 60 },
+  workoutWrite: { limit: 240, windowSeconds: 60 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
 export class MemoryRateLimiter implements RateLimiter {

@@ -9,7 +9,11 @@ async function foundationMigration() {
     .filter((name) => /^\d{14}_.+\.sql$/.test(name))
     .sort();
   assert.ok(migrations.length > 0, "a timestamped migration is required");
-  return readFile(join(directory, migrations.at(-1)), "utf8");
+  const foundation = migrations.find((name) =>
+    name.endsWith("_production_foundation.sql"),
+  );
+  assert.ok(foundation, "the production foundation migration is required");
+  return readFile(join(directory, foundation), "utf8");
 }
 
 test("migration removes the legacy password table and enables RLS everywhere", async () => {

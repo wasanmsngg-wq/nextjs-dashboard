@@ -1,0 +1,87 @@
+import { notFound, redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/app/lib/supabase/server";
+import { WorkoutSession } from "@/app/features/workouts/ui/workout-session";
+import { getLocale, getTranslations } from "@/app/i18n/server";
+
+export default async function WorkoutSessionPage({
+  params,
+}: {
+  params: Promise<{ sessionId: string }>;
+}) {
+  const { sessionId } = await params;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`/login?next=/workouts/sessions/${sessionId}`);
+  const [{ data: session }, { data: profile }, { data: library }] =
+    await Promise.all([
+      supabase
+        .from("workout_sessions")
+        .select("id,template_name_snapshot,status,version,started_at")
+        .eq("id", sessionId)
+        .maybeSingle(),
+      supabase
+        .from("user_profiles")
+        .select("unit_system")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("exercises")
+        .select("id,name,name_en,name_th")
+        .is("archived_at", null),
+    ]);
+  if (!session) notFound();
+  const locale = await getLocale();
+  const { t } = await getTranslations();
+  const { data: sessionExercises } = await supabase
+    .from("workout_session_exercises")
+    .select("id,exercise_name_snapshot,tracking_mode,position")
+    .eq("session_id", sessionId)
+    .order("position");
+  const ids = (sessionExercises ?? []).map((exercise) => exercise.id);
+  const { data: sets } = ids.length
+    ? await supabase
+        .from("workout_sets")
+        .select(
+          "id,session_exercise_id,position,completed,reps,load_grams,duration_seconds,distance_meters,rpe,notes",
+        )
+        .in("session_exercise_id", ids)
+        .order("position")
+    : { data: [] };
+  return (
+    <WorkoutSession
+      sessionId={session.id}
+      userId={user.id}
+      title={session.template_name_snapshot ?? t("Workout")}
+      initialVersion={session.version}
+      status={session.status}
+      unitSystem={profile?.unit_system ?? "metric"}
+      exerciseOptions={(library ?? []).map((exercise) => ({
+        id: exercise.id,
+        name:
+          exercise.name ??
+          (locale === "th" ? exercise.name_th : exercise.name_en) ??
+          "",
+      }))}
+      exercises={(sessionExercises ?? []).map((exercise) => ({
+        id: exercise.id,
+        name: exercise.exercise_name_snapshot,
+        trackingMode: exercise.tracking_mode,
+        sets: (sets ?? [])
+          .filter((set) => set.session_exercise_id === exercise.id)
+          .map((set) => ({
+            id: set.id,
+            position: set.position,
+            completed: set.completed,
+            reps: set.reps,
+            loadGrams: set.load_grams,
+            durationSeconds: set.duration_seconds,
+            distanceMeters: set.distance_meters,
+            rpe: set.rpe,
+            notes: set.notes,
+          })),
+      }))}
+    />
+  );
+}

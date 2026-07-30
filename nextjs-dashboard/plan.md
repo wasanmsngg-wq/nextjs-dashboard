@@ -106,8 +106,9 @@ Normal work:
 5. Rebase or merge the latest `main` before final verification.
 6. Require passing checks and one independent approval.
 7. Squash merge into `main`.
-8. Let Vercel create a preview for the pull request and production deployment
-   from `main`.
+8. Let Vercel create a preview for the pull request. Until `v1.0.0`, Vercel
+   Production tracks the protected `production` branch rather than `main`;
+   release branches and `main` use isolated staging resources.
 
 Do not keep a long-lived `develop` branch. Use feature flags for incomplete
 production-safe work.
@@ -317,23 +318,37 @@ Verification gate:
 Owner: Workout developer. QA writes the workflow matrix. Reviewer checks
 transactions and ownership.
 
-- [ ] Create and manage exercises.
-- [ ] Create, reorder, edit, archive, and duplicate workout templates.
-- [ ] Start a session from a template or as an empty workout.
-- [ ] Check off sets and exercises with keyboard and touch controls.
-- [ ] Log reps, load, time, distance, RPE, and notes.
-- [ ] Autosave safely and show saving, saved, offline, and error states.
-- [ ] Resume an in-progress session.
-- [ ] Complete or discard a session with confirmation.
-- [ ] Prevent duplicate completion on retries or double clicks.
+Release decisions:
+
+- Registered users own workout data; guests receive an authentication prompt.
+- Include 12 bilingual system exercises plus user-created exercises.
+- Tracking modes are repetitions/load, repetitions, duration, and
+  distance/duration.
+- Templates use per-set targets.
+- Keep one active session per user and make completed sessions immutable.
+- Retain failed active-session mutations in a versioned same-browser IndexedDB
+  queue. Conflicts require an explicit server-copy or device-copy choice;
+  cross-device merging is deferred.
+- `v0.2.0` is a staging release. Public production deployment remains deferred
+  until `v1.0.0`.
+
+- [x] Create and manage exercises.
+- [x] Create, reorder, edit, archive, and duplicate workout templates.
+- [x] Start a session from a template or as an empty workout.
+- [x] Check off sets and exercises with keyboard and touch controls.
+- [x] Log reps, load, time, distance, RPE, and notes.
+- [x] Autosave safely and show saving, saved, offline, and error states.
+- [x] Resume an in-progress session.
+- [x] Complete or discard a session with confirmation.
+- [x] Prevent duplicate completion on retries or double clicks.
 
 Verification gate:
 
-- [ ] Complete one workout on mobile using only touch.
-- [ ] Complete one workout on desktop using only the keyboard.
-- [ ] Refresh mid-session and confirm no accepted data is lost.
-- [ ] Simulate a failed save and verify recovery without duplicate sets.
-- [ ] Confirm one user cannot access another user's template or session URL.
+- [x] Complete one workout on mobile using only touch.
+- [x] Complete one workout on desktop using only the keyboard.
+- [x] Refresh mid-session and confirm no accepted data is lost.
+- [x] Simulate a failed save and verify recovery without duplicate sets.
+- [x] Confirm one user cannot access another user's template or session URL.
 
 ### Phase 3 — Performance tracking (`v0.3.0`)
 

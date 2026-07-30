@@ -1,0 +1,75 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import test from "node:test";
+
+const migration = () =>
+  readFile(
+    join(
+      process.cwd(),
+      "supabase/migrations/20260730090000_workout_planning.sql",
+    ),
+    "utf8",
+  );
+
+test("workout migration enables RLS for every workout relation", async () => {
+  const sql = await migration();
+  for (const table of [
+    "exercises",
+    "workout_templates",
+    "workout_template_exercises",
+    "workout_template_sets",
+    "workout_sessions",
+    "workout_session_exercises",
+    "workout_sets",
+    "workout_mutations",
+  ])
+    assert.match(
+      sql,
+      new RegExp(
+        `alter table public\\.${table} enable row level security`,
+        "i",
+      ),
+    );
+});
+
+test("workout migration enforces ownership, one active session, and immutable completion", async () => {
+  const sql = await migration();
+  assert.match(sql, /one_active_workout_per_user/i);
+  assert.match(sql, /reject_completed_session_mutation/i);
+  assert.match(sql, /user_id = \(select auth\.uid\(\)\)/i);
+  assert.match(sql, /security invoker/i);
+  assert.doesNotMatch(sql, /service_role/i);
+});
+
+test("workout writes are transactional and retry-safe", async () => {
+  const sql = await migration();
+  assert.match(sql, /function public\.save_workout_template/i);
+  assert.match(sql, /function public\.save_workout_set/i);
+  assert.match(sql, /primary key \(user_id, mutation_id\)/i);
+  assert.match(sql, /workout version conflict/i);
+  assert.match(sql, /function public\.complete_workout/i);
+});
+
+test("the system library contains exactly twelve bilingual exercises", async () => {
+  const sql = await migration();
+  const keys = [
+    "squat",
+    "bench-press",
+    "deadlift",
+    "overhead-press",
+    "barbell-row",
+    "pull-up",
+    "push-up",
+    "lunge",
+    "plank",
+    "running",
+    "cycling",
+    "walking",
+  ];
+  for (const key of keys) assert.match(sql, new RegExp(`'${key}'`));
+  assert.equal(
+    [...sql.matchAll(/'20000000-0000-4000-8000-0000000000\d{2}'/g)].length,
+    12,
+  );
+});
