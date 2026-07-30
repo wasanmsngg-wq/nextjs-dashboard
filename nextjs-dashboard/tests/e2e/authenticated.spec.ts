@@ -232,6 +232,12 @@ test("registered user creates a template and completes an immutable workout", as
   await expect(page.getByText("Planned target").first()).toBeVisible();
   await expect(page.getByText(/8 reps/i).first()).toBeVisible();
   await expect(page.getByText("Actual result").first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Remove", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Cancel exercise" }),
+  ).toBeVisible();
   const firstSet = page
     .getByRole("checkbox")
     .first()

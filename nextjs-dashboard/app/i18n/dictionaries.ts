@@ -309,6 +309,8 @@ const th: Record<string, string> = {
     "กรุณาระบุเหตุผลในการยกเลิกตั้งแต่ 3 ถึง 500 ตัวอักษร",
   "This exercise has recorded results. Cancel it to keep those results in workout history.":
     "ท่าออกกำลังกายนี้มีผลการฝึกที่บันทึกไว้แล้ว โปรดยกเลิกท่าเพื่อเก็บผลไว้ในประวัติการฝึก",
+  "A planned exercise cannot be removed. Cancel it to keep the plan in workout history.":
+    "ไม่สามารถนำท่าออกกำลังกายตามแผนออกได้ โปรดยกเลิกท่าเพื่อเก็บแผนไว้ในประวัติการฝึก",
   "The exercise could not be updated.": "ไม่สามารถอัปเดตท่าออกกำลังกายได้",
   "{completed} of {total} sets complete":
     "เสร็จแล้ว {completed} จาก {total} เซต",

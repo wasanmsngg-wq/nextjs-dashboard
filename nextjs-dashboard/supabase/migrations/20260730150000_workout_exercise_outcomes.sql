@@ -105,6 +105,17 @@ begin
     select 1 from public.workout_sets
     where session_exercise_id = requested_session_exercise_id
       and (
+        target_reps is not null
+        or target_load_grams is not null
+        or target_duration_seconds is not null
+        or target_distance_meters is not null
+        or target_rpe is not null
+      )
+  ) then raise exception 'planned exercise cannot be removed'; end if;
+  if exists (
+    select 1 from public.workout_sets
+    where session_exercise_id = requested_session_exercise_id
+      and (
         completed
         or reps is not null
         or load_grams is not null

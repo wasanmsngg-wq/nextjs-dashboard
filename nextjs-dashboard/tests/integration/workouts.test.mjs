@@ -76,6 +76,7 @@ select public.start_workout(
 do $$
 declare
   set_id uuid;
+  session_exercise_id uuid;
   first_version integer;
   retry_version integer;
 begin
@@ -94,9 +95,20 @@ begin
   exception when unique_violation then
     raise exception 'start_workout should resume rather than violate uniqueness';
   end;
-  select ws.id into set_id from public.workout_sets ws
+  select ws.id, se.id into set_id, session_exercise_id
+    from public.workout_sets ws
     join public.workout_session_exercises se on se.id=ws.session_exercise_id
     where se.session_id='55000000-0000-4000-8000-000000000001';
+  begin
+    perform public.remove_workout_exercise(
+      '55000000-0000-4000-8000-000000000001',
+      session_exercise_id,
+      1
+    );
+    raise exception 'planned exercise unexpectedly removed';
+  exception when raise_exception then
+    if sqlerrm = 'planned exercise unexpectedly removed' then raise; end if;
+  end;
   first_version := public.save_workout_set(
     '56000000-0000-4000-8000-000000000001',
     '55000000-0000-4000-8000-000000000001',

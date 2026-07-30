@@ -411,6 +411,7 @@ export function WorkoutSession({
         {exercises.map((exercise) => {
           const fields = fieldsForTrackingMode(exercise.trackingMode);
           const exerciseEditable = editable && exercise.status === "active";
+          const plannedExercise = exercise.sets.some(hasPlannedTarget);
           return (
             <Surface
               as="li"
@@ -440,19 +441,21 @@ export function WorkoutSession({
                 </div>
                 {exerciseEditable ? (
                   <div className="flex flex-wrap gap-1">
-                    <Button
-                      size="small"
-                      variant="quiet"
-                      onClick={() => {
-                        setExerciseAction({
-                          exerciseId: exercise.id,
-                          kind: "remove",
-                        });
-                        setCancellationReason("");
-                      }}
-                    >
-                      {t("Remove")}
-                    </Button>
+                    {!plannedExercise ? (
+                      <Button
+                        size="small"
+                        variant="quiet"
+                        onClick={() => {
+                          setExerciseAction({
+                            exerciseId: exercise.id,
+                            kind: "remove",
+                          });
+                          setCancellationReason("");
+                        }}
+                      >
+                        {t("Remove")}
+                      </Button>
+                    ) : null}
                     <Button
                       size="small"
                       variant="quiet"

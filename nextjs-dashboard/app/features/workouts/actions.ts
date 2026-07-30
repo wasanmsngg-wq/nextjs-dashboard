@@ -231,9 +231,11 @@ function exerciseOutcomeError(
     error:
       error?.code === "40001"
         ? "This workout changed on another device."
-        : error?.message?.includes("recorded exercise cannot be removed")
-          ? "This exercise has recorded results. Cancel it to keep those results in workout history."
-          : "The exercise could not be updated.",
+        : error?.message?.includes("planned exercise cannot be removed")
+          ? "A planned exercise cannot be removed. Cancel it to keep the plan in workout history."
+          : error?.message?.includes("recorded exercise cannot be removed")
+            ? "This exercise has recorded results. Cancel it to keep those results in workout history."
+            : "The exercise could not be updated.",
     conflict: error?.code === "40001",
   };
 }

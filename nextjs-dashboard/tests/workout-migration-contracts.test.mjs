@@ -137,6 +137,7 @@ test("workout exercise outcomes retain cancellations and restrict removal", asyn
     "cancellation_reason",
     "remove_workout_exercise",
     "cancel_workout_exercise",
+    "planned exercise cannot be removed",
     "recorded exercise cannot be removed",
     "se.status = 'active'",
   ])
