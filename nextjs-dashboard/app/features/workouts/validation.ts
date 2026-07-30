@@ -50,6 +50,7 @@ export const workoutSetSchema = z.object({
   loadGrams: z.number().int().min(0).max(2_000_000).nullable(),
   durationSeconds: z.number().int().min(0).max(604_800).nullable(),
   distanceMeters: z.number().int().min(0).max(1_000_000).nullable(),
+  elapsedSeconds: z.number().int().min(0).max(604_800).default(0),
   rpe: z
     .number()
     .min(1)

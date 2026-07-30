@@ -314,9 +314,24 @@ const th: Record<string, string> = {
   "The exercise could not be updated.": "ไม่สามารถอัปเดตท่าออกกำลังกายได้",
   "{completed} of {total} sets complete":
     "เสร็จแล้ว {completed} จาก {total} เซต",
+  "Exercise time: {time}": "เวลารวมของท่า: {time}",
+  "Set time: {time}": "เวลาเซต: {time}",
+  "Start timer": "เริ่มจับเวลา",
+  "Stop timer": "หยุดจับเวลา",
+  Reset: "รีเซ็ต",
+  "Set timer saved.": "บันทึกเวลาเซตแล้ว",
+  "Set timer reset.": "รีเซ็ตเวลาเซตแล้ว",
+  "Changes saved.": "บันทึกการเปลี่ยนแปลงแล้ว",
   "Complete this workout?": "ทำการออกกำลังกายนี้ให้เสร็จหรือไม่",
   "Workout completed.": "ทำการออกกำลังกายเสร็จแล้ว",
   "Complete workout": "ทำการออกกำลังกายให้เสร็จ",
+  "Continue workout": "ฝึกต่อ",
+  "Stop the active set timer before completing this workout.":
+    "หยุดตัวจับเวลาเซตที่กำลังทำงานก่อนทำการฝึกนี้ให้เสร็จ",
+  "The completed workout becomes read-only.":
+    "การฝึกที่เสร็จแล้วจะเปลี่ยนเป็นแบบอ่านอย่างเดียว",
+  "Discard this workout?": "ละทิ้งการฝึกนี้หรือไม่",
+  "This cannot be undone.": "การดำเนินการนี้ย้อนกลับไม่ได้",
   "Discard this workout? This cannot be undone.":
     "ละทิ้งการออกกำลังกายนี้หรือไม่ การดำเนินการนี้ย้อนกลับไม่ได้",
   "Discard workout": "ละทิ้งการออกกำลังกาย",
@@ -325,6 +340,9 @@ const th: Record<string, string> = {
   "Keep this device copy": "ใช้ข้อมูลจากอุปกรณ์นี้",
   "Replace the server workout with this device copy?":
     "แทนที่การออกกำลังกายบนเซิร์ฟเวอร์ด้วยข้อมูลจากอุปกรณ์นี้หรือไม่",
+  "Replace the server workout?": "แทนที่การฝึกบนเซิร์ฟเวอร์หรือไม่",
+  "The server workout will be replaced with this device copy.":
+    "การฝึกบนเซิร์ฟเวอร์จะถูกแทนที่ด้วยข้อมูลจากอุปกรณ์นี้",
   Saved: "บันทึกแล้ว",
   "Offline — changes will retry when connected.":
     "ออฟไลน์ — ระบบจะลองบันทึกอีกครั้งเมื่อเชื่อมต่อ",

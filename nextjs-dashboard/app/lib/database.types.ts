@@ -239,6 +239,7 @@ export type Database = {
           created_at: string;
           distance_meters: number | null;
           duration_seconds: number | null;
+          elapsed_seconds: number;
           id: string;
           load_grams: number | null;
           notes: string;
@@ -344,6 +345,7 @@ export type Database = {
           requested_completed: boolean;
           requested_distance_meters: number | null;
           requested_duration_seconds: number | null;
+          requested_elapsed_seconds: number;
           requested_expected_version: number;
           requested_load_grams: number | null;
           requested_mutation_id: string;

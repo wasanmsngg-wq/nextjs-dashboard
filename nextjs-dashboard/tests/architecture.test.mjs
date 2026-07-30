@@ -43,6 +43,20 @@ test("feature UI consumes project components instead of Ant Design directly", as
   }
 });
 
+test("product UI uses shared dialogs instead of browser prompts", async () => {
+  const featureRoot = join(process.cwd(), "app", "features");
+  for (const file of (await files(featureRoot)).filter(
+    (name) => name.endsWith(".ts") || name.endsWith(".tsx"),
+  )) {
+    const source = await readFile(file, "utf8");
+    assert.doesNotMatch(
+      source,
+      /\b(?:window\.)?(?:alert|confirm|prompt)\s*\(/,
+      `${file} must use the shared Dialog or Toast component`,
+    );
+  }
+});
+
 test("every user-facing page has a loading boundary", async () => {
   const app = join(process.cwd(), "app");
   for (const file of (await files(app)).filter((name) =>

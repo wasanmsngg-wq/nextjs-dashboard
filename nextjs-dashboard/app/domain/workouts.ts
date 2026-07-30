@@ -41,6 +41,7 @@ export type WorkoutSetInput = {
   loadGrams: number | null;
   durationSeconds: number | null;
   distanceMeters: number | null;
+  elapsedSeconds: number;
   rpe: number | null;
   notes: string;
 };
@@ -83,7 +84,14 @@ export function validateSetForMode(
   const fields = fieldsForTrackingMode(mode);
   if (!Number.isInteger(set.position) || set.position < 0 || set.position > 999)
     return false;
-  if (set.notes.length > 2_000 || !validateRpe(set.rpe)) return false;
+  if (
+    set.notes.length > 2_000 ||
+    !validateRpe(set.rpe) ||
+    !Number.isInteger(set.elapsedSeconds) ||
+    set.elapsedSeconds < 0 ||
+    set.elapsedSeconds > 604_800
+  )
+    return false;
   if (
     (fields.reps
       ? set.reps !== null &&

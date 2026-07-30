@@ -179,8 +179,11 @@ test("registered user creates a template and completes an immutable workout", as
   ).toBeVisible();
   await expect(page.getByText("Planned target")).toHaveCount(0);
   await page.getByRole("button", { name: "Remove", exact: true }).click();
-  await expect(page.getByText("Remove this exercise?")).toBeVisible();
-  await page.getByRole("button", { name: "Remove exercise" }).click();
+  const removeDialog = page.getByRole("dialog", {
+    name: "Remove this exercise?",
+  });
+  await expect(removeDialog).toBeVisible();
+  await removeDialog.getByRole("button", { name: "Remove exercise" }).click();
   await expect(page.getByRole("heading", { name: "Browser Curl" })).toHaveCount(
     0,
   );
@@ -196,17 +199,28 @@ test("registered user creates a template and completes an immutable workout", as
   await adHocSet.getByLabel("Reps").fill("8");
   await adHocSet.getByLabel(/Load/).fill("12.5");
   await page.getByRole("button", { name: "Cancel exercise" }).click();
-  await page
+  const cancellationDialog = page.getByRole("dialog", {
+    name: "Cancel exercise",
+  });
+  await cancellationDialog
     .getByLabel("Why are you canceling this exercise?")
     .fill("Shoulder discomfort");
-  await page.getByRole("button", { name: "Cancel exercise" }).last().click();
+  await cancellationDialog
+    .getByRole("button", { name: "Cancel exercise" })
+    .click();
   await expect(page.getByText("Canceled", { exact: true })).toBeVisible();
-  await expect(page.getByText("Shoulder discomfort")).toBeVisible();
+  await expect(cancellationDialog).toBeHidden();
+  await expect(
+    page.getByRole("paragraph").filter({ hasText: "Shoulder discomfort" }),
+  ).toBeVisible();
   await expect(
     page.getByText("Exercise canceled and kept in the workout record."),
   ).toBeVisible();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Discard workout" }).click();
+  await page
+    .getByRole("dialog", { name: "Discard this workout?" })
+    .getByRole("button", { name: "Discard workout" })
+    .click();
   await expect(page).toHaveURL(/\/workouts$/);
 
   await page.goto("/workouts/templates/new");
@@ -244,25 +258,37 @@ test("registered user creates a template and completes an immutable workout", as
     .locator("xpath=ancestor::li[1]");
   await firstSet.getByLabel("Reps").fill("10");
   await firstSet.getByLabel(/Load/).fill("25");
+  await firstSet.getByRole("button", { name: "Start timer" }).click();
+  await page.waitForTimeout(1_100);
+  await firstSet.getByRole("button", { name: "Stop timer" }).click();
+  await expect(firstSet.getByLabel(/Set time: 00:0[1-9]/)).toBeVisible();
+  await expect(page.getByText(/Exercise time: 00:0[1-9]/)).toBeVisible();
   await firstSet.getByRole("checkbox").focus();
   await page.keyboard.press("Space");
-  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+  await expect(page.getByText("Changes saved.", { exact: true })).toBeVisible();
   await context.setOffline(true);
   await firstSet.getByLabel("Set notes").fill("queued while offline");
   await page.getByRole("heading", { name: "Squat" }).click();
   await expect(page.getByText(/Offline/)).toBeVisible();
   await context.setOffline(false);
-  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+  await expect(page.getByText("Changes saved.", { exact: true })).toBeVisible();
   await page.reload();
   await expect(firstSet.getByLabel("Reps")).toHaveValue("10");
+  await expect(firstSet.getByLabel(/Set time: 00:0[1-9]/)).toBeVisible();
   await expect(firstSet.getByLabel("Set notes")).toHaveValue(
     "queued while offline",
   );
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Complete workout" }).click();
+  const completionDialog = page.getByRole("dialog", {
+    name: "Complete this workout?",
+  });
+  await completionDialog
+    .getByRole("button", { name: "Complete workout" })
+    .click();
   await expect(page.getByText("Workout completed.")).toBeVisible();
   await expect(page.getByText("Completed workout — read only")).toBeVisible();
   await expect(firstSet.getByRole("checkbox")).toBeDisabled();
+  await expect(completionDialog).toBeHidden();
 
   await expectAccessibleResponsivePage(page);
 });

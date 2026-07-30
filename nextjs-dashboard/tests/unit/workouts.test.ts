@@ -7,6 +7,7 @@ import {
   validateSetForMode,
   type WorkoutSetInput,
 } from "../../app/domain";
+import { workoutSetSchema } from "../../app/features/workouts/validation";
 
 const base: WorkoutSetInput = {
   id: "30000000-0000-4000-8000-000000000001",
@@ -16,6 +17,7 @@ const base: WorkoutSetInput = {
   loadGrams: 20_000,
   durationSeconds: null,
   distanceMeters: null,
+  elapsedSeconds: 0,
   rpe: 7.5,
   notes: "",
 };
@@ -79,6 +81,12 @@ describe("workout tracking contracts", () => {
     expect(
       validateSetForMode("reps_load", { ...base, notes: "x".repeat(2_001) }),
     ).toBe(false);
+    expect(
+      validateSetForMode("reps_load", {
+        ...base,
+        elapsedSeconds: 604_801,
+      }),
+    ).toBe(false);
   });
 
   it("allows a planned set to remain blank until it is completed", () => {
@@ -87,5 +95,11 @@ describe("workout tracking contracts", () => {
     expect(validateSetForMode("reps_load", { ...blank, completed: true })).toBe(
       false,
     );
+  });
+
+  it("keeps queued pre-timer mutations compatible", () => {
+    const legacySet: Partial<WorkoutSetInput> = { ...base };
+    delete legacySet.elapsedSeconds;
+    expect(workoutSetSchema.parse(legacySet).elapsedSeconds).toBe(0);
   });
 });

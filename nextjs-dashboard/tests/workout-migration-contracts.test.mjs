@@ -147,3 +147,18 @@ test("workout exercise outcomes retain cancellations and restrict removal", asyn
       `exercise outcome migration must include ${contract}`,
     );
 });
+
+test("workout sets retain elapsed time independently from tracking mode", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730170000_workout_set_elapsed_time.sql",
+    ),
+    "utf8",
+  );
+  assert.match(sql, /add column elapsed_seconds integer not null default 0/i);
+  assert.match(sql, /requested_elapsed_seconds integer/i);
+  assert.match(sql, /elapsed_seconds = requested_elapsed_seconds/i);
+});

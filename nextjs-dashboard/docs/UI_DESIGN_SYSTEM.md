@@ -34,6 +34,9 @@ or database modules.
 6. Preserve visible focus, keyboard operation, WCAG 2.2 AA contrast, 44-pixel
    primary touch targets, English/Thai text expansion, and narrow-screen
    layouts.
+7. Use the shared `Dialog` molecule for confirmations or prompted input and
+   `Toast` for transient action feedback. Product UI must not call browser
+   `alert`, `confirm`, or `prompt`.
 
 ## Adding a component
 

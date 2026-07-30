@@ -14,6 +14,8 @@ import { useI18n } from "@/app/i18n/provider";
 import { Button, ButtonLink } from "@/app/ui/atoms/button";
 import { Surface } from "@/app/ui/atoms/surface";
 import { PageHeading } from "@/app/ui/molecules/page-heading";
+import { Dialog } from "@/app/ui/molecules/dialog";
+import { Toast, type ToastNotice } from "@/app/ui/molecules/toast";
 
 type TemplateSummary = { id: string; name: string; notes: string };
 
@@ -26,11 +28,19 @@ export function WorkoutHome({
 }) {
   const { t } = useI18n();
   const router = useRouter();
-  const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState<ToastNotice | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<TemplateSummary>();
+  const [archivePending, setArchivePending] = useState(false);
+  function notify(type: ToastNotice["type"], message: string) {
+    setNotice({ id: Date.now(), type, message });
+  }
   async function start(templateId?: string) {
-    setMessage(t("Starting workout..."));
+    notify("info", t("Starting workout..."));
     const result = await startWorkout(templateId);
-    if (!result.ok) return setMessage(t(result.error));
+    if (!result.ok) {
+      notify("error", t(result.error));
+      return;
+    }
     router.push(`/workouts/sessions/${result.id}`);
   }
   return (
@@ -155,8 +165,9 @@ export function WorkoutHome({
                         template.id,
                         `${template.name} ${t("Copy")}`,
                       );
-                      setMessage(
-                        result.ok ? t("Template duplicated.") : t(result.error),
+                      notify(
+                        result.ok ? "success" : "error",
+                        t(result.ok ? "Template duplicated." : result.error),
                       );
                       router.refresh();
                     }}
@@ -165,14 +176,7 @@ export function WorkoutHome({
                     {t("Duplicate")}
                   </Button>
                   <Button
-                    onClick={async () => {
-                      if (!confirm(t("Archive this template?"))) return;
-                      const result = await archiveTemplate(template.id);
-                      setMessage(
-                        result.ok ? t("Template archived.") : t(result.error),
-                      );
-                      router.refresh();
-                    }}
+                    onClick={() => setArchiveTarget(template)}
                     variant="danger"
                   >
                     {t("Archive")}
@@ -205,9 +209,30 @@ export function WorkoutHome({
           </div>
         )}
       </section>
-      <p aria-live="polite" className="font-medium text-gray-700">
-        {message}
-      </p>
+      <Toast notice={notice} />
+      <Dialog
+        open={Boolean(archiveTarget)}
+        title={t("Archive this template?")}
+        confirmLabel={t("Archive")}
+        cancelLabel={t("Cancel")}
+        confirmVariant="danger"
+        loading={archivePending}
+        onCancel={() => setArchiveTarget(undefined)}
+        onConfirm={async () => {
+          if (!archiveTarget) return;
+          setArchivePending(true);
+          const result = await archiveTemplate(archiveTarget.id);
+          setArchivePending(false);
+          notify(
+            result.ok ? "success" : "error",
+            t(result.ok ? "Template archived." : result.error),
+          );
+          if (result.ok) {
+            setArchiveTarget(undefined);
+            router.refresh();
+          }
+        }}
+      />
     </main>
   );
 }

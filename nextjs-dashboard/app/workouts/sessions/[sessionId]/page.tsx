@@ -51,7 +51,7 @@ export default async function WorkoutSessionPage({
     ? await supabase
         .from("workout_sets")
         .select(
-          "id,session_exercise_id,position,completed,reps,load_grams,duration_seconds,distance_meters,rpe,notes,target_reps,target_load_grams,target_duration_seconds,target_distance_meters,target_rpe",
+          "id,session_exercise_id,position,completed,reps,load_grams,duration_seconds,distance_meters,elapsed_seconds,rpe,notes,target_reps,target_load_grams,target_duration_seconds,target_distance_meters,target_rpe",
         )
         .in("session_exercise_id", ids)
         .order("position")
@@ -91,6 +91,7 @@ export default async function WorkoutSessionPage({
             loadGrams: set.load_grams,
             durationSeconds: set.duration_seconds,
             distanceMeters: set.distance_meters,
+            elapsedSeconds: set.elapsed_seconds,
             rpe: set.rpe,
             notes: set.notes,
             targetReps: set.target_reps,

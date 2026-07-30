@@ -331,6 +331,7 @@ export async function saveWorkoutSet(input: {
       requested_load_grams: set.data.loadGrams,
       requested_duration_seconds: set.data.durationSeconds,
       requested_distance_meters: set.data.distanceMeters,
+      requested_elapsed_seconds: set.data.elapsedSeconds,
       requested_rpe: set.data.rpe,
       requested_notes: set.data.notes,
     }),

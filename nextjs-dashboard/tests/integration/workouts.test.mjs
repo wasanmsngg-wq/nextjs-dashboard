@@ -112,15 +112,18 @@ begin
   first_version := public.save_workout_set(
     '56000000-0000-4000-8000-000000000001',
     '55000000-0000-4000-8000-000000000001',
-    1,set_id,true,10,22500,null,null,8,'felt good'
+    1,set_id,true,10,22500,null,null,8,'felt good',65
   );
   retry_version := public.save_workout_set(
     '56000000-0000-4000-8000-000000000001',
     '55000000-0000-4000-8000-000000000001',
-    1,set_id,true,10,22500,null,null,8,'felt good'
+    1,set_id,true,10,22500,null,null,8,'felt good',65
   );
   assert first_version = 2 and retry_version = 2,
     'a duplicate mutation must return the original resulting version';
+  assert (
+    select elapsed_seconds = 65 from public.workout_sets where id=set_id
+  ), 'set elapsed time must persist independently from workout measurements';
   assert public.complete_workout(
     '55000000-0000-4000-8000-000000000001',
     '56000000-0000-4000-8000-000000000002'
@@ -167,7 +170,7 @@ begin
     '55000000-0000-4000-8000-000000000003',
     4,
     '54000000-0000-4000-8000-000000000005',
-    true,8,20000,null,null,7,'recorded before cancellation'
+    true,8,20000,null,null,7,'recorded before cancellation',42
   ) = 5;
   begin
     perform public.remove_workout_exercise(
@@ -198,7 +201,7 @@ begin
       '55000000-0000-4000-8000-000000000003',
       6,
       '54000000-0000-4000-8000-000000000005',
-      true,9,21000,null,null,7,'should be rejected'
+      true,9,21000,null,null,7,'should be rejected',50
     );
     raise exception 'canceled exercise unexpectedly accepted a set update';
   exception when raise_exception then

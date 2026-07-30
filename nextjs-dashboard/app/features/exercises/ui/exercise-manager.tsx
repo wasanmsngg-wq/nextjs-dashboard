@@ -19,6 +19,8 @@ import { useI18n } from "@/app/i18n/provider";
 import { Button } from "@/app/ui/atoms/button";
 import { Surface } from "@/app/ui/atoms/surface";
 import { PageHeading } from "@/app/ui/molecules/page-heading";
+import { Dialog } from "@/app/ui/molecules/dialog";
+import { Toast, type ToastNotice } from "@/app/ui/molecules/toast";
 
 export type ExerciseView = {
   id: string;
@@ -42,11 +44,16 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
   const { t } = useI18n();
   const router = useRouter();
   const [editing, setEditing] = useState<ExerciseView>();
-  const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState<ToastNotice | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<ExerciseView>();
+  const [archivePending, setArchivePending] = useState(false);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [category, setCategory] = useState<ExerciseCategory>("other");
+  function notify(type: ToastNotice["type"], message: string) {
+    setNotice({ id: Date.now(), type, message });
+  }
   const visibleExercises = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
     return exercises.filter(
@@ -65,7 +72,7 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
         ? (exercise.category as ExerciseCategory)
         : "other",
     );
-    setMessage("");
+    setNotice(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -115,11 +122,14 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
           onSubmit={async (event) => {
             event.preventDefault();
             setSaving(true);
-            setMessage("");
+            setNotice(null);
             const form = event.currentTarget;
             const result = await saveExercise(new FormData(form));
             setSaving(false);
-            setMessage(result.ok ? t("Exercise saved.") : t(result.error));
+            notify(
+              result.ok ? "success" : "error",
+              t(result.ok ? "Exercise saved." : result.error),
+            );
             if (result.ok) {
               form.reset();
               cancelEdit();
@@ -208,12 +218,6 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
                 {t("Cancel")}
               </Button>
             ) : null}
-            <p
-              className="min-h-6 self-center font-medium text-gray-700"
-              aria-live="polite"
-            >
-              {message}
-            </p>
           </div>
         </form>
       </section>
@@ -294,14 +298,7 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
                       {t("Edit")}
                     </Button>
                     <Button
-                      onClick={async () => {
-                        if (!confirm(t("Archive this exercise?"))) return;
-                        const result = await archiveExercise(exercise.id);
-                        setMessage(
-                          result.ok ? t("Exercise archived.") : t(result.error),
-                        );
-                        if (result.ok) router.refresh();
-                      }}
+                      onClick={() => setArchiveTarget(exercise)}
                       size="small"
                       variant="danger"
                     >
@@ -321,6 +318,30 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
           </div>
         )}
       </section>
+      <Toast notice={notice} />
+      <Dialog
+        open={Boolean(archiveTarget)}
+        title={t("Archive this exercise?")}
+        confirmLabel={t("Archive")}
+        cancelLabel={t("Cancel")}
+        confirmVariant="danger"
+        loading={archivePending}
+        onCancel={() => setArchiveTarget(undefined)}
+        onConfirm={async () => {
+          if (!archiveTarget) return;
+          setArchivePending(true);
+          const result = await archiveExercise(archiveTarget.id);
+          setArchivePending(false);
+          notify(
+            result.ok ? "success" : "error",
+            t(result.ok ? "Exercise archived." : result.error),
+          );
+          if (result.ok) {
+            setArchiveTarget(undefined);
+            router.refresh();
+          }
+        }}
+      />
     </main>
   );
 }
