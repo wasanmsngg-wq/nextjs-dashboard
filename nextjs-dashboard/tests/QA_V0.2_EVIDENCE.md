@@ -25,7 +25,8 @@ published:
       transition pass in Chromium, Firefox, WebKit, Pixel, and iPhone.
 - [x] Preview variables now identify staging project `rnmzyccanuwacsxqpzez`.
 - [x] A staging schema backup was captured before the corrective migration.
-- [ ] Corrected Vercel Preview and synthetic-user acceptance pass.
+- [x] Corrected protected Vercel Preview and synthetic-user acceptance pass;
+      the temporary user and automation bypass were removed afterward.
 
 - [ ] Create, edit, and archive a custom exercise.
 - [ ] Create, reorder, edit, duplicate, and archive a template.
