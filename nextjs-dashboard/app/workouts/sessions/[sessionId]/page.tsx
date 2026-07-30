@@ -41,7 +41,9 @@ export default async function WorkoutSessionPage({
   const { t } = await getTranslations();
   const { data: sessionExercises, error: exercisesError } = await supabase
     .from("workout_session_exercises")
-    .select("id,exercise_name_snapshot,tracking_mode,position")
+    .select(
+      "id,exercise_name_snapshot,tracking_mode,position,status,cancellation_reason,canceled_at",
+    )
     .eq("session_id", sessionId)
     .order("position");
   const ids = (sessionExercises ?? []).map((exercise) => exercise.id);
@@ -76,6 +78,9 @@ export default async function WorkoutSessionPage({
         id: exercise.id,
         name: exercise.exercise_name_snapshot,
         trackingMode: exercise.tracking_mode,
+        status: exercise.status,
+        cancellationReason: exercise.cancellation_reason,
+        canceledAt: exercise.canceled_at,
         sets: (sets ?? [])
           .filter((set) => set.session_exercise_id === exercise.id)
           .map((set) => ({

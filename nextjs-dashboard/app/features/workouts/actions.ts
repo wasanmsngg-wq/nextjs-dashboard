@@ -12,6 +12,7 @@ import { getOperationalServices } from "@/app/lib/operations/factory";
 import { runGuardedOperation } from "@/app/lib/operations/guard";
 import { getRequestId } from "@/app/lib/operations/request";
 import type { Json } from "@/app/lib/database.types";
+import { z } from "zod";
 
 type ActionResult<T> =
   { ok: true; data: T } | { ok: false; error: string; conflict?: boolean };
@@ -220,6 +221,84 @@ export async function addWorkoutExercise(
     setIds,
     version: result.data.data.version,
   };
+}
+
+function exerciseOutcomeError(
+  error: { code?: string; message?: string } | null,
+) {
+  return {
+    ok: false as const,
+    error:
+      error?.code === "40001"
+        ? "This workout changed on another device."
+        : error?.message?.includes("recorded exercise cannot be removed")
+          ? "This exercise has recorded results. Cancel it to keep those results in workout history."
+          : "The exercise could not be updated.",
+    conflict: error?.code === "40001",
+  };
+}
+
+export async function removeWorkoutExercise(
+  sessionId: string,
+  sessionExerciseId: string,
+  expectedVersion: number,
+) {
+  if (
+    !uuidSchema.safeParse(sessionId).success ||
+    !uuidSchema.safeParse(sessionExerciseId).success ||
+    !Number.isInteger(expectedVersion) ||
+    expectedVersion < 1
+  )
+    return { ok: false as const, error: "The exercise could not be removed." };
+  const result = await authenticatedOperation(
+    "workout.removeExercise",
+    async (db) =>
+      db.rpc("remove_workout_exercise", {
+        requested_session_id: sessionId,
+        requested_session_exercise_id: sessionExerciseId,
+        requested_expected_version: expectedVersion,
+      }),
+  );
+  if (!result.ok) return { ok: false as const, error: result.error };
+  if (result.data.error) return exerciseOutcomeError(result.data.error);
+  revalidatePath(`/workouts/sessions/${sessionId}`);
+  return { ok: true as const, version: result.data.data };
+}
+
+const cancellationReasonSchema = z.string().trim().min(3).max(500);
+
+export async function cancelWorkoutExercise(
+  sessionId: string,
+  sessionExerciseId: string,
+  expectedVersion: number,
+  reason: string,
+) {
+  const parsedReason = cancellationReasonSchema.safeParse(reason);
+  if (
+    !uuidSchema.safeParse(sessionId).success ||
+    !uuidSchema.safeParse(sessionExerciseId).success ||
+    !Number.isInteger(expectedVersion) ||
+    expectedVersion < 1 ||
+    !parsedReason.success
+  )
+    return {
+      ok: false as const,
+      error: "Enter a cancellation reason of 3 to 500 characters.",
+    };
+  const result = await authenticatedOperation(
+    "workout.cancelExercise",
+    async (db) =>
+      db.rpc("cancel_workout_exercise", {
+        requested_session_id: sessionId,
+        requested_session_exercise_id: sessionExerciseId,
+        requested_expected_version: expectedVersion,
+        requested_reason: parsedReason.data,
+      }),
+  );
+  if (!result.ok) return { ok: false as const, error: result.error };
+  if (result.data.error) return exerciseOutcomeError(result.data.error);
+  revalidatePath(`/workouts/sessions/${sessionId}`);
+  return { ok: true as const, version: result.data.data };
 }
 
 export async function saveWorkoutSet(input: {

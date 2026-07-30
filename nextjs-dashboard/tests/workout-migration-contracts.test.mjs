@@ -121,3 +121,28 @@ test("workout sets preserve template targets separately from actual results", as
     /function public\.reject_completed_session_mutation\(\)[\s\S]*security definer/i,
   );
 });
+
+test("workout exercise outcomes retain cancellations and restrict removal", async () => {
+  const sql = await readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260730150000_workout_exercise_outcomes.sql",
+    ),
+    "utf8",
+  );
+  for (const contract of [
+    "workout_session_exercise_status",
+    "cancellation_reason",
+    "remove_workout_exercise",
+    "cancel_workout_exercise",
+    "recorded exercise cannot be removed",
+    "se.status = 'active'",
+  ])
+    assert.match(
+      sql,
+      new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+      `exercise outcome migration must include ${contract}`,
+    );
+});

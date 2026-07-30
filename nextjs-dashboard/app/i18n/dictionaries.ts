@@ -289,6 +289,27 @@ const th: Record<string, string> = {
   Plan: "แผน",
   Actual: "ผลจริง",
   "No target": "ไม่มีเป้าหมาย",
+  "Planned target": "เป้าหมายตามแผน",
+  "Actual result": "ผลลัพธ์จริง",
+  Canceled: "ยกเลิกแล้ว",
+  "Cancel exercise": "ยกเลิกท่าออกกำลังกาย",
+  "Cancellation reason": "เหตุผลที่ยกเลิก",
+  "Remove this exercise?": "นำท่าออกกำลังกายนี้ออกหรือไม่",
+  "Only an exercise without recorded results can be removed. Use cancel to preserve recorded work.":
+    "นำออกได้เฉพาะท่าที่ยังไม่มีผลการฝึกที่บันทึกไว้ ใช้การยกเลิกเพื่อเก็บผลการฝึกไว้",
+  "Keep exercise": "เก็บท่าออกกำลังกายไว้",
+  "Remove exercise": "นำท่าออกกำลังกายออก",
+  "Why are you canceling this exercise?": "เหตุใดคุณจึงยกเลิกท่าออกกำลังกายนี้",
+  "The reason is saved with this workout and cannot be removed from its history.":
+    "เหตุผลจะถูกบันทึกไว้กับการออกกำลังกายนี้และไม่สามารถลบออกจากประวัติได้",
+  "Exercise removed.": "นำท่าออกกำลังกายออกแล้ว",
+  "Exercise canceled and kept in the workout record.":
+    "ยกเลิกท่าออกกำลังกายและเก็บไว้ในบันทึกการฝึกแล้ว",
+  "Enter a cancellation reason of 3 to 500 characters.":
+    "กรุณาระบุเหตุผลในการยกเลิกตั้งแต่ 3 ถึง 500 ตัวอักษร",
+  "This exercise has recorded results. Cancel it to keep those results in workout history.":
+    "ท่าออกกำลังกายนี้มีผลการฝึกที่บันทึกไว้แล้ว โปรดยกเลิกท่าเพื่อเก็บผลไว้ในประวัติการฝึก",
+  "The exercise could not be updated.": "ไม่สามารถอัปเดตท่าออกกำลังกายได้",
   "{completed} of {total} sets complete":
     "เสร็จแล้ว {completed} จาก {total} เซต",
   "Complete this workout?": "ทำการออกกำลังกายนี้ให้เสร็จหรือไม่",

@@ -20,8 +20,10 @@ import {
 } from "@/app/domain";
 import {
   addWorkoutExercise,
+  cancelWorkoutExercise,
   completeWorkout,
   discardWorkout,
+  removeWorkoutExercise,
   replaceWorkoutSet,
   saveWorkoutSet,
 } from "../actions";
@@ -47,6 +49,9 @@ type SessionExercise = {
   id: string;
   name: string;
   trackingMode: TrackingMode;
+  status: "active" | "canceled";
+  cancellationReason: string | null;
+  canceledAt: string | null;
   sets: SessionSet[];
 };
 type ExerciseOption = {
@@ -84,36 +89,49 @@ export function WorkoutSession({
     exerciseOptions[0]?.id ?? "",
   );
   const [setCount, setSetCount] = useState(3);
+  const [exerciseAction, setExerciseAction] = useState<{
+    exerciseId: string;
+    kind: "remove" | "cancel";
+  } | null>(null);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [exerciseActionPending, setExerciseActionPending] = useState(false);
   const version = useRef(initialVersion);
-  const syncing = useRef(false);
+  const syncPromise = useRef<Promise<void> | null>(null);
+  const pendingSetWrites = useRef(new Set<Promise<void>>());
   const editable = sessionStatus === "in_progress";
 
   const syncQueue = useCallback(async () => {
-    if (syncing.current || !navigator.onLine) return;
-    syncing.current = true;
-    try {
-      while (true) {
-        const queued = await listWorkoutMutations(userId, sessionId);
-        if (!queued.length) break;
-        for (const mutation of queued) {
-          setAutosave("saving");
-          const result = await saveWorkoutSet({
-            ...mutation,
-            expectedVersion: version.current,
-          });
-          if (!result.ok) {
-            setAutosave(result.conflict ? "conflict" : "error");
-            return;
+    if (syncPromise.current) return syncPromise.current;
+    if (!navigator.onLine) return;
+    const operation = (async () => {
+      try {
+        while (true) {
+          const queued = await listWorkoutMutations(userId, sessionId);
+          if (!queued.length) break;
+          for (const mutation of queued) {
+            setAutosave("saving");
+            const result = await saveWorkoutSet({
+              ...mutation,
+              expectedVersion: version.current,
+            });
+            if (!result.ok) {
+              setAutosave(result.conflict ? "conflict" : "error");
+              return;
+            }
+            version.current = result.version ?? version.current;
+            await removeWorkoutMutation(mutation.mutationId);
           }
-          version.current = result.version ?? version.current;
-          await removeWorkoutMutation(mutation.mutationId);
         }
+        setAutosave("saved");
+      } catch {
+        setAutosave(navigator.onLine ? "error" : "offline");
       }
-      setAutosave("saved");
-    } catch {
-      setAutosave(navigator.onLine ? "error" : "offline");
+    })();
+    syncPromise.current = operation;
+    try {
+      await operation;
     } finally {
-      syncing.current = false;
+      if (syncPromise.current === operation) syncPromise.current = null;
     }
   }, [sessionId, userId]);
 
@@ -129,22 +147,35 @@ export function WorkoutSession({
     };
   }, [editable, syncQueue]);
 
-  async function queueSet(set: WorkoutSetInput) {
-    const mutation: WorkoutMutation = {
-      schemaVersion: 1,
-      mutationId: crypto.randomUUID(),
-      userId,
-      sessionId,
-      expectedVersion: version.current,
-      set,
-    };
-    try {
-      await enqueueWorkoutMutation(mutation);
-      if (!navigator.onLine) return setAutosave("offline");
-      await syncQueue();
-    } catch {
-      setAutosave("error");
-    }
+  function queueSet(set: WorkoutSetInput) {
+    const operation = (async () => {
+      const mutation: WorkoutMutation = {
+        schemaVersion: 1,
+        mutationId: crypto.randomUUID(),
+        userId,
+        sessionId,
+        expectedVersion: version.current,
+        set,
+      };
+      try {
+        await enqueueWorkoutMutation(mutation);
+        if (!navigator.onLine) {
+          setAutosave("offline");
+          return;
+        }
+        await syncQueue();
+      } catch {
+        setAutosave("error");
+      }
+    })();
+    pendingSetWrites.current.add(operation);
+    void operation.finally(() => pendingSetWrites.current.delete(operation));
+    return operation;
+  }
+
+  async function flushPendingSetWrites() {
+    await Promise.all([...pendingSetWrites.current]);
+    await syncQueue();
   }
 
   async function replaceWithDeviceCopy() {
@@ -223,6 +254,9 @@ export function WorkoutSession({
         id: result.sessionExerciseId,
         name: selected.name,
         trackingMode: selected.trackingMode,
+        status: "active",
+        cancellationReason: null,
+        canceledAt: null,
         sets: result.setIds.map((id, position) => ({
           id,
           position,
@@ -241,6 +275,72 @@ export function WorkoutSession({
         })),
       },
     ]);
+  }
+
+  async function clearQueuedExerciseSets(exercise: SessionExercise) {
+    const setIds = new Set(exercise.sets.map((set) => set.id));
+    const queued = await listWorkoutMutations(userId, sessionId);
+    await Promise.all(
+      queued
+        .filter((mutation) => setIds.has(mutation.set.id))
+        .map((mutation) => removeWorkoutMutation(mutation.mutationId)),
+    );
+  }
+
+  async function removeExercise(exercise: SessionExercise) {
+    setExerciseActionPending(true);
+    await flushPendingSetWrites();
+    const result = await removeWorkoutExercise(
+      sessionId,
+      exercise.id,
+      version.current,
+    );
+    setExerciseActionPending(false);
+    if (!result.ok) {
+      setMessage(t(result.error));
+      return;
+    }
+    version.current = result.version;
+    await clearQueuedExerciseSets(exercise);
+    setExercises((current) =>
+      current.filter((candidate) => candidate.id !== exercise.id),
+    );
+    setExerciseAction(null);
+    setMessage(t("Exercise removed."));
+  }
+
+  async function cancelExercise(exercise: SessionExercise) {
+    setExerciseActionPending(true);
+    await flushPendingSetWrites();
+    const result = await cancelWorkoutExercise(
+      sessionId,
+      exercise.id,
+      version.current,
+      cancellationReason,
+    );
+    setExerciseActionPending(false);
+    if (!result.ok) {
+      setMessage(t(result.error));
+      return;
+    }
+    const normalizedReason = cancellationReason.trim();
+    version.current = result.version;
+    await clearQueuedExerciseSets(exercise);
+    setExercises((current) =>
+      current.map((candidate) =>
+        candidate.id === exercise.id
+          ? {
+              ...candidate,
+              status: "canceled",
+              cancellationReason: normalizedReason,
+              canceledAt: new Date().toISOString(),
+            }
+          : candidate,
+      ),
+    );
+    setExerciseAction(null);
+    setCancellationReason("");
+    setMessage(t("Exercise canceled and kept in the workout record."));
   }
 
   return (
@@ -310,6 +410,7 @@ export function WorkoutSession({
       <ol className="space-y-5">
         {exercises.map((exercise) => {
           const fields = fieldsForTrackingMode(exercise.trackingMode);
+          const exerciseEditable = editable && exercise.status === "active";
           return (
             <Surface
               as="li"
@@ -317,18 +418,142 @@ export function WorkoutSession({
               padding="none"
               key={exercise.id}
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-gray-50 px-5 py-4">
-                <h2 className="text-lg font-bold text-gray-950">
-                  {exercise.name}
-                </h2>
-                <span className="text-sm font-semibold text-gray-600">
-                  {t("{completed} of {total} sets complete", {
-                    completed: exercise.sets.filter((set) => set.completed)
-                      .length,
-                    total: exercise.sets.length,
-                  })}
-                </span>
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b bg-gray-50 px-5 py-4">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-lg font-bold text-gray-950">
+                      {exercise.name}
+                    </h2>
+                    {exercise.status === "canceled" ? (
+                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
+                        {t("Canceled")}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-sm font-medium text-gray-600">
+                    {t("{completed} of {total} sets complete", {
+                      completed: exercise.sets.filter((set) => set.completed)
+                        .length,
+                      total: exercise.sets.length,
+                    })}
+                  </p>
+                </div>
+                {exerciseEditable ? (
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      size="small"
+                      variant="quiet"
+                      onClick={() => {
+                        setExerciseAction({
+                          exerciseId: exercise.id,
+                          kind: "remove",
+                        });
+                        setCancellationReason("");
+                      }}
+                    >
+                      {t("Remove")}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="quiet"
+                      onClick={() => {
+                        setExerciseAction({
+                          exerciseId: exercise.id,
+                          kind: "cancel",
+                        });
+                        setCancellationReason("");
+                      }}
+                    >
+                      {t("Cancel exercise")}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
+              {exercise.status === "canceled" ? (
+                <div className="border-b border-amber-200 bg-amber-50 px-5 py-3">
+                  <p className="text-sm font-semibold text-amber-950">
+                    {t("Cancellation reason")}
+                  </p>
+                  <p className="mt-1 text-sm text-amber-900">
+                    {exercise.cancellationReason}
+                  </p>
+                </div>
+              ) : null}
+              {exerciseAction?.exerciseId === exercise.id ? (
+                <div className="border-b bg-slate-50 px-5 py-4">
+                  {exerciseAction.kind === "remove" ? (
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-950">
+                          {t("Remove this exercise?")}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {t(
+                            "Only an exercise without recorded results can be removed. Use cancel to preserve recorded work.",
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="quiet"
+                          disabled={exerciseActionPending}
+                          onClick={() => setExerciseAction(null)}
+                        >
+                          {t("Keep exercise")}
+                        </Button>
+                        <Button
+                          variant="danger"
+                          loading={exerciseActionPending}
+                          onClick={() => void removeExercise(exercise)}
+                        >
+                          {t("Remove exercise")}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                      <label className="text-sm font-semibold text-slate-800">
+                        {t("Why are you canceling this exercise?")}
+                        <textarea
+                          className="input mt-1 min-h-24"
+                          minLength={3}
+                          maxLength={500}
+                          required
+                          value={cancellationReason}
+                          onChange={(event) =>
+                            setCancellationReason(event.target.value)
+                          }
+                        />
+                        <span className="mt-1 block text-xs font-normal text-slate-500">
+                          {t(
+                            "The reason is saved with this workout and cannot be removed from its history.",
+                          )}
+                        </span>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="quiet"
+                          disabled={exerciseActionPending}
+                          onClick={() => {
+                            setExerciseAction(null);
+                            setCancellationReason("");
+                          }}
+                        >
+                          {t("Keep exercise")}
+                        </Button>
+                        <Button
+                          variant="danger"
+                          loading={exerciseActionPending}
+                          disabled={cancellationReason.trim().length < 3}
+                          onClick={() => void cancelExercise(exercise)}
+                        >
+                          {t("Cancel exercise")}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
               <ol className="mt-3 space-y-3">
                 {exercise.sets.map((set, index) => (
                   <li
@@ -341,7 +566,7 @@ export function WorkoutSession({
                         className="h-5 w-5"
                         checked={set.completed}
                         disabled={
-                          !editable ||
+                          !exerciseEditable ||
                           (!set.completed &&
                             !hasRequiredActual(exercise.trackingMode, set))
                         }
@@ -356,22 +581,24 @@ export function WorkoutSession({
                       />
                       {t("Set {number}", { number: index + 1 })}
                     </label>
-                    <div className="mt-2 grid gap-4 md:grid-cols-[minmax(12rem,0.7fr)_minmax(0,2fr)]">
-                      <PlanSummary
+                    <div className="mt-2">
+                      <PlannedTarget
                         set={set}
                         unitSystem={unitSystem}
                         translate={t}
                       />
                       <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-blue-800">
-                          {t("Actual")}
-                        </h3>
+                        {hasPlannedTarget(set) ? (
+                          <h3 className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                            {t("Actual result")}
+                          </h3>
+                        ) : null}
                         <div className="mt-2 grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4">
                           {fields.reps ? (
                             <SetNumber
                               label={t("Reps")}
                               value={set.reps}
-                              disabled={!editable}
+                              disabled={!exerciseEditable}
                               onChange={(next) =>
                                 updateSet(exercise.id, set.id, { reps: next })
                               }
@@ -382,7 +609,7 @@ export function WorkoutSession({
                             <SetNumber
                               label={`${t("Load")} (${loadUnit})`}
                               step={0.5}
-                              disabled={!editable}
+                              disabled={!exerciseEditable}
                               value={
                                 set.loadGrams === null
                                   ? null
@@ -418,7 +645,7 @@ export function WorkoutSession({
                             <SetNumber
                               label={`${t("Duration")} (${t("seconds")})`}
                               value={set.durationSeconds}
-                              disabled={!editable}
+                              disabled={!exerciseEditable}
                               onChange={(next) =>
                                 updateSet(exercise.id, set.id, {
                                   durationSeconds: next,
@@ -431,7 +658,7 @@ export function WorkoutSession({
                             <SetNumber
                               label={`${t("Distance")} (${distanceUnit})`}
                               step={0.1}
-                              disabled={!editable}
+                              disabled={!exerciseEditable}
                               value={
                                 set.distanceMeters === null
                                   ? null
@@ -469,7 +696,7 @@ export function WorkoutSession({
                             max={10}
                             step={0.5}
                             value={set.rpe}
-                            disabled={!editable}
+                            disabled={!exerciseEditable}
                             optional
                             onChange={(next) =>
                               updateSet(exercise.id, set.id, { rpe: next })
@@ -482,7 +709,7 @@ export function WorkoutSession({
                               className="input mt-1"
                               maxLength={2_000}
                               value={set.notes}
-                              disabled={!editable}
+                              disabled={!exerciseEditable}
                               onChange={(event) =>
                                 updateSet(exercise.id, set.id, {
                                   notes: event.target.value,
@@ -598,7 +825,17 @@ function hasRequiredActual(mode: TrackingMode, set: WorkoutSetInput) {
   );
 }
 
-function PlanSummary({
+function hasPlannedTarget(set: SessionSet) {
+  return (
+    set.targetReps !== null ||
+    set.targetLoadGrams !== null ||
+    set.targetDurationSeconds !== null ||
+    set.targetDistanceMeters !== null ||
+    set.targetRpe !== null
+  );
+}
+
+function PlannedTarget({
   set,
   unitSystem,
   translate,
@@ -637,14 +874,20 @@ function PlanSummary({
     );
   }
   if (set.targetRpe !== null) values.push(`RPE ${set.targetRpe}`);
+  if (!values.length) return null;
   return (
-    <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-blue-800">
-        {translate("Plan")}
-      </h3>
-      <p className="mt-1 font-medium text-slate-800">
-        {values.length ? values.join(" · ") : translate("No target")}
-      </p>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        {translate("Planned target")}
+      </span>
+      {values.map((value) => (
+        <span
+          className="rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold text-blue-900"
+          key={value}
+        >
+          {value}
+        </span>
+      ))}
     </div>
   );
 }

@@ -177,8 +177,34 @@ test("registered user creates a template and completes an immutable workout", as
   await expect(
     page.getByRole("heading", { name: "Browser Curl" }),
   ).toBeVisible();
-  await expect(page.getByText("No target").first()).toBeVisible();
-  await expect(page.getByText("Actual", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Planned target")).toHaveCount(0);
+  await page.getByRole("button", { name: "Remove", exact: true }).click();
+  await expect(page.getByText("Remove this exercise?")).toBeVisible();
+  await page.getByRole("button", { name: "Remove exercise" }).click();
+  await expect(page.getByRole("heading", { name: "Browser Curl" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByText("Exercise removed.")).toBeVisible();
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Browser Curl" }),
+  ).toBeVisible();
+  const adHocSet = page
+    .getByRole("checkbox")
+    .first()
+    .locator("xpath=ancestor::li[1]");
+  await adHocSet.getByLabel("Reps").fill("8");
+  await adHocSet.getByLabel(/Load/).fill("12.5");
+  await page.getByRole("button", { name: "Cancel exercise" }).click();
+  await page
+    .getByLabel("Why are you canceling this exercise?")
+    .fill("Shoulder discomfort");
+  await page.getByRole("button", { name: "Cancel exercise" }).last().click();
+  await expect(page.getByText("Canceled", { exact: true })).toBeVisible();
+  await expect(page.getByText("Shoulder discomfort")).toBeVisible();
+  await expect(
+    page.getByText("Exercise canceled and kept in the workout record."),
+  ).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Discard workout" }).click();
   await expect(page).toHaveURL(/\/workouts$/);
@@ -203,9 +229,9 @@ test("registered user creates a template and completes an immutable workout", as
     .filter({ hasText: "Browser Strength" });
   await template.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/workouts\/sessions\//);
-  await expect(page.getByText("Plan", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Planned target").first()).toBeVisible();
   await expect(page.getByText(/8 reps/i).first()).toBeVisible();
-  await expect(page.getByText("Actual", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Actual result").first()).toBeVisible();
   const firstSet = page
     .getByRole("checkbox")
     .first()
