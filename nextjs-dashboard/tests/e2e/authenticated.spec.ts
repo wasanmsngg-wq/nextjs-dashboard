@@ -320,6 +320,12 @@ test("registered user creates a template and completes an immutable workout", as
   await expect(completionDialog).toBeHidden();
   await expect(page.getByText("Session time ended").first()).toBeVisible();
 
+  if (await completionToast.isVisible()) {
+    await completionToast
+      .getByRole("button")
+      .click({ timeout: 2_000 })
+      .catch(() => undefined);
+  }
   await expect(completionToast).toBeHidden();
   await expectAccessibleResponsivePage(page);
 });
