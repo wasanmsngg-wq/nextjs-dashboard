@@ -681,6 +681,11 @@ Tracking issue: [#30](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/3
 - [x] Document all six workout migrations, staging backup evidence,
       roll-forward recovery, and production exclusions.
 - [x] Attach final GitHub Actions, Vercel, and manual Preview evidence.
-- [ ] Merge the release-preparation PR into `main` after all checks pass.
-- [ ] Create and push the annotated `v0.2.0` tag only after explicit user
+- [x] Merge the release-preparation PR into `main` after all checks pass.
+- [x] Create and push the annotated `v0.2.0` tag only after explicit user
       authorization.
+
+Release evidence: PR
+[#31](https://github.com/wasanmsngg-wq/nextjs-dashboard/pull/31) merged as
+`297dae26c23b6241a2d67d9776e0bdbc1696b403`; annotated tag `v0.2.0`
+peels to that commit.
