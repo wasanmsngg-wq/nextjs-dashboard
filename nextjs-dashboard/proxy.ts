@@ -32,7 +32,8 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
   if (
-    request.nextUrl.pathname === "/admin/customers" ||
+    request.nextUrl.pathname === "/admin" ||
+    request.nextUrl.pathname.startsWith("/admin/") ||
     request.nextUrl.pathname === "/dashboard/customers"
   ) {
     const { data: admin } = user?.email_confirmed_at

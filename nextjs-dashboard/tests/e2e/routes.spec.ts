@@ -52,7 +52,15 @@ test("health endpoints are generic and security headers are present", async ({
 test("retired and unauthorized directory routes do not disclose existence", async ({
   request,
 }) => {
-  for (const route of ["/dashboard/customers", "/admin/customers"]) {
+  for (const route of [
+    "/dashboard/customers",
+    "/admin",
+    "/admin/users",
+    "/admin/exercise-records",
+    "/admin/master-data/categories",
+    "/admin/master-data/exercises",
+    "/admin/customers",
+  ]) {
     expect(
       (await request.get(route, { maxRedirects: 0 })).status(),
       route,

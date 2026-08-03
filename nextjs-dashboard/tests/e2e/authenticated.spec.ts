@@ -54,8 +54,42 @@ async function removeBrowserTestUsers() {
   ]);
 }
 
+async function removeAdminMasterData() {
+  execFileSync("docker", [
+    "exec",
+    "supabase_db_exercise-tracker",
+    "psql",
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-c",
+    "delete from public.exercises where system_key='rehab-band-pull'; delete from public.exercise_categories where key='rehab';",
+  ]);
+}
+
+async function createAdminExerciseRecord() {
+  const completedAt = new Date().toISOString();
+  execFileSync("docker", [
+    "exec",
+    "supabase_db_exercise-tracker",
+    "psql",
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-c",
+    `insert into public.workout_sessions(id,user_id,status,completed_at,template_name_snapshot) values ('47000000-0000-4000-8000-000000000001','${userId}','completed','${completedAt}','Admin audit workout'); insert into public.workout_session_exercises(id,session_id,exercise_id,exercise_name_snapshot,tracking_mode,position,completed) values ('47000000-0000-4000-8000-000000000002','47000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Admin Record Squat','reps_load',0,true); insert into public.workout_sets(id,session_exercise_id,position,completed,reps,load_grams,elapsed_seconds) values ('47000000-0000-4000-8000-000000000003','47000000-0000-4000-8000-000000000002',0,true,8,50000,45);`,
+  ]);
+}
+
 test.beforeAll(async () => {
   await removeBrowserTestUsers();
+  await removeAdminMasterData();
   const { data: created, error: userError } = await admin.auth.admin.createUser(
     {
       id: userId,
@@ -82,6 +116,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
+  await removeAdminMasterData();
   await removeBrowserTestUsers();
 });
 
@@ -330,6 +365,67 @@ test("registered user creates a template and completes an immutable workout", as
   await expectAccessibleResponsivePage(page);
 });
 
+test("administrator manages master data and inspects users and exercise records", async ({
+  page,
+}) => {
+  await login(page);
+  await createAdminExerciseRecord();
+  await page.goto("/admin");
+  await expect(
+    page.getByRole("heading", { name: "Administration" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open users" })).toBeVisible();
+  await expectAccessibleResponsivePage(page);
+
+  await page.goto("/admin/users");
+  const userAccounts = page.getByLabel("User accounts");
+  await expect(userAccounts.getByText(email).first()).toBeVisible();
+  await page.getByLabel("Search").fill("browser-admin");
+  await expect(page).toHaveURL(/query=browser-admin/);
+  await page.waitForLoadState("networkidle");
+  await expect(userAccounts.getByText(email).first()).toBeVisible();
+
+  await page.goto("/admin/master-data/categories");
+  await page.getByLabel("Category key").fill("rehab");
+  await page.getByLabel("Sort order").fill("35");
+  await page.getByLabel("English name").fill("Rehabilitation");
+  await page.getByLabel("Thai name").fill("ฟื้นฟู");
+  await page.getByRole("button", { name: "Create category" }).click();
+  await expect(page.getByText("Category saved.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Rehabilitation" }),
+  ).toBeVisible();
+
+  await page.goto("/admin/master-data/exercises");
+  await page.getByLabel("System key").fill("rehab-band-pull");
+  await page.getByLabel("Tracking mode").selectOption("reps");
+  await page.getByLabel("English name").fill("Rehab Band Pull");
+  await page.getByLabel("Thai name").fill("ดึงยางฟื้นฟู");
+  await page.getByLabel("Category").selectOption("rehab");
+  await page.getByLabel("Equipment").fill("resistance band");
+  await page.getByRole("button", { name: "Create system exercise" }).click();
+  await expect(page.getByText("System exercise saved.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Rehab Band Pull" }),
+  ).toBeVisible();
+  await expectAccessibleResponsivePage(page);
+
+  await page.goto("/workouts/exercises");
+  await expect(
+    page.locator('select[name="category"] option[value="rehab"]'),
+  ).toHaveText("Rehabilitation");
+
+  await page.goto("/admin/exercise-records");
+  await expect(
+    page.getByRole("heading", { name: "Admin Record Squat" }),
+  ).toBeVisible();
+  await page.getByLabel("Search").fill("Admin Record Squat");
+  await expect(
+    page.getByRole("heading", { name: "Admin Record Squat" }),
+  ).toBeVisible();
+  await expectAccessibleResponsivePage(page);
+});
+
 for (const locale of ["en", "th"] as const) {
   test(`authenticated administrator page in ${locale} has no detectable WCAG A/AA violations`, async ({
     context,
@@ -344,18 +440,22 @@ for (const locale of ["en", "th"] as const) {
         path: "/",
       },
     ]);
-    await page.goto("/admin/customers");
-    await expect(page.locator("html")).toHaveAttribute("lang", locale);
-    await expect(page.locator("h1")).toBeVisible();
-    await expect(
-      page.getByRole("button", {
-        name: locale === "en" ? "Open navigation" : "เปิดเมนูนำทาง",
-      }),
-    ).toBeVisible();
-    await expect(page.locator("header").first()).toBeVisible();
-    const results = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-      .analyze();
-    expect(results.violations).toEqual([]);
+    for (const route of [
+      "/admin",
+      "/admin/users",
+      "/admin/exercise-records",
+      "/admin/master-data/categories",
+      "/admin/master-data/exercises",
+      "/admin/customers",
+    ]) {
+      await page.goto(route);
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await expect(page.locator("h1")).toBeVisible();
+      await expect(page.locator("header").first()).toBeVisible();
+      const results = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+        .analyze();
+      expect(results.violations).toEqual([]);
+    }
   });
 }

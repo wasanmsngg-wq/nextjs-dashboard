@@ -77,6 +77,30 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["exercises"]["Insert"]>;
         Relationships: [];
       };
+      exercise_categories: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          key: string;
+          name_en: string;
+          name_th: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          key: string;
+          name_en: string;
+          name_th: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["exercise_categories"]["Insert"]
+        >;
+        Relationships: [];
+      };
       revenue: {
         Row: { month: string; revenue: number };
         Insert: { month: string; revenue: number };
@@ -278,6 +302,27 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      admin_list_users: {
+        Args: {
+          result_limit?: number;
+          result_offset?: number;
+          search_text?: string;
+        };
+        Returns: {
+          created_at: string;
+          custom_exercise_count: number;
+          display_name: string;
+          email: string;
+          email_confirmed_at: string | null;
+          is_admin: boolean;
+          last_sign_in_at: string | null;
+          locale: string;
+          timezone: string;
+          unit_system: string;
+          user_id: string;
+          workout_count: number;
+        }[];
+      };
       health_check: { Args: Record<PropertyKey, never>; Returns: Json };
       import_guest_profile: {
         Args: {

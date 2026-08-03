@@ -1,6 +1,123 @@
 import type { Locale } from "@/app/i18n/config";
 
 const th: Record<string, string> = {
+  Administration: "การดูแลระบบ",
+  "Secure operations": "การดำเนินงานที่ปลอดภัย",
+  "Manage accounts and shared workout data from one protected workspace.":
+    "จัดการบัญชีและข้อมูลการออกกำลังกายส่วนกลางจากพื้นที่ทำงานที่ได้รับการป้องกัน",
+  Users: "ผู้ใช้",
+  "Review registered accounts, profile settings, and activity totals.":
+    "ตรวจสอบบัญชีที่ลงทะเบียน การตั้งค่าโปรไฟล์ และยอดรวมกิจกรรม",
+  "Open users": "เปิดรายชื่อผู้ใช้",
+  "Exercise records": "บันทึกท่าออกกำลังกาย",
+  "Inspect workout exercise results without changing user history.":
+    "ตรวจสอบผลท่าออกกำลังกายโดยไม่เปลี่ยนประวัติของผู้ใช้",
+  "Open exercise records": "เปิดบันทึกท่าออกกำลังกาย",
+  "Exercise categories": "หมวดหมู่ท่าออกกำลังกาย",
+  "Manage the bilingual category catalog used by exercise forms.":
+    "จัดการหมวดหมู่สองภาษาที่ใช้ในแบบฟอร์มท่าออกกำลังกาย",
+  "Manage categories": "จัดการหมวดหมู่",
+  "System exercises": "ท่าออกกำลังกายของระบบ",
+  "Create and maintain bilingual exercises available to everyone.":
+    "สร้างและดูแลท่าออกกำลังกายสองภาษาที่ทุกคนใช้งานได้",
+  "Manage system exercises": "จัดการท่าออกกำลังกายของระบบ",
+  "Customer directory": "รายชื่อลูกค้า",
+  "The retained customer sample remains available to administrators.":
+    "ข้อมูลตัวอย่างลูกค้าที่ยังคงเก็บไว้สามารถดูได้โดยผู้ดูแลระบบ",
+  "Open customers": "เปิดรายชื่อลูกค้า",
+  "Review account verification, profile preferences, and activity totals. Account and admin-role changes remain trusted operations outside the app.":
+    "ตรวจสอบการยืนยันบัญชี การตั้งค่าโปรไฟล์ และยอดรวมกิจกรรม การเปลี่ยนบัญชีและสิทธิ์ผู้ดูแลยังคงดำเนินการอย่างปลอดภัยภายนอกแอป",
+  "Search users by email or display name...":
+    "ค้นหาผู้ใช้ด้วยอีเมลหรือชื่อที่แสดง...",
+  "User accounts": "บัญชีผู้ใช้",
+  "Unnamed account": "บัญชีที่ไม่มีชื่อ",
+  Administrator: "ผู้ดูแลระบบ",
+  "Registered user": "ผู้ใช้ที่ลงทะเบียน",
+  Verified: "ยืนยันแล้ว",
+  Yes: "ใช่",
+  No: "ไม่ใช่",
+  "Last sign-in": "เข้าสู่ระบบล่าสุด",
+  "Custom exercises": "ท่าออกกำลังกายที่สร้างเอง",
+  Locale: "ภาษา",
+  Created: "สร้างเมื่อ",
+  "No users found.": "ไม่พบผู้ใช้",
+  "Try a different email address or display name.":
+    "ลองใช้อีเมลหรือชื่อที่แสดงอื่น",
+  "Inspect the latest workout exercise results. Historical records are read-only, including for administrators.":
+    "ตรวจสอบผลท่าออกกำลังกายล่าสุด บันทึกย้อนหลังเป็นแบบอ่านอย่างเดียวรวมถึงสำหรับผู้ดูแลระบบ",
+  "Search by exercise, template, email, or display name...":
+    "ค้นหาด้วยท่าออกกำลังกาย เทมเพลต อีเมล หรือชื่อที่แสดง...",
+  "Recorded exercises": "ท่าออกกำลังกายที่บันทึกไว้",
+  "Unknown user": "ผู้ใช้ที่ไม่ทราบชื่อ",
+  Incomplete: "ยังไม่เสร็จ",
+  Completed: "เสร็จแล้ว",
+  "{value} reps": "{value} ครั้ง",
+  "{value} kg": "{value} กก.",
+  "{value} seconds": "{value} วินาที",
+  "{value} meters": "{value} เมตร",
+  "{value} seconds elapsed": "ใช้เวลา {value} วินาที",
+  "RPE {value}": "RPE {value}",
+  "Empty workout": "การออกกำลังกายแบบว่าง",
+  Started: "เริ่มเมื่อ",
+  "{completed} of {total} complete": "เสร็จแล้ว {completed} จาก {total}",
+  "Set results": "ผลแต่ละเซต",
+  "No result": "ไม่มีผลลัพธ์",
+  "No exercise records found.": "ไม่พบบันทึกท่าออกกำลังกาย",
+  "Completed and active workout exercises will appear here.":
+    "ท่าออกกำลังกายที่กำลังทำและทำเสร็จแล้วจะแสดงที่นี่",
+  "Master data": "ข้อมูลหลัก",
+  "Maintain the bilingual category suggestions used when exercises are created.":
+    "ดูแลคำแนะนำหมวดหมู่สองภาษาที่ใช้เมื่อสร้างท่าออกกำลังกาย",
+  "Edit category": "แก้ไขหมวดหมู่",
+  "Create category": "สร้างหมวดหมู่",
+  "Category names appear in English and Thai exercise forms.":
+    "ชื่อหมวดหมู่จะแสดงในแบบฟอร์มท่าออกกำลังกายภาษาอังกฤษและภาษาไทย",
+  "Category key": "คีย์หมวดหมู่",
+  "Lowercase letters, numbers, and hyphens only.":
+    "ใช้ตัวอักษรอังกฤษพิมพ์เล็ก ตัวเลข และขีดกลางเท่านั้น",
+  "Sort order": "ลำดับการแสดง",
+  "English name": "ชื่อภาษาอังกฤษ",
+  "Thai name": "ชื่อภาษาไทย",
+  "Category saved.": "บันทึกหมวดหมู่แล้ว",
+  "Check the category fields.": "ตรวจสอบข้อมูลหมวดหมู่",
+  "The category could not be updated.": "ไม่สามารถอัปเดตหมวดหมู่ได้",
+  "Category updated.": "อัปเดตหมวดหมู่แล้ว",
+  Key: "คีย์",
+  Active: "ใช้งานอยู่",
+  Archived: "เก็บถาวรแล้ว",
+  Restore: "คืนค่า",
+  "Restore this category?": "คืนค่าหมวดหมู่นี้หรือไม่",
+  "Archive this category?": "เก็บหมวดหมู่นี้ถาวรหรือไม่",
+  "The category will be available in exercise forms again.":
+    "หมวดหมู่นี้จะกลับมาใช้งานในแบบฟอร์มท่าออกกำลังกาย",
+  "Archived categories remain on existing exercise records but cannot be selected for new master exercises.":
+    "หมวดหมู่ที่เก็บถาวรยังคงอยู่ในบันทึกเดิม แต่เลือกใช้กับท่าออกกำลังกายหลักใหม่ไม่ได้",
+  "Maintain bilingual exercises shared by every registered user. Archived items remain in existing plans and history.":
+    "ดูแลท่าออกกำลังกายสองภาษาที่ใช้ร่วมกัน ท่าที่เก็บถาวรยังคงอยู่ในแผนและประวัติเดิม",
+  "Edit system exercise": "แก้ไขท่าออกกำลังกายของระบบ",
+  "Create system exercise": "สร้างท่าออกกำลังกายของระบบ",
+  "System exercises are bilingual and available to every registered user.":
+    "ท่าออกกำลังกายของระบบเป็นสองภาษาและผู้ใช้ที่ลงทะเบียนทุกคนใช้งานได้",
+  "System key": "คีย์ระบบ",
+  "Stable lowercase identifier; it cannot be changed after creation.":
+    "ตัวระบุอังกฤษพิมพ์เล็กแบบถาวร ไม่สามารถเปลี่ยนหลังสร้างได้",
+  "System exercise saved.": "บันทึกท่าออกกำลังกายของระบบแล้ว",
+  "System exercise updated.": "อัปเดตท่าออกกำลังกายของระบบแล้ว",
+  "Restore this system exercise?": "คืนค่าท่าออกกำลังกายของระบบนี้หรือไม่",
+  "Archive this system exercise?": "เก็บท่าออกกำลังกายของระบบนี้ถาวรหรือไม่",
+  "The exercise will be available to registered users again.":
+    "ท่าออกกำลังกายนี้จะกลับมาให้ผู้ใช้ที่ลงทะเบียนใช้งาน",
+  "Existing templates and workout history keep their references and snapshots.":
+    "เทมเพลตและประวัติการออกกำลังกายเดิมยังคงข้อมูลอ้างอิงและสำเนาไว้",
+  "Administrator access is required.": "ต้องมีสิทธิ์ผู้ดูแลระบบ",
+  "Too many admin updates. Wait and try again.":
+    "มีการอัปเดตของผู้ดูแลระบบมากเกินไป โปรดรอแล้วลองอีกครั้ง",
+  "The admin update could not be saved.":
+    "ไม่สามารถบันทึกการอัปเดตของผู้ดูแลระบบได้",
+  "Choose an active exercise category.":
+    "เลือกหมวดหมู่ท่าออกกำลังกายที่ใช้งานอยู่",
+  "This category is managed by an administrator.":
+    "หมวดหมู่นี้จัดการโดยผู้ดูแลระบบ",
   Language: "ภาษา",
   "Loading...": "กำลังโหลด...",
   English: "อังกฤษ",

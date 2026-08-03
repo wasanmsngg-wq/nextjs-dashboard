@@ -16,6 +16,18 @@ async function foundationMigration() {
   return readFile(join(directory, foundation), "utf8");
 }
 
+async function adminOperationsMigration() {
+  return readFile(
+    join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20260803130000_admin_operations.sql",
+    ),
+    "utf8",
+  );
+}
+
 test("migration removes the legacy password table and enables RLS everywhere", async () => {
   const sql = await foundationMigration();
 
@@ -108,4 +120,32 @@ test("seed data is visibly synthetic and contains no administrator bootstrap", a
   assert.match(seed, /Synthetic local-development data only/i);
   assert.match(seed, /@example\.test\b/i);
   assert.doesNotMatch(seed, /insert into public\.admins/i);
+});
+
+test("admin operations are RLS-protected and keep user records read-only", async () => {
+  const sql = await adminOperationsMigration();
+  assert.match(sql, /create table public\.exercise_categories/i);
+  assert.match(
+    sql,
+    /alter table public\.exercise_categories enable row level security/i,
+  );
+  assert.match(sql, /function public\.admin_list_users/i);
+  assert.match(sql, /administrator access required/i);
+  for (const table of [
+    "user_profiles",
+    "workout_sessions",
+    "workout_session_exercises",
+    "workout_sets",
+  ]) {
+    assert.match(
+      sql,
+      new RegExp(`policy ${table.replace("user_", "")}.*admin_select`, "is"),
+      `${table} needs an administrator select policy`,
+    );
+  }
+  assert.doesNotMatch(
+    sql,
+    /policy\s+\w*admin\w*[\s\S]{0,100}on public\.(?:user_profiles|workout_sessions|workout_session_exercises|workout_sets) for (?:insert|update|delete|all)/i,
+  );
+  assert.match(sql, /exercises_admin_update_system[\s\S]*user_id is null/i);
 });

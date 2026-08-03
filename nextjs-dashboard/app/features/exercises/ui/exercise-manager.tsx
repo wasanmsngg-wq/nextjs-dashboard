@@ -8,12 +8,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import {
-  equipmentSuggestions,
-  exerciseCategories,
-  type ExerciseCategory,
-  type TrackingMode,
-} from "@/app/domain";
+import { equipmentSuggestions, type TrackingMode } from "@/app/domain";
 import { archiveExercise, saveExercise } from "@/app/features/workouts/actions";
 import { useI18n } from "@/app/i18n/provider";
 import { Button } from "@/app/ui/atoms/button";
@@ -31,7 +26,7 @@ export type ExerciseView = {
   custom: boolean;
 };
 
-const categoryDescription: Record<ExerciseCategory, string> = {
+const categoryDescription: Record<string, string> = {
   strength: "Build strength with resistance or bodyweight.",
   cardio: "Raise your heart rate and improve endurance.",
   mobility: "Improve range of motion and movement quality.",
@@ -40,7 +35,13 @@ const categoryDescription: Record<ExerciseCategory, string> = {
   other: "Use when none of the categories fit.",
 };
 
-export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
+export function ExerciseManager({
+  exercises,
+  categories,
+}: {
+  exercises: ExerciseView[];
+  categories: { key: string; name: string }[];
+}) {
   const { t } = useI18n();
   const router = useRouter();
   const [editing, setEditing] = useState<ExerciseView>();
@@ -50,7 +51,13 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [category, setCategory] = useState<ExerciseCategory>("other");
+  const defaultCategory = categories.some((item) => item.key === "other")
+    ? "other"
+    : (categories[0]?.key ?? "other");
+  const categoryNames = new Map(
+    categories.map((item) => [item.key, item.name]),
+  );
+  const [category, setCategory] = useState(defaultCategory);
   function notify(type: ToastNotice["type"], message: string) {
     setNotice({ id: Date.now(), type, message });
   }
@@ -68,9 +75,9 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
   function beginEdit(exercise: ExerciseView) {
     setEditing(exercise);
     setCategory(
-      exerciseCategories.includes(exercise.category as ExerciseCategory)
-        ? (exercise.category as ExerciseCategory)
-        : "other",
+      categories.some((item) => item.key === exercise.category)
+        ? exercise.category
+        : defaultCategory,
     );
     setNotice(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -78,7 +85,7 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
 
   function cancelEdit() {
     setEditing(undefined);
-    setCategory("other");
+    setCategory(defaultCategory);
   }
 
   return (
@@ -101,8 +108,10 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
         />
       </header>
 
-      <section
-        className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+      <Surface
+        as="section"
+        padding="none"
+        className="overflow-hidden"
         aria-labelledby="exercise-form-heading"
       >
         <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-5 py-4 sm:px-6">
@@ -166,18 +175,22 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
               </option>
             </select>
           </Field>
-          <Field label={t("Category")} hint={t(categoryDescription[category])}>
+          <Field
+            label={t("Category")}
+            hint={t(
+              categoryDescription[category] ??
+                "This category is managed by an administrator.",
+            )}
+          >
             <select
               className="input"
               name="category"
               value={category}
-              onChange={(event) =>
-                setCategory(event.target.value as ExerciseCategory)
-              }
+              onChange={(event) => setCategory(event.target.value)}
             >
-              {exerciseCategories.map((item) => (
-                <option key={item} value={item}>
-                  {t(`Category: ${item}`)}
+              {categories.map((item) => (
+                <option key={item.key} value={item.key}>
+                  {item.name}
                 </option>
               ))}
             </select>
@@ -220,7 +233,7 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
             ) : null}
           </div>
         </form>
-      </section>
+      </Surface>
 
       <section aria-labelledby="library-heading">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -254,9 +267,9 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
                 onChange={(event) => setCategoryFilter(event.target.value)}
               >
                 <option value="all">{t("All categories")}</option>
-                {exerciseCategories.map((item) => (
-                  <option key={item} value={item}>
-                    {t(`Category: ${item}`)}
+                {categories.map((item) => (
+                  <option key={item.key} value={item.key}>
+                    {item.name}
                   </option>
                 ))}
               </select>
@@ -280,7 +293,9 @@ export function ExerciseManager({ exercises }: { exercises: ExerciseView[] }) {
                   </span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
-                  <Chip>{t(`Category: ${exercise.category}`)}</Chip>
+                  <Chip>
+                    {categoryNames.get(exercise.category) ?? exercise.category}
+                  </Chip>
                   {exercise.equipment ? (
                     <Chip>{t(`Equipment: ${exercise.equipment}`)}</Chip>
                   ) : null}

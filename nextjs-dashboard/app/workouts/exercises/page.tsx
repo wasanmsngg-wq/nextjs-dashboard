@@ -10,15 +10,31 @@ export default async function ExercisesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/workouts/exercises");
   const locale = await getLocale();
-  const { data, error } = await supabase
-    .from("exercises")
-    .select("id,user_id,name,name_en,name_th,tracking_mode,category,equipment")
-    .is("archived_at", null)
-    .order("system_key")
-    .order("name");
-  if (error) throw new Error("Workout exercises could not be loaded.");
+  const [{ data, error }, { data: categories, error: categoriesError }] =
+    await Promise.all([
+      supabase
+        .from("exercises")
+        .select(
+          "id,user_id,name,name_en,name_th,tracking_mode,category,equipment",
+        )
+        .is("archived_at", null)
+        .order("system_key")
+        .order("name"),
+      supabase
+        .from("exercise_categories")
+        .select("key,name_en,name_th")
+        .is("archived_at", null)
+        .order("sort_order")
+        .order("key"),
+    ]);
+  if (error || categoriesError)
+    throw new Error("Workout exercises could not be loaded.");
   return (
     <ExerciseManager
+      categories={(categories ?? []).map((category) => ({
+        key: category.key,
+        name: locale === "th" ? category.name_th : category.name_en,
+      }))}
       exercises={(data ?? []).map((exercise) => ({
         id: exercise.id,
         name:
