@@ -7,7 +7,7 @@ import {
   HomeIcon,
   ClipboardDocumentCheckIcon,
   PowerIcon,
-  UserGroupIcon,
+  ShieldCheckIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import AcmeLogo from "@/app/ui/acme-logo";
@@ -103,9 +103,9 @@ export function SideNavigation({
           ...(isAdmin
             ? [
                 {
-                  name: "Customers",
-                  href: "/admin/customers",
-                  icon: UserGroupIcon,
+                  name: "Administration",
+                  href: "/admin",
+                  icon: ShieldCheckIcon,
                 },
               ]
             : []),

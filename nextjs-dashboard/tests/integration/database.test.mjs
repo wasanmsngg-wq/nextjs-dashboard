@@ -99,8 +99,8 @@ begin
     'admin must see synthetic customers';
   assert (select count(*) from public.revenue) >= 2,
     'admin must see revenue';
-  assert (select count(*) from public.user_profiles) = 0,
-    'admin must not see another user profile';
+  assert (select count(*) from public.user_profiles) = 1,
+    'admin must inspect another user profile without gaining mutation access';
 end;
 $$;
 

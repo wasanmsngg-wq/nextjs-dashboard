@@ -57,7 +57,7 @@ begin
       'mystery'
     );
     raise exception 'invalid exercise category unexpectedly accepted';
-  exception when check_violation then
+  exception when check_violation or foreign_key_violation then
     null;
   end;
 end $$;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { exerciseCategories, trackingModes } from "@/app/domain";
+import { trackingModes } from "@/app/domain";
 
 export const uuidSchema = z.string().uuid();
 export const workoutNameSchema = z.string().trim().min(1).max(80);
@@ -9,7 +9,13 @@ export const trackingModeSchema = z.enum(trackingModes);
 export const exerciseInputSchema = z.object({
   name: workoutNameSchema,
   trackingMode: trackingModeSchema,
-  category: z.enum(exerciseCategories).default("other"),
+  category: z
+    .string()
+    .trim()
+    .min(1)
+    .max(40)
+    .regex(/^[a-z][a-z0-9-]*$/)
+    .default("other"),
   equipment: z.string().trim().max(80).default(""),
 });
 
