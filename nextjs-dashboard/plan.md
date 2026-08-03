@@ -671,3 +671,16 @@ Release state:
 
 - [ ] Show a loading state and prevent duplicate submission on the workout
       session `Add` exercise button while the exercise is being added.
+
+## 17. v0.2.0 staging release packaging
+
+Tracking issue: [#30](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/30)
+
+- [x] Keep the package version at `0.2.0`.
+- [x] Date and complete the v0.2.0 changelog.
+- [x] Document all six workout migrations, staging backup evidence,
+      roll-forward recovery, and production exclusions.
+- [x] Attach final GitHub Actions, Vercel, and manual Preview evidence.
+- [ ] Merge the release-preparation PR into `main` after all checks pass.
+- [ ] Create and push the annotated `v0.2.0` tag only after explicit user
+      authorization.

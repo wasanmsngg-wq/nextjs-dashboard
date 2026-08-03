@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 - Unreleased
+## 0.2.0 - 2026-08-03
 
 - Add a bilingual system exercise library and user-owned custom exercises.
 - Add unit-aware workout templates with ordered exercises and per-set targets.
@@ -19,6 +19,16 @@
   and present sessions as planned-versus-actual set checklists.
 - Preserve template targets separately from recorded results and repair
   authenticated workout discard behavior.
+- Allow untouched ad-hoc exercises to be removed while retaining planned or
+  recorded exercise cancellations with required reasons.
+- Persist per-set stopwatch time, derive exercise totals, and preserve timing
+  through autosave, offline retry, and refresh.
+- Require a separate cancellation reason for every unfinished exercise during
+  atomic workout completion and reject empty workout completion.
+- Replace browser prompts and bottom-page status messages with shared,
+  accessible dialogs and toast notifications.
+- Stabilize WebKit coverage for transient toast semantics and steady-state Axe
+  accessibility scans.
 
 ## 0.1.0 - Unreleased
 
