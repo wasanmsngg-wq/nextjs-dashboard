@@ -215,7 +215,7 @@ test("registered user creates a template and completes an immutable workout", as
     .getByRole("button", { name: "Cancel exercise" })
     .click();
   await expect(
-    page.getByRole("status").filter({
+    page.locator('[role="status"]').filter({
       hasText: "Exercise canceled and kept in the workout record.",
     }),
   ).toBeVisible();
@@ -311,12 +311,16 @@ test("registered user creates a template and completes an immutable workout", as
   }
   await expect(completionButton).toBeEnabled();
   await completionButton.click();
-  await expect(page.getByText("Workout completed.")).toBeVisible();
+  const completionToast = page.locator('[role="status"]').filter({
+    hasText: "Workout completed.",
+  });
+  await expect(completionToast).toBeVisible();
   await expect(page.getByText("Completed workout — read only")).toBeVisible();
   await expect(firstSet.getByRole("checkbox")).toBeDisabled();
   await expect(completionDialog).toBeHidden();
   await expect(page.getByText("Session time ended").first()).toBeVisible();
 
+  await expect(completionToast).toBeHidden();
   await expectAccessibleResponsivePage(page);
 });
 

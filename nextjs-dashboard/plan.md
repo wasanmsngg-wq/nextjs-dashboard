@@ -577,6 +577,8 @@ Execute these in order:
 
 ## 14. v0.2.0 release-candidate stabilization
 
+Tracking issue: [#28](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/28)
+
 - [x] Diagnose the empty exercise library as a mismatched Preview Supabase
       project rather than missing staging data.
 - [x] Remove cross-deployment Preview canonical redirects.
@@ -587,9 +589,10 @@ Execute these in order:
 - [x] Redesign all workout screens with responsive, accessible navigation and
       clear loading, empty, success, and error states.
 - [x] Add and apply the roll-forward corrective staging migration.
-- [ ] Complete synthetic-user Preview acceptance and attach final CI evidence.
+- [x] Complete synthetic-user Preview acceptance and attach final CI evidence
+      in `tests/QA_V0.2_EVIDENCE.md`.
 
-## 15. Workout-session checklist stabilization (draft PR #27)
+## 15. Workout-session checklist stabilization (PR #27, merged)
 
 Branch: `fix/workout-checklist`
 
@@ -649,11 +652,22 @@ Verification evidence:
 
 Release state:
 
-- [x] The five stabilization commits are pushed to draft PR #27 targeting
-      `main`.
-- [ ] GitHub Actions verification must finish successfully.
-- [ ] Apply the new migrations to isolated staging before Preview acceptance.
-- [ ] Complete manual Preview acceptance with a synthetic user.
-- [ ] Merge approval remains required.
-- [ ] No production migration, deployment, release tag, or production-branch
-      change is authorized by this work.
+- [x] The workout-session stabilization changes were merged through PR #27
+      into `main` on 2026-07-30.
+- [x] GitHub Actions verification and all five Playwright browser projects
+      completed successfully; the Vercel Preview checks also passed.
+- [x] Back up the isolated staging project and apply migrations `150000`,
+      `170000`, and `190000`; linked migration history was verified on
+      2026-08-03.
+- [x] Complete manual Preview acceptance with a synthetic user; the
+      user-attested matrix and remote evidence are recorded in
+      `tests/QA_V0.2_EVIDENCE.md`.
+- [x] PR #27 passed the repository merge requirements and was merged.
+- Production migration, deployment, release tagging, and production-branch
+  changes remain outside this stabilization work and require separate explicit
+  authorization.
+
+## 16. Product backlog
+
+- [ ] Show a loading state and prevent duplicate submission on the workout
+      session `Add` exercise button while the exercise is being added.
