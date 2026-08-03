@@ -30,3 +30,16 @@ with:
 12. Use shared dialogs and toast notifications for confirmations, prompted
     input, and transient feedback. Never use browser `alert`, `confirm`, or
     `prompt` in product UI.
+
+## Release workflow safeguards
+
+1. Treat release checkboxes in `nextjs-dashboard/plan.md` as evidence-backed
+   state. Reconcile them with the local branch, GitHub PR, and CI state before
+   reporting release status.
+2. A merged PR or successful CI run does not prove that staging migrations
+   were applied or that manual Preview acceptance passed. Mark each gate
+   complete only from direct evidence.
+3. Before applying staging migrations, verify the Supabase project identity
+   and take a recoverable staging backup. Never apply production migrations,
+   deploy production, create a release tag, or change the production branch
+   without explicit user authorization.
