@@ -42,6 +42,10 @@ or database modules.
 9. Route changes initiated from application navigation show the shared
    transition loading state immediately, including while a protected server
    route is still resolving.
+10. Sidebar groups with child destinations use the shared collapsible pattern.
+    The active route group opens automatically, inactive groups start collapsed,
+    and the parent destination remains a separate link from the accessible
+    expand/collapse control.
 
 ## Adding a component
 

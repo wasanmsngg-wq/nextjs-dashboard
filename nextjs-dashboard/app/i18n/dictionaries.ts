@@ -126,6 +126,8 @@ const th: Record<string, string> = {
   Thai: "ไทย",
   "Open navigation": "เปิดเมนูนำทาง",
   "Close navigation": "ปิดเมนูนำทาง",
+  "Collapse submenu": "ย่อเมนูย่อย",
+  "Expand submenu": "ขยายเมนูย่อย",
   "User profile": "โปรไฟล์ผู้ใช้",
   "User profile (coming soon)": "โปรไฟล์ผู้ใช้ (เร็ว ๆ นี้)",
   "Primary navigation": "การนำทางหลัก",

@@ -465,17 +465,52 @@ test("navigation exposes subpages and reports a protected route transition immed
   });
   await page.getByRole("button", { name: "Open navigation" }).click();
   const sidebar = page.locator("#application-sidebar");
+  const workoutsGroup = sidebar
+    .getByRole("link", { name: "Workouts", exact: true })
+    .locator("xpath=ancestor::li[1]");
+  const workoutsToggle = workoutsGroup.getByRole("button");
+  await expect(workoutsToggle).toHaveAccessibleName("Collapse submenu");
+  await expect(workoutsToggle).toHaveAttribute("aria-expanded", "true");
+  for (const linkName of ["Exercise library", "Create template"]) {
+    await expect(
+      workoutsGroup.getByRole("link", { name: linkName }),
+    ).toBeVisible();
+  }
+
+  const administrationGroup = sidebar
+    .getByRole("link", { name: "Administration", exact: true })
+    .locator("xpath=ancestor::li[1]");
+  const administrationToggle = administrationGroup.getByRole("button");
+  await expect(administrationToggle).toHaveAccessibleName("Expand submenu");
+  await expect(administrationToggle).toHaveAttribute("aria-expanded", "false");
   for (const linkName of [
-    "Exercise library",
-    "Create template",
     "Users",
     "Exercise records",
     "Exercise categories",
     "System exercises",
     "Customers",
   ]) {
-    await expect(sidebar.getByRole("link", { name: linkName })).toBeVisible();
+    await expect(
+      administrationGroup.getByRole("link", { name: linkName }),
+    ).toBeHidden();
   }
+  await administrationToggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(administrationToggle).toHaveAccessibleName("Collapse submenu");
+  await expect(administrationToggle).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    administrationGroup.getByRole("link", { name: "Users" }),
+  ).toBeVisible();
+
+  await workoutsToggle.press("Space");
+  await expect(workoutsToggle).toHaveAccessibleName("Expand submenu");
+  await expect(workoutsToggle).toHaveAttribute("aria-expanded", "false");
+  await expect(
+    workoutsGroup.getByRole("link", { name: "Exercise library" }),
+  ).toBeHidden();
+  await workoutsToggle.press("Enter");
+  await expect(workoutsToggle).toHaveAccessibleName("Collapse submenu");
+  await expect(workoutsToggle).toHaveAttribute("aria-expanded", "true");
 
   await sidebar
     .getByRole("link", { name: "Administration", exact: true })
