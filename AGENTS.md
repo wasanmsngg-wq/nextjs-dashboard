@@ -30,6 +30,9 @@ with:
 12. Use shared dialogs and toast notifications for confirmations, prompted
     input, and transient feedback. Never use browser `alert`, `confirm`, or
     `prompt` in product UI.
+13. Every sub-page must provide a visible way back to its main or parent page
+    using the shared back-navigation component. Do not rely only on browser
+    history, breadcrumbs, or the sidebar.
 
 ## Release workflow safeguards
 

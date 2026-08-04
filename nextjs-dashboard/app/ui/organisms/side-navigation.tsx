@@ -14,26 +14,55 @@ import AcmeLogo from "@/app/ui/acme-logo";
 import { useI18n } from "@/app/i18n/provider";
 import { IconButton } from "@/app/ui/atoms/icon-button";
 import { logout } from "@/app/lib/auth-actions";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 import { clearWorkoutQueue } from "@/app/features/workouts/data/workout-queue";
 
-const links = [
+type NavigationItem = {
+  name: string;
+  href: string;
+  icon: typeof HomeIcon;
+  children?: Array<{ name: string; href: string }>;
+};
+
+const primaryLinks: NavigationItem[] = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   {
     name: "Workouts",
     href: "/workouts",
     icon: ClipboardDocumentCheckIcon,
+    children: [
+      { name: "Exercise library", href: "/workouts/exercises" },
+      { name: "Create template", href: "/workouts/templates/new" },
+    ],
   },
 ];
+
+const adminLink: NavigationItem = {
+  name: "Administration",
+  href: "/admin",
+  icon: ShieldCheckIcon,
+  children: [
+    { name: "Users", href: "/admin/users" },
+    { name: "Exercise records", href: "/admin/exercise-records" },
+    {
+      name: "Exercise categories",
+      href: "/admin/master-data/categories",
+    },
+    { name: "System exercises", href: "/admin/master-data/exercises" },
+    { name: "Customers", href: "/admin/customers" },
+  ],
+};
 
 export function SideNavigation({
   open,
   onClose,
+  onNavigate,
   userEmail,
   isAdmin,
 }: {
   open: boolean;
   onClose: () => void;
+  onNavigate: (href: string) => void;
   userEmail?: string;
   isAdmin: boolean;
 }) {
@@ -41,6 +70,22 @@ export function SideNavigation({
   const { t } = useI18n();
   const sidebarRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const handleNavigation = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    event.preventDefault();
+    onNavigate(href);
+  };
   useEffect(() => {
     if (!open) return;
     closeButtonRef.current?.focus();
@@ -98,36 +143,65 @@ export function SideNavigation({
         aria-label={t("Primary navigation")}
         className="flex h-[calc(100vh-4rem)] flex-col px-3 py-4"
       >
-        {[
-          ...links,
-          ...(isAdmin
-            ? [
-                {
-                  name: "Administration",
-                  href: "/admin",
-                  icon: ShieldCheckIcon,
-                },
-              ]
-            : []),
-        ].map(({ name, href, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            prefetch={false}
-            onClick={onClose}
-            className={clsx(
-              "flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-sky-50 hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
-              (pathname === href || pathname.startsWith(`${href}/`)) &&
-                "bg-sky-100 text-blue-600",
-            )}
-          >
-            <Icon className="w-6" />
-            <span>{t(name)}</span>
-          </Link>
-        ))}
-        <div className="grow" />
+        <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+          {[...primaryLinks, ...(isAdmin ? [adminLink] : [])].map(
+            ({ name, href, icon: Icon, children }) => {
+              const groupActive =
+                pathname === href || pathname.startsWith(`${href}/`);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={(event) => handleNavigation(event, href)}
+                    className={clsx(
+                      "flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-sky-50 hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
+                      groupActive && "bg-sky-100 text-blue-600",
+                    )}
+                    aria-current={pathname === href ? "page" : undefined}
+                  >
+                    <Icon className="w-6 shrink-0" aria-hidden="true" />
+                    <span>{t(name)}</span>
+                  </Link>
+                  {children ? (
+                    <ul className="ml-6 border-l border-gray-200 py-1 pl-3">
+                      {children.map((child) => {
+                        const childActive = pathname === child.href;
+                        return (
+                          <li key={child.href}>
+                            <Link
+                              href={child.href}
+                              onClick={(event) =>
+                                handleNavigation(event, child.href)
+                              }
+                              className={clsx(
+                                "flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-sky-50 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
+                                childActive &&
+                                  "bg-sky-50 font-semibold text-blue-700",
+                              )}
+                              aria-current={childActive ? "page" : undefined}
+                            >
+                              <span
+                                className="h-1.5 w-1.5 shrink-0 rounded-full bg-current"
+                                aria-hidden="true"
+                              />
+                              <span>{t(child.name)}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
+                </li>
+              );
+            },
+          )}
+        </ul>
         {userEmail ? (
-          <form action={logout} onSubmit={() => void clearWorkoutQueue()}>
+          <form
+            action={logout}
+            className="border-t border-gray-200 pt-3"
+            onSubmit={() => void clearWorkoutQueue()}
+          >
             <p className="truncate px-3 text-xs text-gray-500">{userEmail}</p>
             <button
               type="submit"

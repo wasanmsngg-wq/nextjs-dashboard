@@ -3,6 +3,7 @@ import { adminSearchSchema } from "@/app/features/admin/validation";
 import { getTranslations } from "@/app/i18n/server";
 import { EmptyState } from "@/app/ui/atoms/empty-state";
 import { Surface } from "@/app/ui/atoms/surface";
+import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 import { PageHeading } from "@/app/ui/molecules/page-heading";
 import Search from "@/app/ui/molecules/search-field";
 
@@ -50,6 +51,9 @@ export default async function AdminExerciseRecordsPage({
   });
   return (
     <main className="mx-auto max-w-7xl space-y-6">
+      <BackNavigation href="/admin">
+        {t("Back to administration")}
+      </BackNavigation>
       <PageHeading
         eyebrow={t("Administration")}
         title={t("Exercise records")}

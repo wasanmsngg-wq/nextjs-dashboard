@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAuthorization } from "@/app/lib/authorization";
 import { getTranslations } from "@/app/i18n/server";
 import Search from "@/app/ui/molecules/search-field";
+import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 import CustomersTable from "@/app/ui/features/customers/customer-list";
 import { DirectoryTemplate } from "@/app/ui/templates/directory-template";
 import { getOperationalServices } from "@/app/lib/operations/factory";
@@ -53,6 +54,11 @@ export default async function AdminCustomersPage({
     <DirectoryTemplate
       title={t("Customers")}
       description={t("View and search customers.")}
+      navigation={
+        <BackNavigation href="/admin">
+          {t("Back to administration")}
+        </BackNavigation>
+      }
       controls={
         <div className="max-w-xl">
           <Search placeholder={t("Search customers...")} />

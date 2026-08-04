@@ -4,6 +4,7 @@ import { lusitana } from "@/app/ui/fonts";
 export function DirectoryTemplate({
   title,
   description,
+  navigation,
   controls,
   children,
   footer,
@@ -11,6 +12,7 @@ export function DirectoryTemplate({
 }: Readonly<{
   title: ReactNode;
   description?: string;
+  navigation?: ReactNode;
   controls?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
@@ -18,6 +20,7 @@ export function DirectoryTemplate({
 }>) {
   return (
     <main className={className}>
+      {navigation ? <div className="mb-4">{navigation}</div> : null}
       <header className="mb-8">
         <h1 className={`${lusitana.className} text-2xl`}>{title}</h1>
         {description ? (

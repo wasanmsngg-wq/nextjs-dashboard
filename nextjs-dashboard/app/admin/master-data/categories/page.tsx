@@ -1,6 +1,7 @@
 import { requireAdministrator } from "@/app/features/admin/data";
 import { CategoryManager } from "@/app/features/admin/ui/category-manager";
 import { getTranslations } from "@/app/i18n/server";
+import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 import { PageHeading } from "@/app/ui/molecules/page-heading";
 
 export default async function AdminCategoriesPage() {
@@ -17,6 +18,9 @@ export default async function AdminCategoriesPage() {
     throw new Error("Exercise categories are temporarily unavailable.");
   return (
     <main className="mx-auto max-w-7xl space-y-6">
+      <BackNavigation href="/admin">
+        {t("Back to administration")}
+      </BackNavigation>
       <PageHeading
         eyebrow={t("Master data")}
         title={t("Exercise categories")}

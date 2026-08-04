@@ -37,6 +37,11 @@ or database modules.
 7. Use the shared `Dialog` molecule for confirmations or prompted input and
    `Toast` for transient action feedback. Product UI must not call browser
    `alert`, `confirm`, or `prompt`.
+8. Every sub-page exposes a visible `BackNavigation` link to its stable parent
+   page. Sidebar submenus complement this escape route but do not replace it.
+9. Route changes initiated from application navigation show the shared
+   transition loading state immediately, including while a protected server
+   route is still resolving.
 
 ## Adding a component
 
@@ -46,6 +51,10 @@ appear together. Use organisms for substantial application regions, and
 templates only for page structure. Include accessible naming and states in the
 component API, add a focused test, and demonstrate the component in a real
 feature before introducing another variant.
+
+`BackNavigation` is the standard sub-page escape route. Use the inverse variant
+only on dark surfaces. `RouteTransitionLoading` belongs to the application
+shell and must not be recreated by feature pages.
 
 ## Migration policy
 
