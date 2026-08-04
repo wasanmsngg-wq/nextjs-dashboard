@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  ArrowLeftIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -16,6 +13,7 @@ import {
 } from "@/app/domain";
 import { saveTemplate } from "../actions";
 import { useI18n } from "@/app/i18n/provider";
+import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 
 type ExerciseOption = { id: string; name: string; trackingMode: TrackingMode };
 type TargetSet = {
@@ -99,13 +97,9 @@ export function TemplateEditor({
   return (
     <main className="mx-auto max-w-6xl space-y-8">
       <header>
-        <Link
-          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
-          href="/workouts"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
+        <BackNavigation href="/workouts">
           {t("Back to workouts")}
-        </Link>
+        </BackNavigation>
         <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-blue-700">
           {t("Workout builder")}
         </p>

@@ -2,6 +2,8 @@ import type { Locale } from "@/app/i18n/config";
 
 const th: Record<string, string> = {
   Administration: "การดูแลระบบ",
+  "Back to administration": "กลับไปหน้าการดูแลระบบ",
+  "Loading next page": "กำลังโหลดหน้าถัดไป",
   "Secure operations": "การดำเนินงานที่ปลอดภัย",
   "Manage accounts and shared workout data from one protected workspace.":
     "จัดการบัญชีและข้อมูลการออกกำลังกายส่วนกลางจากพื้นที่ทำงานที่ได้รับการป้องกัน",

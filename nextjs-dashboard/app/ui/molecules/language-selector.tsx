@@ -14,7 +14,7 @@ export function LanguageSelector() {
         value={locale}
         onChange={(event) => setLocale(event.target.value as Locale)}
         aria-label={t("Language")}
-        className="min-w-20 cursor-pointer appearance-none border-0 bg-transparent p-0 pr-6 font-medium outline-none ring-0"
+        className="min-w-20 cursor-pointer appearance-none border-0 bg-transparent bg-none p-0 pr-6 font-medium outline-none ring-0"
       >
         <option value="en">{t("English")}</option>
         <option value="th">{t("Thai")}</option>

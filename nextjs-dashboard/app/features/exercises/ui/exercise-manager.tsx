@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  ArrowLeftIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { equipmentSuggestions, type TrackingMode } from "@/app/domain";
@@ -13,6 +11,7 @@ import { archiveExercise, saveExercise } from "@/app/features/workouts/actions";
 import { useI18n } from "@/app/i18n/provider";
 import { Button } from "@/app/ui/atoms/button";
 import { Surface } from "@/app/ui/atoms/surface";
+import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 import { PageHeading } from "@/app/ui/molecules/page-heading";
 import { Dialog } from "@/app/ui/molecules/dialog";
 import { Toast, type ToastNotice } from "@/app/ui/molecules/toast";
@@ -91,13 +90,9 @@ export function ExerciseManager({
   return (
     <main className="mx-auto max-w-6xl space-y-8">
       <header>
-        <Link
-          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
-          href="/workouts"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
+        <BackNavigation href="/workouts">
           {t("Back to workouts")}
-        </Link>
+        </BackNavigation>
         <PageHeading
           className="mt-4"
           description={t(

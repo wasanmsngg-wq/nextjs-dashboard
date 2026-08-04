@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  ArrowLeftIcon,
-  CheckCircleIcon,
-  CloudIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
+import { CheckCircleIcon, CloudIcon } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -36,6 +31,7 @@ import {
 import { useI18n } from "@/app/i18n/provider";
 import { Button } from "@/app/ui/atoms/button";
 import { Surface } from "@/app/ui/atoms/surface";
+import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 import { Dialog } from "@/app/ui/molecules/dialog";
 import { Toast, type ToastNotice } from "@/app/ui/molecules/toast";
 
@@ -506,13 +502,9 @@ export function WorkoutSession({
   return (
     <main className="mx-auto max-w-6xl space-y-6 pb-24">
       <header className="rounded-3xl bg-gradient-to-br from-slate-900 to-blue-900 p-6 text-white shadow-lg sm:p-8">
-        <Link
-          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-100 hover:text-white"
-          href="/workouts"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
+        <BackNavigation href="/workouts" inverse>
           {t("Back to workouts")}
-        </Link>
+        </BackNavigation>
         <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-blue-200">

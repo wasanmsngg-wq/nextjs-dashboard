@@ -378,11 +378,11 @@ test("administrator manages master data and inspects users and exercise records"
   await expectAccessibleResponsivePage(page);
 
   await page.goto("/admin/users");
+  await page.waitForLoadState("networkidle");
   const userAccounts = page.getByLabel("User accounts");
   await expect(userAccounts.getByText(email).first()).toBeVisible();
   await page.getByLabel("Search").fill("browser-admin");
   await expect(page).toHaveURL(/query=browser-admin/);
-  await page.waitForLoadState("networkidle");
   await expect(userAccounts.getByText(email).first()).toBeVisible();
 
   await page.goto("/admin/master-data/categories");
@@ -426,6 +426,59 @@ test("administrator manages master data and inspects users and exercise records"
   await expectAccessibleResponsivePage(page);
 });
 
+test("navigation exposes subpages and reports a protected route transition immediately", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workouts");
+
+  const languageSelect = page.getByLabel("Language");
+  await expect(languageSelect).toHaveCSS("background-image", "none");
+  const languageControl = page.locator("label").filter({ has: languageSelect });
+  await expect(languageControl.locator("svg")).toHaveCount(1);
+
+  let navigationDelayed = false;
+  await page.route(/\/admin(?:\?|$)/, async (route) => {
+    const headers = route.request().headers();
+    if (
+      headers["next-router-prefetch"] === "1" ||
+      headers.purpose === "prefetch"
+    ) {
+      await route.abort();
+      return;
+    }
+    if (!navigationDelayed) {
+      navigationDelayed = true;
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
+    }
+    await route.continue();
+  });
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  const sidebar = page.locator("#application-sidebar");
+  for (const linkName of [
+    "Exercise library",
+    "Create template",
+    "Users",
+    "Exercise records",
+    "Exercise categories",
+    "System exercises",
+    "Customers",
+  ]) {
+    await expect(sidebar.getByRole("link", { name: linkName })).toBeVisible();
+  }
+
+  await sidebar
+    .getByRole("link", { name: "Administration", exact: true })
+    .dispatchEvent("click", { button: 0 });
+  await expect(page.getByTestId("route-transition-loading")).toBeVisible();
+  await expect(page).toHaveURL(/\/workouts$/);
+  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page.getByTestId("route-transition-loading")).toBeHidden();
+  await expect(
+    page.getByRole("heading", { name: "Administration" }),
+  ).toBeVisible({ timeout: 15_000 });
+});
+
 for (const locale of ["en", "th"] as const) {
   test(`authenticated administrator page in ${locale} has no detectable WCAG A/AA violations`, async ({
     context,
@@ -452,6 +505,16 @@ for (const locale of ["en", "th"] as const) {
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
       await expect(page.locator("h1")).toBeVisible();
       await expect(page.locator("header").first()).toBeVisible();
+      if (route !== "/admin") {
+        await expect(
+          page.getByRole("link", {
+            name:
+              locale === "th"
+                ? "กลับไปหน้าการดูแลระบบ"
+                : "Back to administration",
+          }),
+        ).toBeVisible();
+      }
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
         .analyze();
