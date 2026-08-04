@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   HomeIcon,
   ClipboardDocumentCheckIcon,
+  ChevronDownIcon,
   PowerIcon,
   ShieldCheckIcon,
   XMarkIcon,
@@ -14,7 +15,7 @@ import AcmeLogo from "@/app/ui/acme-logo";
 import { useI18n } from "@/app/i18n/provider";
 import { IconButton } from "@/app/ui/atoms/icon-button";
 import { logout } from "@/app/lib/auth-actions";
-import { useEffect, useRef, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { clearWorkoutQueue } from "@/app/features/workouts/data/workout-queue";
 
 type NavigationItem = {
@@ -70,6 +71,10 @@ export function SideNavigation({
   const { t } = useI18n();
   const sidebarRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const navigationItems = [...primaryLinks, ...(isAdmin ? [adminLink] : [])];
+  const [groupOverrides, setGroupOverrides] = useState<
+    Record<string, { expanded: boolean; pathname: string }>
+  >({});
   const handleNavigation = (
     event: MouseEvent<HTMLAnchorElement>,
     href: string,
@@ -144,17 +149,23 @@ export function SideNavigation({
         className="flex h-[calc(100vh-4rem)] flex-col px-3 py-4"
       >
         <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto">
-          {[...primaryLinks, ...(isAdmin ? [adminLink] : [])].map(
-            ({ name, href, icon: Icon, children }) => {
-              const groupActive =
-                pathname === href || pathname.startsWith(`${href}/`);
-              return (
-                <li key={href}>
+          {navigationItems.map(({ name, href, icon: Icon, children }) => {
+            const groupActive =
+              pathname === href || pathname.startsWith(`${href}/`);
+            const groupOverride = groupOverrides[href];
+            const groupExpanded =
+              groupOverride?.pathname === pathname
+                ? groupOverride.expanded
+                : groupActive || groupOverride?.expanded || false;
+            const submenuId = `${href.slice(1).replaceAll("/", "-")}-submenu`;
+            return (
+              <li key={href}>
+                <div className="flex items-center gap-1">
                   <Link
                     href={href}
                     onClick={(event) => handleNavigation(event, href)}
                     className={clsx(
-                      "flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-sky-50 hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
+                      "flex h-12 min-w-0 flex-1 items-center gap-3 rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-sky-50 hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
                       groupActive && "bg-sky-100 text-blue-600",
                     )}
                     aria-current={pathname === href ? "page" : undefined}
@@ -163,38 +174,68 @@ export function SideNavigation({
                     <span>{t(name)}</span>
                   </Link>
                   {children ? (
-                    <ul className="ml-6 border-l border-gray-200 py-1 pl-3">
-                      {children.map((child) => {
-                        const childActive = pathname === child.href;
-                        return (
-                          <li key={child.href}>
-                            <Link
-                              href={child.href}
-                              onClick={(event) =>
-                                handleNavigation(event, child.href)
-                              }
-                              className={clsx(
-                                "flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-sky-50 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
-                                childActive &&
-                                  "bg-sky-50 font-semibold text-blue-700",
-                              )}
-                              aria-current={childActive ? "page" : undefined}
-                            >
-                              <span
-                                className="h-1.5 w-1.5 shrink-0 rounded-full bg-current"
-                                aria-hidden="true"
-                              />
-                              <span>{t(child.name)}</span>
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    <IconButton
+                      label={t(
+                        groupExpanded ? "Collapse submenu" : "Expand submenu",
+                      )}
+                      aria-controls={submenuId}
+                      aria-expanded={groupExpanded}
+                      onClick={() =>
+                        setGroupOverrides((current) => ({
+                          ...current,
+                          [href]: {
+                            expanded: !groupExpanded,
+                            pathname,
+                          },
+                        }))
+                      }
+                      className="shrink-0 text-gray-600"
+                    >
+                      <ChevronDownIcon
+                        className={clsx(
+                          "h-5 w-5 transition-transform",
+                          groupExpanded && "rotate-180",
+                        )}
+                        aria-hidden="true"
+                      />
+                    </IconButton>
                   ) : null}
-                </li>
-              );
-            },
-          )}
+                </div>
+                {children && groupExpanded ? (
+                  <ul
+                    id={submenuId}
+                    className="ml-6 border-l border-gray-200 py-1 pl-3"
+                  >
+                    {children.map((child) => {
+                      const childActive = pathname === child.href;
+                      return (
+                        <li key={child.href}>
+                          <Link
+                            href={child.href}
+                            onClick={(event) =>
+                              handleNavigation(event, child.href)
+                            }
+                            className={clsx(
+                              "flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-sky-50 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500",
+                              childActive &&
+                                "bg-sky-50 font-semibold text-blue-700",
+                            )}
+                            aria-current={childActive ? "page" : undefined}
+                          >
+                            <span
+                              className="h-1.5 w-1.5 shrink-0 rounded-full bg-current"
+                              aria-hidden="true"
+                            />
+                            <span>{t(child.name)}</span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
         {userEmail ? (
           <form
