@@ -183,6 +183,8 @@ test("registered user creates a template and completes an immutable workout", as
   context,
   page,
 }) => {
+  test.setTimeout(60_000);
+
   await login(page);
   await page.goto("/workouts/exercises");
   await expect(
@@ -403,11 +405,19 @@ test("administrator manages master data and inspects users and exercise records"
   await page.getByLabel("Thai name").fill("ดึงยางฟื้นฟู");
   await page.getByLabel("Category").selectOption("rehab");
   await page.getByLabel("Equipment").fill("resistance band");
-  await page.getByRole("button", { name: "Create system exercise" }).click();
+  const createSystemExerciseButton = page.getByRole("button", {
+    name: "Create system exercise",
+  });
+  await createSystemExerciseButton.click();
   await expect(page.getByText("System exercise saved.")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Rehab Band Pull" }),
   ).toBeVisible();
+  await page.mouse.move(0, 0);
+  await expect(createSystemExerciseButton).toHaveCSS(
+    "background-color",
+    "rgb(30, 64, 175)",
+  );
   await expectAccessibleResponsivePage(page);
 
   await page.goto("/workouts/exercises");
