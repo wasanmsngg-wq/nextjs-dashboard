@@ -702,10 +702,16 @@ Tracking issue: [#36](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/3
 - [x] Pass formatting, linting, type checking, unit/contracts, integration,
       production build, all five Playwright projects, dependency audit, and
       `git diff --check`.
-- [ ] Merge the protected-branch release PR after GitHub Actions and Vercel
+- [x] Merge the protected-branch release PR after GitHub Actions and Vercel
       Preview pass.
-- [ ] Create and push annotated tag `v0.2.1` after the merge is verified.
+- [x] Create and push annotated tag `v0.2.1` after the merge is verified.
 
 This patch has no database migration and performs no production migration,
 deployment, or production-branch change. Phase 3 begins only after this patch
 release is closed.
+
+Release evidence: PR
+[#37](https://github.com/wasanmsngg-wq/nextjs-dashboard/pull/37) merged as
+`b6a18199167abc2d717324b76f37ab63e454368b`; GitHub Actions run
+[`30969823349`](https://github.com/wasanmsngg-wq/nextjs-dashboard/actions/runs/30969823349)
+and Vercel Preview passed; annotated tag `v0.2.1` peels to the merge commit.
