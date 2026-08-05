@@ -60,6 +60,22 @@ async function expectAccessibleResponsivePage(page: Page) {
   expect(results.violations).toEqual([]);
 }
 
+async function navigateAfterLocaleRefresh(page: Page, url: string) {
+  try {
+    await page.goto(url);
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !/interrupted by another navigation|NS_BINDING_ABORTED/.test(
+        error.message,
+      )
+    ) {
+      throw error;
+    }
+    await page.waitForLoadState("load");
+  }
+}
+
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
@@ -161,7 +177,10 @@ test("exercise history presents stable personal bests in both unit systems", asy
   );
   await page.getByLabel("Language").selectOption("th");
   await localeRefresh;
-  await page.goto(`/workouts/history/exercises/${exerciseId}`);
+  await navigateAfterLocaleRefresh(
+    page,
+    `/workouts/history/exercises/${exerciseId}`,
+  );
   await expect(
     page.getByRole("heading", { name: "สถิติส่วนตัว", exact: true }),
   ).toBeVisible();
