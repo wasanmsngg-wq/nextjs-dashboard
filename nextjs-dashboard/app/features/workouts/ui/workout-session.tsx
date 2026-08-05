@@ -99,6 +99,7 @@ export function WorkoutSession({
     exerciseOptions[0]?.id ?? "",
   );
   const [setCount, setSetCount] = useState(3);
+  const [exercisePending, setExercisePending] = useState(false);
   const [dialog, setDialog] = useState<SessionDialog>(null);
   const [cancellationReason, setCancellationReason] = useState("");
   const [completionReasons, setCompletionReasons] = useState<
@@ -110,6 +111,7 @@ export function WorkoutSession({
   const version = useRef(initialVersion);
   const syncPromise = useRef<Promise<void> | null>(null);
   const pendingSetWrites = useRef(new Set<Promise<void>>());
+  const exercisePendingRef = useRef(false);
   const editable = sessionStatus === "in_progress";
 
   const notify = useCallback((type: ToastNotice["type"], message: string) => {
@@ -275,49 +277,59 @@ export function WorkoutSession({
   const distanceUnit = unitSystem === "us" ? "mi" : "km";
 
   async function addExercise() {
+    if (exercisePendingRef.current) return;
     const selected = exerciseOptions.find(
       (exercise) => exercise.id === selectedExercise,
     );
     if (!selected) return;
-    const result = await addWorkoutExercise(
-      sessionId,
-      selectedExercise,
-      setCount,
-    );
-    notify(
-      result.ok ? "success" : "error",
-      t(result.ok ? "Exercise added." : result.error),
-    );
-    if (!result.ok) return;
-    version.current = result.version;
-    setExercises((current) => [
-      ...current,
-      {
-        id: result.sessionExerciseId,
-        name: selected.name,
-        trackingMode: selected.trackingMode,
-        status: "active",
-        cancellationReason: null,
-        canceledAt: null,
-        sets: result.setIds.map((id, position) => ({
-          id,
-          position,
-          completed: false,
-          reps: null,
-          loadGrams: null,
-          durationSeconds: null,
-          distanceMeters: null,
-          elapsedSeconds: 0,
-          rpe: null,
-          notes: "",
-          targetReps: null,
-          targetLoadGrams: null,
-          targetDurationSeconds: null,
-          targetDistanceMeters: null,
-          targetRpe: null,
-        })),
-      },
-    ]);
+    exercisePendingRef.current = true;
+    setExercisePending(true);
+    try {
+      const result = await addWorkoutExercise(
+        sessionId,
+        selectedExercise,
+        setCount,
+      );
+      notify(
+        result.ok ? "success" : "error",
+        t(result.ok ? "Exercise added." : result.error),
+      );
+      if (!result.ok) return;
+      version.current = result.version;
+      setExercises((current) => [
+        ...current,
+        {
+          id: result.sessionExerciseId,
+          name: selected.name,
+          trackingMode: selected.trackingMode,
+          status: "active",
+          cancellationReason: null,
+          canceledAt: null,
+          sets: result.setIds.map((id, position) => ({
+            id,
+            position,
+            completed: false,
+            reps: null,
+            loadGrams: null,
+            durationSeconds: null,
+            distanceMeters: null,
+            elapsedSeconds: 0,
+            rpe: null,
+            notes: "",
+            targetReps: null,
+            targetLoadGrams: null,
+            targetDurationSeconds: null,
+            targetDistanceMeters: null,
+            targetRpe: null,
+          })),
+        },
+      ]);
+    } catch {
+      notify("error", t("The exercise could not be added."));
+    } finally {
+      exercisePendingRef.current = false;
+      setExercisePending(false);
+    }
   }
 
   async function clearQueuedExerciseSets(exercise: SessionExercise) {
@@ -533,6 +545,7 @@ export function WorkoutSession({
               <select
                 className="input mt-1"
                 value={selectedExercise}
+                disabled={exercisePending}
                 onChange={(event) => setSelectedExercise(event.target.value)}
               >
                 {exerciseOptions.map((option) => (
@@ -550,10 +563,17 @@ export function WorkoutSession({
                 min={1}
                 max={20}
                 value={setCount}
+                disabled={exercisePending}
                 onChange={(event) => setSetCount(Number(event.target.value))}
               />
             </label>
-            <Button disabled={!selectedExercise} onClick={addExercise}>
+            <Button
+              aria-label={t("Add")}
+              aria-busy={exercisePending}
+              disabled={!selectedExercise || exercisePending}
+              loading={exercisePending}
+              onClick={addExercise}
+            >
               {t("Add")}
             </Button>
           </div>
