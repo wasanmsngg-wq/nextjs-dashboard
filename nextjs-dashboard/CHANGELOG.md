@@ -5,6 +5,8 @@
 - Add documented, versioned performance calculation rules.
 - Add secure, filterable, paginated workout session history with bilingual,
   accessible empty, loading, and error states.
+- Add exercise-detail history with deterministic personal bests, Epley 1RM
+  estimates, immutable record links, and metric/US parity.
 
 ## 0.2.1 - 2026-08-05
 

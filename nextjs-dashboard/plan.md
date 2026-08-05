@@ -379,7 +379,7 @@ Verification gate:
 Owner: Performance developer. Reviewer validates aggregation correctness.
 
 - [x] Add session history with date and exercise filters.
-- [ ] Show exercise history and personal-best rules.
+- [x] Show exercise history and personal-best rules.
 - [ ] Calculate volume, estimated one-repetition maximum, duration, and
       consistency using documented formulas.
 - [ ] Add accessible charts with equivalent text/table summaries.
@@ -389,7 +389,7 @@ Owner: Performance developer. Reviewer validates aggregation correctness.
 Verification gate:
 
 - [ ] Compare aggregates against a hand-calculated fixture.
-- [ ] Verify metric and US displays represent the same canonical values.
+- [x] Verify metric and US displays represent the same canonical values.
 - [ ] Verify chart information is available without color, pointer, or canvas.
 - [ ] Verify empty, partial, and large histories.
 
@@ -738,7 +738,7 @@ Completed in this slice:
 
 Deferred for the next Phase 3 slice:
 
-- [ ] Exercise-detail history and personal-best presentation.
+- [x] Exercise-detail history and personal-best presentation.
 - [ ] Aggregate volume, estimated 1RM, duration, and consistency views.
 - [ ] Accessible charts and equivalent table summaries.
 - [ ] Deload, bodyweight, missing-value, unit-change, and large-history

@@ -37,6 +37,11 @@ export const historyFiltersSchema = z
 
 export type HistoryFilters = z.infer<typeof historyFiltersSchema>;
 
+export const exerciseHistoryParamsSchema = z.object({
+  exerciseId: z.string().uuid(),
+  page: z.coerce.number().int().min(1).max(10_000).catch(1),
+});
+
 export function validateHistoryDateRange(filters: HistoryFilters) {
   if (filters.from && filters.to && filters.from > filters.to)
     return "The start date must be before the end date." as const;

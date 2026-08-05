@@ -24,6 +24,7 @@ type HistoryResult = {
     totalSets: number;
     exercises: Array<{
       id: string;
+      exercise_id: string | null;
       exercise_name_snapshot: string;
       status: "active" | "canceled";
       completed: boolean;
@@ -196,17 +197,27 @@ export function SessionHistory({
                 aria-label={t("Exercises in workout")}
               >
                 {session.exercises.map((exercise) => (
-                  <li
-                    key={exercise.id}
-                    className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
-                  >
-                    {exercise.exercise_name_snapshot} ·{" "}
-                    {exercise.status === "canceled"
-                      ? t("Canceled")
-                      : t("{completed} of {total} sets", {
-                          completed: exercise.completedSets,
-                          total: exercise.totalSets,
-                        })}
+                  <li key={exercise.id}>
+                    {exercise.exercise_id ? (
+                      <ButtonLink
+                        href={`/workouts/history/exercises/${exercise.exercise_id}`}
+                        size="small"
+                        variant="quiet"
+                      >
+                        {exercise.exercise_name_snapshot} ·{" "}
+                        {exercise.status === "canceled"
+                          ? t("Canceled")
+                          : t("{completed} of {total} sets", {
+                              completed: exercise.completedSets,
+                              total: exercise.totalSets,
+                            })}
+                      </ButtonLink>
+                    ) : (
+                      <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
+                        {exercise.exercise_name_snapshot} ·{" "}
+                        {t("Catalog removed")}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

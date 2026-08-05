@@ -1,18 +1,19 @@
-# v0.3.0 session-history evidence
+# v0.3.0 performance-history evidence
 
 Date: 2026-08-05
 
 Branch: `feature/39-performance-tracking`
 
-Scope: Phase 3 steps 1–4 only. Exercise-detail progress and charts are not part
-of this review slice.
+Scope: Phase 3 session history plus exercise-detail history and personal-best
+presentation. Aggregate trends and charts are not part of these review slices.
 
 ## Automated evidence
 
 - TypeScript strict check: passed.
 - ESLint with zero warnings: passed.
-- Unit tests: 42 passed, including formula, filter, and DST boundaries.
-- Contract tests: 27 passed, including the additive migration contract.
+- Unit tests: 45 passed, including formula, personal-best, filter, and DST
+  boundaries.
+- Contract tests: 28 passed, including both additive migration contracts.
 - Disposable local Supabase reset: passed through
   `20260805110000_performance_history.sql`.
 - Integration tests: 12 passed, including history ownership and snapshot
@@ -50,3 +51,23 @@ rewritten.
 - No staging or production migration.
 - No staging or production deployment.
 - No push, pull request, merge, or release tag.
+
+## Exercise-detail slice
+
+- Personal-best selection is a versioned pure domain function. Unit fixtures
+  cover missing values, bodyweight repetitions, incomplete sets, faster pace,
+  and earliest-tie retention.
+- The disposable database applies
+  `20260805130000_exercise_performance.sql`; live integration checks confirm
+  Epley `100 kg x 5 = 116.667 kg`, snapshot stability, and cross-user denial
+  through security-invoker views.
+- Exercise history retains archived catalog snapshots, shows canceled records
+  without awarding them personal bests, and links back to immutable workouts.
+- The dedicated browser fixture verifies `100 kg = 220.46 lb`, English and Thai
+  presentation, accessible data tables, no responsive overflow, and automated
+  WCAG checks on Chromium, Firefox, WebKit, Pixel-sized, and iPhone-sized
+  projects.
+- The long workout-session journey remains outside this focused evidence. Its
+  existing iPhone discard redirect is intermittently slow, so performance
+  acceptance uses an isolated synthetic completed-history fixture rather than
+  masking results behind an unrelated workflow.

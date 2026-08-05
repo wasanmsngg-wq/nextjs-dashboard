@@ -300,7 +300,43 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      performance_exercise_history: {
+        Row: {
+          cancellation_reason: string | null;
+          completed_at: string | null;
+          exercise_completed: boolean;
+          exercise_id: string;
+          exercise_name_snapshot: string;
+          exercise_status: Database["public"]["Enums"]["workout_session_exercise_status"];
+          session_exercise_id: string;
+          session_id: string;
+          started_at: string;
+          template_name_snapshot: string | null;
+          tracking_mode: Database["public"]["Enums"]["exercise_tracking_mode"];
+        };
+        Relationships: [];
+      };
+      performance_exercise_sets: {
+        Row: {
+          achieved_at: string;
+          distance_meters: number | null;
+          elapsed_seconds: number;
+          estimated_one_rep_max_grams: number | null;
+          exercise_id: string;
+          load_grams: number | null;
+          pace_seconds_per_meter: number | null;
+          position: number;
+          reps: number | null;
+          rpe: number | null;
+          session_exercise_id: string;
+          session_id: string;
+          set_id: string;
+          duration_seconds: number | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       admin_list_users: {
         Args: {

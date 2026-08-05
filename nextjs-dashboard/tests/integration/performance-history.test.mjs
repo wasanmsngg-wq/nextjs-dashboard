@@ -72,15 +72,27 @@ where id='72000000-0000-4000-8000-000000000001';
 select 'snapshot=' || exercise_name_snapshot
 from public.workout_session_exercises
 where exercise_id='72000000-0000-4000-8000-000000000001';
+select 'history_rows=' || count(*)
+from public.performance_exercise_history
+where exercise_id='72000000-0000-4000-8000-000000000001';
+select 'estimated_1rm=' || estimated_one_rep_max_grams
+from public.performance_exercise_sets
+where set_id='75000000-0000-4000-8000-000000000001';
 
 set local request.jwt.claim.sub = '71000000-0000-4000-8000-000000000002';
 select 'other_sessions=' || count(*) from public.workout_sessions;
 select 'other_exercises=' || count(*) from public.workout_session_exercises
 where exercise_id='72000000-0000-4000-8000-000000000001';
+select 'other_performance=' || count(*)
+from public.performance_exercise_sets
+where exercise_id='72000000-0000-4000-8000-000000000001';
 rollback;
   `);
 
   assert.match(output, /snapshot=Original lift/);
+  assert.match(output, /history_rows=1/);
+  assert.match(output, /estimated_1rm=116667/);
   assert.match(output, /other_sessions=0/);
   assert.match(output, /other_exercises=0/);
+  assert.match(output, /other_performance=0/);
 });

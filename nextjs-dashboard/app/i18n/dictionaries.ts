@@ -535,6 +535,54 @@ const th: Record<string, string> = {
   "Not available": "ไม่มีข้อมูล",
   "{hours} hr {minutes} min": "{hours} ชม. {minutes} นาที",
   "{minutes} min": "{minutes} นาที",
+  "Back to workout history": "กลับไปหน้าประวัติการออกกำลังกาย",
+  "Exercise performance": "ประสิทธิภาพของท่าออกกำลังกาย",
+  "Review completed sets and personal bests calculated from immutable workout records.":
+    "ดูเซตที่เสร็จแล้วและสถิติส่วนตัวที่คำนวณจากบันทึกการออกกำลังกายที่แก้ไขไม่ได้",
+  "This exercise is archived. Its history remains available.":
+    "ท่าออกกำลังกายนี้ถูกเก็บถาวรแล้ว แต่ยังดูประวัติได้",
+  "Personal bests": "สถิติส่วนตัว",
+  "Only completed sets from non-canceled exercises qualify. Equal results keep the earliest date.":
+    "นับเฉพาะเซตที่เสร็จแล้วจากท่าที่ไม่ถูกยกเลิก หากผลเท่ากันจะเก็บวันที่ทำได้ก่อน",
+  "First achieved {date}": "ทำได้ครั้งแรกเมื่อ {date}",
+  "View record": "ดูบันทึก",
+  "No qualifying personal bests yet.": "ยังไม่มีสถิติส่วนตัวที่เข้าเกณฑ์",
+  "Complete a set with repetitions, load, duration, or distance to establish a personal best.":
+    "ทำเซตที่มีจำนวนครั้ง น้ำหนัก ระยะเวลา หรือระยะทางให้เสร็จเพื่อสร้างสถิติส่วนตัว",
+  "How estimates work": "วิธีคำนวณค่าประมาณ",
+  "Estimated 1RM uses the Epley v1 formula for 1 to 10 repetitions. Bodyweight without recorded external load can set a repetition best, but not a load or estimated 1RM best.":
+    "ค่า 1RM โดยประมาณใช้สูตร Epley v1 สำหรับ 1 ถึง 10 ครั้ง ท่าบอดี้เวทที่ไม่ได้บันทึกน้ำหนักภายนอกทำสถิติจำนวนครั้งได้ แต่ทำสถิติน้ำหนักหรือ 1RM โดยประมาณไม่ได้",
+  "Exercise history": "ประวัติท่าออกกำลังกาย",
+  "{count} exercise records found": "พบบันทึกท่าออกกำลังกาย {count} รายการ",
+  "Displayed in {units}": "แสดงผลเป็น {units}",
+  "US units": "หน่วยสหรัฐฯ",
+  "Metric units": "หน่วยเมตริก",
+  "Set results for {workout}": "ผลเซตสำหรับ {workout}",
+  Result: "ผลลัพธ์",
+  Set: "เซต",
+  RPE: "RPE",
+  "Not completed": "ยังไม่เสร็จ",
+  "No notes": "ไม่มีบันทึก",
+  "No sets recorded.": "ไม่มีเซตที่บันทึกไว้",
+  "No completed exercise history yet.":
+    "ยังไม่มีประวัติท่าออกกำลังกายที่เสร็จแล้ว",
+  "Complete this exercise in a workout to see its history here.":
+    "ทำท่านี้ให้เสร็จในการออกกำลังกายเพื่อดูประวัติที่นี่",
+  "Exercise history pages": "หน้าประวัติท่าออกกำลังกาย",
+  "Heaviest load": "น้ำหนักสูงสุด",
+  "Estimated 1RM": "1RM โดยประมาณ",
+  "Most repetitions": "จำนวนครั้งสูงสุด",
+  "Longest duration": "ระยะเวลานานที่สุด",
+  "Greatest distance": "ระยะทางไกลที่สุด",
+  "Fastest pace": "เพซเร็วที่สุด",
+  "{value} lb": "{value} ปอนด์",
+  "{value} mi": "{value} ไมล์",
+  "{value} km": "{value} กม.",
+  "{time} per mi": "{time} ต่อไมล์",
+  "{time} per km": "{time} ต่อกม.",
+  "{time} duration": "ระยะเวลา {time}",
+  "{time} set time": "เวลาเซต {time}",
+  "Catalog removed": "นำออกจากคลังแล้ว",
 };
 
 const dictionaries: Record<Locale, Record<string, string>> = { en: {}, th };

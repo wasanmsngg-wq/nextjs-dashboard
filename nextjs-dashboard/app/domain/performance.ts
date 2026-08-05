@@ -8,6 +8,28 @@ export type PerformanceSet = {
   distanceMeters: number | null;
 };
 
+export type PerformanceCandidate = PerformanceSet & {
+  setId: string;
+  sessionId: string;
+  achievedAt: string;
+};
+
+export const personalBestKinds = [
+  "load",
+  "estimatedOneRepMax",
+  "reps",
+  "duration",
+  "distance",
+  "pace",
+] as const;
+export type PersonalBestKind = (typeof personalBestKinds)[number];
+export type PersonalBest = {
+  kind: PersonalBestKind;
+  value: number;
+  candidate: PerformanceCandidate;
+  version: typeof PERFORMANCE_FORMULA_VERSION;
+};
+
 export function calculateVolume(sets: readonly PerformanceSet[]) {
   const qualifying = sets.filter(
     (set) =>
@@ -52,4 +74,63 @@ export function calculateSessionDurationSeconds(
   const difference = Date.parse(completedAt) - Date.parse(startedAt);
   if (!Number.isFinite(difference)) return null;
   return Math.max(0, Math.floor(difference / 1000));
+}
+
+export function selectPersonalBests(
+  candidates: readonly PerformanceCandidate[],
+): Partial<Record<PersonalBestKind, PersonalBest>> {
+  const bests: Partial<Record<PersonalBestKind, PersonalBest>> = {};
+  const consider = (
+    kind: PersonalBestKind,
+    value: number | null,
+    candidate: PerformanceCandidate,
+    lowerIsBetter = false,
+  ) => {
+    if (value === null || !Number.isFinite(value) || value <= 0) return;
+    const current = bests[kind];
+    const isBetter =
+      !current ||
+      (lowerIsBetter ? value < current.value : value > current.value) ||
+      (value === current.value &&
+        Date.parse(candidate.achievedAt) <
+          Date.parse(current.candidate.achievedAt));
+    if (isBetter)
+      bests[kind] = {
+        kind,
+        value,
+        candidate,
+        version: PERFORMANCE_FORMULA_VERSION,
+      };
+  };
+
+  for (const candidate of candidates) {
+    if (!candidate.completed) continue;
+    consider(
+      "load",
+      candidate.reps !== null && candidate.reps > 0
+        ? candidate.loadGrams
+        : null,
+      candidate,
+    );
+    consider(
+      "estimatedOneRepMax",
+      estimateEpleyOneRepMax(candidate.loadGrams, candidate.reps),
+      candidate,
+    );
+    consider("reps", candidate.reps, candidate);
+    consider("duration", candidate.durationSeconds, candidate);
+    consider("distance", candidate.distanceMeters, candidate);
+    consider(
+      "pace",
+      candidate.durationSeconds !== null &&
+        candidate.durationSeconds > 0 &&
+        candidate.distanceMeters !== null &&
+        candidate.distanceMeters > 0
+        ? candidate.durationSeconds / candidate.distanceMeters
+        : null,
+      candidate,
+      true,
+    );
+  }
+  return bests;
 }

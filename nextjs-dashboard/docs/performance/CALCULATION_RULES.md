@@ -63,8 +63,7 @@ Eligible completed sets may produce the following records:
 - fastest pace only when both positive distance and duration are present.
 
 Equal results retain the earliest achievement timestamp. Missing values never
-beat recorded values. Personal-best presentation and exercise detail history
-are deferred to the next Phase 3 slice.
+beat recorded values.
 
 ## Stability
 

@@ -39,5 +39,10 @@ export {
   calculateSessionDurationSeconds,
   calculateVolume,
   estimateEpleyOneRepMax,
+  personalBestKinds,
+  selectPersonalBests,
+  type PerformanceCandidate,
   type PerformanceSet,
+  type PersonalBest,
+  type PersonalBestKind,
 } from "./performance";

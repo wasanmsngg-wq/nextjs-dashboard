@@ -92,7 +92,7 @@ export async function loadWorkoutHistory(
     ? await supabase
         .from("workout_session_exercises")
         .select(
-          "id,session_id,exercise_name_snapshot,status,completed,position",
+          "id,session_id,exercise_id,exercise_name_snapshot,status,completed,position",
         )
         .in("session_id", sessionIds)
         .order("position")
@@ -112,6 +112,7 @@ export async function loadWorkoutHistory(
     Database["public"]["Tables"]["workout_session_exercises"]["Row"],
     | "id"
     | "session_id"
+    | "exercise_id"
     | "exercise_name_snapshot"
     | "status"
     | "completed"

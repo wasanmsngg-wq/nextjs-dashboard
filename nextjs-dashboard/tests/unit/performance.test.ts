@@ -4,6 +4,7 @@ import {
   calculateSessionDurationSeconds,
   calculateVolume,
   estimateEpleyOneRepMax,
+  selectPersonalBests,
 } from "../../app/domain";
 import { localDateBoundaryUtc } from "../../app/features/performance/date-boundaries";
 import {
@@ -65,6 +66,74 @@ describe("performance calculation contract v1", () => {
       ),
     ).toBe(0);
     expect(calculateSessionDurationSeconds("invalid", null)).toBeNull();
+  });
+
+  it("selects deterministic personal bests and keeps the earliest tie", () => {
+    const later = {
+      setId: "later",
+      sessionId: "session-later",
+      achievedAt: "2026-08-02T00:00:00.000Z",
+      completed: true,
+      reps: 5,
+      loadGrams: 100_000,
+      durationSeconds: 300,
+      distanceMeters: 1_000,
+    };
+    const earlier = {
+      ...later,
+      setId: "earlier",
+      sessionId: "session-earlier",
+      achievedAt: "2026-08-01T00:00:00.000Z",
+    };
+    const faster = {
+      ...later,
+      setId: "faster",
+      reps: 3,
+      loadGrams: 90_000,
+      durationSeconds: 240,
+    };
+    const bests = selectPersonalBests([later, earlier, faster]);
+    expect(bests.load?.candidate.setId).toBe("earlier");
+    expect(bests.estimatedOneRepMax?.value).toBe(116_667);
+    expect(bests.reps?.candidate.setId).toBe("earlier");
+    expect(bests.duration?.candidate.setId).toBe("earlier");
+    expect(bests.distance?.candidate.setId).toBe("earlier");
+    expect(bests.pace?.candidate.setId).toBe("faster");
+  });
+
+  it("allows a bodyweight repetition best without inventing load", () => {
+    const bests = selectPersonalBests([
+      {
+        setId: "bodyweight",
+        sessionId: "session",
+        achievedAt: "2026-08-01T00:00:00.000Z",
+        completed: true,
+        reps: 20,
+        loadGrams: null,
+        durationSeconds: null,
+        distanceMeters: null,
+      },
+    ]);
+    expect(bests.reps?.value).toBe(20);
+    expect(bests.load).toBeUndefined();
+    expect(bests.estimatedOneRepMax).toBeUndefined();
+  });
+
+  it("ignores incomplete candidates and missing values", () => {
+    expect(
+      selectPersonalBests([
+        {
+          setId: "incomplete",
+          sessionId: "session",
+          achievedAt: "2026-08-01T00:00:00.000Z",
+          completed: false,
+          reps: 100,
+          loadGrams: 100_000,
+          durationSeconds: null,
+          distanceMeters: null,
+        },
+      ]),
+    ).toEqual({});
   });
 });
 
