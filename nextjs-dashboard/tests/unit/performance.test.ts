@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   PERFORMANCE_FORMULA_VERSION,
-  calculateSessionDurationSeconds,
+  calculateActiveTimeSeconds,
   calculateVolume,
   estimateEpleyOneRepMax,
   fillWeeklyPerformanceGaps,
@@ -59,20 +59,19 @@ describe("performance calculation contract v1", () => {
     expect(estimateEpleyOneRepMax(null, 5)).toBeNull();
   });
 
-  it("calculates non-negative completed session duration", () => {
+  it("sums only positive elapsed time from completed sets", () => {
     expect(
-      calculateSessionDurationSeconds(
-        "2026-08-05T01:00:00.000Z",
-        "2026-08-05T02:02:03.900Z",
-      ),
-    ).toBe(3723);
-    expect(
-      calculateSessionDurationSeconds(
-        "2026-08-05T02:00:00.000Z",
-        "2026-08-05T01:00:00.000Z",
-      ),
-    ).toBe(0);
-    expect(calculateSessionDurationSeconds("invalid", null)).toBeNull();
+      calculateActiveTimeSeconds([
+        { completed: true, elapsedSeconds: 9 },
+        { completed: true, elapsedSeconds: 7 },
+        { completed: false, elapsedSeconds: 999 },
+        { completed: true, elapsedSeconds: 8 },
+        { completed: true, elapsedSeconds: 0 },
+        { completed: true, elapsedSeconds: -1 },
+        { completed: true, elapsedSeconds: 1.5 },
+      ]),
+    ).toBe(24);
+    expect(calculateActiveTimeSeconds([])).toBe(0);
   });
 
   it("selects deterministic personal bests and keeps the earliest tie", () => {

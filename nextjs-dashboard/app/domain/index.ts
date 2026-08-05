@@ -36,13 +36,14 @@ export {
 } from "./workouts";
 export {
   PERFORMANCE_FORMULA_VERSION,
-  calculateSessionDurationSeconds,
+  calculateActiveTimeSeconds,
   calculateVolume,
   estimateEpleyOneRepMax,
   fillWeeklyPerformanceGaps,
   personalBestKinds,
   selectPersonalBests,
   summarizePerformanceTrend,
+  type ActiveTimeSet,
   type PerformanceCandidate,
   type PerformanceSet,
   type PerformanceTrendSummary,

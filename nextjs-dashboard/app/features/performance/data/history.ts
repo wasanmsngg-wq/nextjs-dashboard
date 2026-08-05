@@ -1,7 +1,7 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { calculateSessionDurationSeconds } from "@/app/domain";
+import { calculateActiveTimeSeconds } from "@/app/domain";
 import { createSupabaseServerClient } from "@/app/lib/supabase/server";
 import type { Locale } from "@/app/domain";
 import type { Database } from "@/app/lib/database.types";
@@ -103,7 +103,7 @@ export async function loadWorkoutHistory(
   const { data: sets, error: setsError } = exerciseIds.length
     ? await supabase
         .from("workout_sets")
-        .select("session_exercise_id,completed")
+        .select("session_exercise_id,completed,elapsed_seconds")
         .in("session_exercise_id", exerciseIds)
     : { data: [], error: null };
   if (setsError) throw new Error("Workout history could not be loaded.");
@@ -120,7 +120,7 @@ export async function loadWorkoutHistory(
   >;
   type SelectedSet = Pick<
     Database["public"]["Tables"]["workout_sets"]["Row"],
-    "session_exercise_id" | "completed"
+    "session_exercise_id" | "completed" | "elapsed_seconds"
   >;
   const exercisesBySession = new Map<string, SelectedExercise[]>();
   for (const exercise of exercises ?? []) {
@@ -143,9 +143,11 @@ export async function loadWorkoutHistory(
         .flatMap((exercise) => setsByExercise.get(exercise.id) ?? []);
       return {
         ...session,
-        durationSeconds: calculateSessionDurationSeconds(
-          session.started_at,
-          session.completed_at,
+        durationSeconds: calculateActiveTimeSeconds(
+          sessionSets.map((set) => ({
+            completed: set.completed,
+            elapsedSeconds: set.elapsed_seconds,
+          })),
         ),
         exercises: sessionExercises.map((exercise) => ({
           ...exercise,

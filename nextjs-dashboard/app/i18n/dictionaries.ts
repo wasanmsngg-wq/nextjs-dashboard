@@ -500,8 +500,8 @@ const th: Record<string, string> = {
   Performance: "ประสิทธิภาพ",
   Progress: "ความก้าวหน้า",
   "View progress": "ดูความก้าวหน้า",
-  "Review weekly training volume, strength estimates, duration, and consistency.":
-    "ดูปริมาณการฝึกรายสัปดาห์ ค่าประมาณความแข็งแรง ระยะเวลา และความสม่ำเสมอ",
+  "Review weekly training volume, strength estimates, active time, and consistency.":
+    "ดูปริมาณการฝึกรายสัปดาห์ ค่าประมาณความแข็งแรง เวลาที่ใช้จริง และความสม่ำเสมอ",
   "Progress filters": "ตัวกรองความก้าวหน้า",
   "Time range": "ช่วงเวลา",
   "Last {count} weeks": "{count} สัปดาห์ล่าสุด",
@@ -517,8 +517,8 @@ const th: Record<string, string> = {
   "Peak estimated 1RM": "ค่า 1RM โดยประมาณสูงสุด",
   "Epley estimate from 1 to 10 repetitions":
     "ค่าประมาณ Epley จากการทำ 1 ถึง 10 ครั้ง",
-  "Workout duration": "ระยะเวลาการออกกำลังกาย",
-  "Completed-session wall-clock time": "เวลาจริงของเซสชันที่เสร็จแล้ว",
+  "Active time": "เวลาที่ใช้จริง",
+  "Completed-set active time": "เวลาที่ใช้จริงของเซตที่ทำเสร็จแล้ว",
   Consistency: "ความสม่ำเสมอ",
   "{count} workouts": "{count} การออกกำลังกาย",
   "{count} active days": "{count} วันที่ออกกำลังกาย",
