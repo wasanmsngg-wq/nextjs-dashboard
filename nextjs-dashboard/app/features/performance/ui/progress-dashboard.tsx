@@ -13,6 +13,7 @@ import { Surface } from "@/app/ui/atoms/surface";
 import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 import { BarChart, type BarChartPoint } from "@/app/ui/molecules/bar-chart";
 import { PageHeading } from "@/app/ui/molecules/page-heading";
+import { formatActiveTime } from "../format-active-time";
 
 type Translation = (
   key: string,
@@ -76,7 +77,7 @@ export function ProgressDashboard({
         eyebrow={t("Performance")}
         title={t("Progress")}
         description={t(
-          "Review weekly training volume, strength estimates, duration, and consistency.",
+          "Review weekly training volume, strength estimates, active time, and consistency.",
         )}
       />
 
@@ -175,9 +176,9 @@ export function ProgressDashboard({
                 detail={t("Epley estimate from 1 to 10 repetitions")}
               />
               <MetricCard
-                label={t("Workout duration")}
-                value={formatDuration(result.summary.durationSeconds, t)}
-                detail={t("Completed-session wall-clock time")}
+                label={t("Active time")}
+                value={formatActiveTime(result.summary.durationSeconds, t)}
+                detail={t("Completed-set active time")}
               />
               <MetricCard
                 label={t("Consistency")}
@@ -237,12 +238,12 @@ export function ProgressDashboard({
               </Surface>
               <Surface>
                 <BarChart
-                  title={t("Workout duration")}
+                  title={t("Active time")}
                   titleId="duration-chart-heading"
                   descriptionId={tableId}
                   points={chartPoints(
                     (week) => week.durationSeconds,
-                    (week) => formatDuration(week.durationSeconds, t),
+                    (week) => formatActiveTime(week.durationSeconds, t),
                   )}
                 />
               </Surface>
@@ -291,7 +292,7 @@ export function ProgressDashboard({
                       "Active days",
                       "Training volume",
                       "Peak estimated 1RM",
-                      "Workout duration",
+                      "Active time",
                       "Completed sets",
                       "Bodyweight repetitions",
                     ].map((heading) => (
@@ -336,7 +337,7 @@ export function ProgressDashboard({
                         )}
                       </td>
                       <td className="px-3 py-3 text-slate-700">
-                        {formatDuration(week.durationSeconds, t)}
+                        {formatActiveTime(week.durationSeconds, t)}
                       </td>
                       <td className="px-3 py-3 text-slate-700">
                         {week.completedSets}
@@ -399,12 +400,4 @@ function formatOptionalLoad(
     2,
   );
   return t(unitSystem === "us" ? "{value} lb" : "{value} kg", { value });
-}
-
-function formatDuration(seconds: number, t: Translation) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  return hours
-    ? t("{hours} hr {minutes} min", { hours, minutes })
-    : t("{minutes} min", { minutes });
 }

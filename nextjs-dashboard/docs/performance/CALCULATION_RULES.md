@@ -37,11 +37,16 @@ in grams, rounded to the nearest gram, and converted only for display. Sets over
 unreliable at high repetition counts. This is a training estimate, not medical
 or diagnostic advice.
 
-## Duration v1
+## Duration v2
 
-Session duration is the non-negative whole-second difference between
-`completed_at` and `started_at`. Persisted per-set elapsed time remains a
-separate measurement and must not replace wall-clock session duration.
+Active workout time is the sum of positive `elapsed_seconds` values from
+eligible completed sets. Canceled exercises and incomplete sets are excluded.
+Zero or unrecorded elapsed time contributes zero; Exercise Tracker does not
+infer missing active time.
+
+`started_at` and `completed_at` remain historical metadata. Their difference is
+not presented as active workout time. A future pause/resume session timer,
+including rest time, is a separate enhancement.
 
 ## Consistency v1
 
@@ -62,7 +67,7 @@ than disappearing.
 - Weekly volume is the sum of eligible set volume.
 - Weekly estimated 1RM is the highest eligible Epley estimate, not a sum or an
   average across exercises.
-- Weekly duration is the sum of completed-session wall-clock duration.
+- Weekly active time is the sum of eligible completed-set `elapsed_seconds`.
 - Weekly consistency reports session count and distinct active days.
 - An exercise filter includes sessions where that exercise was retained and
   not canceled, then aggregates eligible sets for that exercise only.

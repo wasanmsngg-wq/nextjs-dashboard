@@ -23,6 +23,13 @@ const aggregateMigration = readFileSync(
   ),
   "utf8",
 );
+const activeTimeMigration = readFileSync(
+  new URL(
+    "../supabase/migrations/20260805152700_performance_weekly_summary.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 test("performance history migration is additive and indexed", () => {
   assert.match(
@@ -71,4 +78,42 @@ test("weekly aggregates preserve ownership, timezone, and formula contracts", ()
   assert.match(aggregateMigration, /and ws\.completed/i);
   assert.match(aggregateMigration, /grant execute[\s\S]*to authenticated/i);
   assert.doesNotMatch(aggregateMigration, /drop table|truncate|delete from/i);
+});
+
+test("weekly aggregate roll-forward uses completed-set active time", () => {
+  assert.match(
+    activeTimeMigration,
+    /create or replace function public\.performance_weekly_summary\s*\(\s*requested_start_date date,\s*requested_end_date date,\s*requested_exercise_id uuid default null\s*\)/i,
+  );
+  assert.match(activeTimeMigration, /security invoker/i);
+  assert.match(activeTimeMigration, /s\.user_id\s*=\s*auth\.uid\(\)/i);
+  assert.match(
+    activeTimeMigration,
+    /requested_start_date\s*<=\s*requested_end_date/i,
+  );
+  assert.match(
+    activeTimeMigration,
+    /requested_end_date\s*-\s*requested_start_date\s*<=\s*366/i,
+  );
+  assert.match(
+    activeTimeMigration,
+    /between requested_start_date and requested_end_date/i,
+  );
+  assert.match(
+    activeTimeMigration,
+    /coalesce\(sum\(ws\.elapsed_seconds\),\s*0\)/i,
+  );
+  assert.match(activeTimeMigration, /se\.status\s*<>\s*'canceled'/i);
+  assert.match(activeTimeMigration, /and ws\.completed/i);
+  assert.match(
+    activeTimeMigration,
+    /revoke all on function[\s\S]*from public/i,
+  );
+  assert.match(
+    activeTimeMigration,
+    /grant execute on function[\s\S]*to authenticated/i,
+  );
+  assert.doesNotMatch(activeTimeMigration, /completed_at\s*-\s*s\.started_at/i);
+  assert.doesNotMatch(activeTimeMigration, /extract\s*\(\s*epoch/i);
+  assert.doesNotMatch(activeTimeMigration, /drop table|truncate|delete from/i);
 });

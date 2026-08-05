@@ -746,7 +746,35 @@ Completed in the aggregate and visualization slice:
       presentation acceptance beyond the session-history states covered here.
 
 Evidence is recorded in `tests/QA_V0.3_HISTORY_EVIDENCE.md`. Phase 3 feature
-implementation and local automated acceptance are complete. Staging backup,
-migration application, manual Preview acceptance, release merge, and the
-annotated `v0.3.0` tag remain separate evidence-backed release gates. This work
-applies no staging or production migration and creates no release tag.
+implementation and local automated acceptance are complete. The original Phase
+3 staging migrations and the active-time correction are applied with backup
+evidence. Focused manual Preview acceptance and the annotated `v0.3.0` tag
+remain separate evidence-backed release gates. No production migration or
+deployment has been performed.
+
+## 20. v0.3.0 active-time correction
+
+Tracking issue: [#42](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/42)
+
+Branch: `fix/42-active-workout-duration`
+
+- [x] Replace wall-clock workout duration with completed-set active time in
+      workout history and weekly progress.
+- [x] Exclude canceled exercises and incomplete sets and define zero or
+      unrecorded elapsed time as zero contribution.
+- [x] Add the roll-forward weekly-summary migration without rewriting workout
+      records or changing the database function signature.
+- [x] Add English and Thai active-time wording and equivalent accessible chart
+      and table values.
+- [x] Add unit, migration-contract, integration, and five-project Playwright
+      regressions, including a 187,708-second wall-clock session whose 9, 7,
+      and 8-second completed sets total 24 active seconds.
+- [x] Verify Vercel Preview targets staging project
+      `rnmzyccanuwacsxqpzez`, retain the pre-correction Free-plan
+      application-logical backup, and apply migration `20260805152700` only to
+      staging.
+- [ ] Complete focused manual Preview acceptance after the corrective branch
+      deployment.
+
+No production migration, production deployment, production-branch change, or
+release tag is part of this correction.

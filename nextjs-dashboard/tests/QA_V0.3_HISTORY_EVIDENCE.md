@@ -14,12 +14,13 @@ aggregates, and accessible progress visualization.
 - ESLint with zero warnings: passed.
 - Unit tests: 49 passed, including formula, personal-best, aggregate summary,
   explicit weekly gaps, bounded filters, timezone, and DST boundaries.
-- Contract tests: 29 passed, including all three additive performance
+- Contract tests: 30 passed, including all four additive performance
   migration contracts.
 - Disposable local Supabase reset: passed through
-  `20260805150000_performance_aggregates.sql`.
-- Integration tests: 13 passed, including history ownership, snapshot
-  stability, and a hand-calculated owner-isolated aggregate fixture.
+  `20260805152700_performance_weekly_summary.sql`.
+- Integration tests: 14 passed, including history ownership, snapshot
+  stability, a hand-calculated owner-isolated aggregate fixture, and a
+  multi-day session that resolves to 24 seconds of active time.
 - Production build: passed and emitted `/workouts/history` and
   `/workouts/progress` as dynamic routes.
 - Production dependency audit: no known vulnerabilities.
@@ -38,7 +39,7 @@ no reproducible history defect was found.
 ## Formatting baseline
 
 All changed files pass focused Prettier formatting. Repository-wide
-`pnpm format:check` reports 150 pre-existing files outside this slice as stale
+`pnpm format:check` reports 149 pre-existing files outside this slice as stale
 under the currently pinned formatter, so unrelated files were not bulk
 rewritten.
 
@@ -54,11 +55,21 @@ rewritten.
   `auth.uid()` ownership, saved-timezone weeks with a UTC fallback, and a
   maximum 366-day database range.
 
-## Not performed
+## Staging correction evidence
 
-- No staging or production migration.
-- No staging or production deployment.
-- No push, pull request, merge, or release tag.
+- Vercel Preview variables were pulled immediately before migration and resolve
+  to staging project `rnmzyccanuwacsxqpzez`.
+- The retained pre-correction Free-plan application-logical backup contains
+  public data, auth metadata, migration replay files, a manifest, and SHA-256
+  checksums. Supabase-managed point-in-time recovery is unavailable on the Free
+  plan.
+- Migration `20260805152700_performance_weekly_summary.sql` was applied to
+  staging transactionally and recorded in the migration ledger.
+- A post-application read-only check confirmed the function sums
+  `workout_sets.elapsed_seconds`, contains no wall-clock epoch calculation, and
+  reports 24 seconds across the three completed sets for session
+  `bf0796e8-5d53-455d-ab51-c0badce4e4df`.
+- No production migration, production deployment, or release tag was performed.
 
 ## Exercise-detail slice
 
@@ -84,9 +95,11 @@ rewritten.
 
 - The hand-calculated database fixture confirms two same-day sessions count as
   two sessions and one active day; `860,000` gram-repetitions of volume;
-  `132,000` grams peak Epley estimated 1RM; `5,400` seconds duration; canceled
-  and incomplete sets excluded; bodyweight repetitions separate; and a lower
-  deload week retained.
+  `132,000` grams peak Epley estimated 1RM; `110` seconds of completed-set
+  active time; canceled and incomplete sets excluded; bodyweight repetitions
+  separate; and a lower deload week retained.
+- A separate regression fixture spans 187,708 wall-clock seconds but reports
+  exactly 24 active seconds from completed sets of 9, 7, and 8 seconds.
 - Missing load on a load-tracked set remains missing instead of becoming zero
   or bodyweight work. A repetitions-only set contributes bodyweight
   repetitions without inventing volume or estimated 1RM.

@@ -82,15 +82,15 @@ insert into public.workout_session_exercises(
    '82000000-0000-4000-8000-000000000001','Aggregate lift','reps_load',0,true,'active',null,null);
 
 insert into public.workout_sets(
-  id,session_exercise_id,position,completed,reps,load_grams
+  id,session_exercise_id,position,completed,reps,load_grams,elapsed_seconds
 ) values
-  ('85000000-0000-4000-8000-000000000001','84000000-0000-4000-8000-000000000001',0,true,5,100000),
-  ('85000000-0000-4000-8000-000000000002','84000000-0000-4000-8000-000000000002',0,true,20,null),
-  ('85000000-0000-4000-8000-000000000003','84000000-0000-4000-8000-000000000003',0,true,3,120000),
-  ('85000000-0000-4000-8000-000000000004','84000000-0000-4000-8000-000000000004',0,true,10,200000),
-  ('85000000-0000-4000-8000-000000000005','84000000-0000-4000-8000-000000000005',0,true,8,60000),
-  ('85000000-0000-4000-8000-000000000006','84000000-0000-4000-8000-000000000005',1,false,100,300000),
-  ('85000000-0000-4000-8000-000000000007','84000000-0000-4000-8000-000000000001',1,true,10,null);
+  ('85000000-0000-4000-8000-000000000001','84000000-0000-4000-8000-000000000001',0,true,5,100000,10),
+  ('85000000-0000-4000-8000-000000000002','84000000-0000-4000-8000-000000000002',0,true,20,null,20),
+  ('85000000-0000-4000-8000-000000000003','84000000-0000-4000-8000-000000000003',0,true,3,120000,30),
+  ('85000000-0000-4000-8000-000000000004','84000000-0000-4000-8000-000000000004',0,true,10,200000,999),
+  ('85000000-0000-4000-8000-000000000005','84000000-0000-4000-8000-000000000005',0,true,8,60000,40),
+  ('85000000-0000-4000-8000-000000000006','84000000-0000-4000-8000-000000000005',1,false,100,300000,999),
+  ('85000000-0000-4000-8000-000000000007','84000000-0000-4000-8000-000000000001',1,true,10,null,50);
 
 select 'all=' || row_to_json(summary)
 from public.performance_weekly_summary('2026-07-27','2026-08-05',null) summary;
@@ -107,15 +107,78 @@ rollback;
 
   assert.match(
     output,
-    /all=\{"week_start":"2026-07-27","session_count":2,"active_days":1,"volume_grams":860000,"peak_estimated_one_rep_max_grams":132000,"duration_seconds":5400,"completed_sets":4,"bodyweight_reps":20\}/,
+    /all=\{"week_start":"2026-07-27","session_count":2,"active_days":1,"volume_grams":860000,"peak_estimated_one_rep_max_grams":132000,"duration_seconds":110,"completed_sets":4,"bodyweight_reps":20\}/,
   );
   assert.match(
     output,
-    /all=\{"week_start":"2026-08-03","session_count":1,"active_days":1,"volume_grams":480000,"peak_estimated_one_rep_max_grams":76000,"duration_seconds":2700,"completed_sets":1,"bodyweight_reps":0\}/,
+    /all=\{"week_start":"2026-08-03","session_count":1,"active_days":1,"volume_grams":480000,"peak_estimated_one_rep_max_grams":76000,"duration_seconds":40,"completed_sets":1,"bodyweight_reps":0\}/,
   );
   assert.match(
     output,
-    /filtered=\{"week_start":"2026-07-27","session_count":2,"active_days":1,"volume_grams":860000,"peak_estimated_one_rep_max_grams":132000,"duration_seconds":5400,"completed_sets":3,"bodyweight_reps":0\}/,
+    /filtered=\{"week_start":"2026-07-27","session_count":2,"active_days":1,"volume_grams":860000,"peak_estimated_one_rep_max_grams":132000,"duration_seconds":90,"completed_sets":3,"bodyweight_reps":0\}/,
   );
   assert.match(output, /other=0/);
+});
+
+test("active duration ignores a multi-day wall-clock gap", () => {
+  const output = runSql(String.raw`
+begin;
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at
+) values (
+  '00000000-0000-0000-0000-000000000000',
+  '91000000-0000-4000-8000-000000000001',
+  'authenticated','authenticated','active-duration@example.test','',
+  now(),'{}','{}',now(),now()
+);
+
+set local role authenticated;
+set local request.jwt.claim.sub = '91000000-0000-4000-8000-000000000001';
+
+insert into public.exercises(id,user_id,name,tracking_mode) values (
+  '92000000-0000-4000-8000-000000000001',
+  '91000000-0000-4000-8000-000000000001',
+  'Squat','reps_load'
+);
+
+insert into public.workout_sessions(
+  id,user_id,status,started_at,completed_at
+) values (
+  '93000000-0000-4000-8000-000000000001',
+  '91000000-0000-4000-8000-000000000001',
+  'completed',
+  '2026-08-03T03:59:27.394438Z',
+  '2026-08-05T08:07:56.026582Z'
+);
+
+insert into public.workout_session_exercises(
+  id,session_id,exercise_id,exercise_name_snapshot,tracking_mode,
+  position,completed,status,cancellation_reason,canceled_at
+) values (
+  '94000000-0000-4000-8000-000000000001',
+  '93000000-0000-4000-8000-000000000001',
+  '92000000-0000-4000-8000-000000000001',
+  'Squat','reps_load',0,true,'active',null,null
+);
+
+insert into public.workout_sets(
+  id,session_exercise_id,position,completed,reps,load_grams,elapsed_seconds
+) values
+  ('95000000-0000-4000-8000-000000000001','94000000-0000-4000-8000-000000000001',0,true,10,12000,9),
+  ('95000000-0000-4000-8000-000000000002','94000000-0000-4000-8000-000000000001',1,true,10,12000,7),
+  ('95000000-0000-4000-8000-000000000003','94000000-0000-4000-8000-000000000001',2,true,10,12000,8);
+
+select 'wall_clock=' || floor(extract(epoch from (completed_at - started_at)))::bigint
+from public.workout_sessions
+where id = '93000000-0000-4000-8000-000000000001';
+
+select 'active_duration=' || duration_seconds
+from public.performance_weekly_summary('2026-08-03','2026-08-05',null);
+rollback;
+  `);
+
+  assert.match(output, /wall_clock=187708/);
+  assert.match(output, /active_duration=24/);
 });

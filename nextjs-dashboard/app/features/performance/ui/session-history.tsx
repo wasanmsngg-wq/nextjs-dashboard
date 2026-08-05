@@ -6,6 +6,7 @@ import { Input, Select } from "@/app/ui/atoms/form-control";
 import { Surface } from "@/app/ui/atoms/surface";
 import { BackNavigation } from "@/app/ui/molecules/back-navigation";
 import { PageHeading } from "@/app/ui/molecules/page-heading";
+import { formatActiveTime } from "../format-active-time";
 
 type Translation = (
   key: string,
@@ -19,7 +20,7 @@ type HistoryResult = {
     notes: string;
     started_at: string;
     completed_at: string | null;
-    durationSeconds: number | null;
+    durationSeconds: number;
     completedSets: number;
     totalSets: number;
     exercises: Array<{
@@ -182,10 +183,10 @@ export function SessionHistory({
               <dl className="grid gap-3 text-sm sm:grid-cols-3">
                 <div>
                   <dt className="font-semibold text-slate-950">
-                    {t("Duration")}
+                    {t("Active time")}
                   </dt>
                   <dd className="text-slate-600">
-                    {formatDuration(session.durationSeconds, t)}
+                    {formatActiveTime(session.durationSeconds, t)}
                   </dd>
                 </div>
                 <div>
@@ -286,12 +287,4 @@ export function SessionHistory({
       ) : null}
     </main>
   );
-}
-
-function formatDuration(seconds: number | null, t: Translation) {
-  if (seconds === null) return t("Not available");
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  if (hours) return t("{hours} hr {minutes} min", { hours, minutes });
-  return t("{minutes} min", { minutes });
 }

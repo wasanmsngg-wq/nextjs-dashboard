@@ -8,6 +8,11 @@ export type PerformanceSet = {
   distanceMeters: number | null;
 };
 
+export type ActiveTimeSet = {
+  completed: boolean;
+  elapsedSeconds: number;
+};
+
 export type PerformanceCandidate = PerformanceSet & {
   setId: string;
   sessionId: string;
@@ -81,14 +86,16 @@ export function estimateEpleyOneRepMax(
   return reps === 1 ? loadGrams : Math.round(loadGrams * (1 + reps / 30));
 }
 
-export function calculateSessionDurationSeconds(
-  startedAt: string,
-  completedAt: string | null,
-): number | null {
-  if (!completedAt) return null;
-  const difference = Date.parse(completedAt) - Date.parse(startedAt);
-  if (!Number.isFinite(difference)) return null;
-  return Math.max(0, Math.floor(difference / 1000));
+export function calculateActiveTimeSeconds(sets: readonly ActiveTimeSet[]) {
+  return sets.reduce(
+    (total, set) =>
+      set.completed &&
+      Number.isInteger(set.elapsedSeconds) &&
+      set.elapsedSeconds > 0
+        ? total + set.elapsedSeconds
+        : total,
+    0,
+  );
 }
 
 export function selectPersonalBests(

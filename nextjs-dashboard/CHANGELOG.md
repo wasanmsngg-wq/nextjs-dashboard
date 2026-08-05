@@ -7,8 +7,10 @@
   accessible empty, loading, and error states.
 - Add exercise-detail history with deterministic personal bests, Epley 1RM
   estimates, immutable record links, and metric/US parity.
-- Add owner-scoped weekly progress for volume, estimated 1RM, workout duration,
-  consistency, completed sets, and bodyweight repetitions.
+- Add owner-scoped weekly progress for volume, estimated 1RM, completed-set
+  active time, consistency, completed sets, and bodyweight repetitions.
+- Prevent multi-day open sessions from inflating workout history and weekly
+  progress duration.
 - Add bilingual accessible charts with visible values, equivalent tables,
   bounded exercise/range filters, and empty/partial/large-history handling.
 
