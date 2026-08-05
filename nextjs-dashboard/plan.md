@@ -669,7 +669,7 @@ Release state:
 
 ## 16. Product backlog
 
-- [ ] Show a loading state and prevent duplicate submission on the workout
+- [x] Show a loading state and prevent duplicate submission on the workout
       session `Add` exercise button while the exercise is being added.
 
 ## 17. v0.2.0 staging release packaging
@@ -689,3 +689,23 @@ Release evidence: PR
 [#31](https://github.com/wasanmsngg-wq/nextjs-dashboard/pull/31) merged as
 `297dae26c23b6241a2d67d9776e0bdbc1696b403`; annotated tag `v0.2.0`
 peels to that commit.
+
+## 18. v0.2.1 staging patch release
+
+Tracking issue: [#36](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/36)
+
+- [x] Set the package version to `0.2.1` and document the patch scope.
+- [x] Include the secure administration and navigation improvements merged
+      after the `v0.2.0` tag.
+- [x] Show immediate loading state and prevent duplicate Add-exercise
+      submissions while preserving failure recovery.
+- [x] Pass formatting, linting, type checking, unit/contracts, integration,
+      production build, all five Playwright projects, dependency audit, and
+      `git diff --check`.
+- [ ] Merge the protected-branch release PR after GitHub Actions and Vercel
+      Preview pass.
+- [ ] Create and push annotated tag `v0.2.1` after the merge is verified.
+
+This patch has no database migration and performs no production migration,
+deployment, or production-branch change. Phase 3 begins only after this patch
+release is closed.

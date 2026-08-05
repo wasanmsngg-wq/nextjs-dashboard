@@ -216,10 +216,43 @@ test("registered user creates a template and completes an immutable workout", as
     label: "Browser Curl",
   });
   await page.getByLabel("Sets").fill("2");
-  await page.getByRole("button", { name: "Add", exact: true }).click();
+  const sessionUrl = page.url();
+  let addMutationRequests = 0;
+  let signalAddRequestStarted!: () => void;
+  let releaseAddRequest!: () => void;
+  const addRequestStarted = new Promise<void>((resolve) => {
+    signalAddRequestStarted = resolve;
+  });
+  const addRequestReleased = new Promise<void>((resolve) => {
+    releaseAddRequest = resolve;
+  });
+  await page.route(sessionUrl, async (route) => {
+    const request = route.request();
+    if (request.method() === "POST" && request.headers()["next-action"]) {
+      addMutationRequests += 1;
+      signalAddRequestStarted();
+      await addRequestReleased;
+    }
+    await route.continue();
+  });
+  const addButton = page.getByRole("button", { name: "Add", exact: true });
+  const addClick = addButton.click();
+  await addRequestStarted;
+  await expect(addButton).toBeDisabled();
+  await expect(addButton).toHaveAttribute("aria-busy", "true");
+  await expect(addButton).toHaveClass(/ant-btn-loading/);
+  await expect(page.getByLabel("Add exercise")).toBeDisabled();
+  await expect(page.getByLabel("Sets")).toBeDisabled();
+  await addButton.dispatchEvent("click");
+  releaseAddRequest();
+  await addClick;
   await expect(
     page.getByRole("heading", { name: "Browser Curl" }),
   ).toBeVisible();
+  expect(addMutationRequests).toBe(1);
+  await expect(addButton).toBeEnabled();
+  await expect(addButton).toHaveAttribute("aria-busy", "false");
+  await page.unroute(sessionUrl);
   await expect(page.getByText("Planned target")).toHaveCount(0);
   await page.getByRole("button", { name: "Remove", exact: true }).click();
   const removeDialog = page.getByRole("dialog", {
@@ -227,10 +260,22 @@ test("registered user creates a template and completes an immutable workout", as
   });
   await expect(removeDialog).toBeVisible();
   await removeDialog.getByRole("button", { name: "Remove exercise" }).click();
+  await expect(page.getByText("Exercise removed.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Browser Curl" })).toHaveCount(
     0,
   );
-  await expect(page.getByText("Exercise removed.")).toBeVisible();
+  await page.getByLabel("Sets").fill("0");
+  await addButton.click();
+  await expect(
+    page.locator('[role="alert"]').filter({
+      hasText: "Check the exercise and set count.",
+    }),
+  ).toBeVisible();
+  await expect(addButton).toBeEnabled();
+  await expect(addButton).toHaveAttribute("aria-busy", "false");
+  await expect(page.getByLabel("Add exercise")).toBeEnabled();
+  await expect(page.getByLabel("Sets")).toBeEnabled();
+  await page.getByLabel("Sets").fill("2");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Browser Curl" }),
