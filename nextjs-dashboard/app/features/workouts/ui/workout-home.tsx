@@ -53,6 +53,14 @@ export function WorkoutHome({
             <>
               <ButtonLink
                 className="border-white/60 text-white hover:!border-white hover:!text-white"
+                href="/workouts/progress"
+                icon={<ChartBarIcon className="h-5 w-5" />}
+                variant="secondary"
+              >
+                {t("Progress")}
+              </ButtonLink>
+              <ButtonLink
+                className="border-white/60 text-white hover:!border-white hover:!text-white"
                 href="/workouts/history/exercises"
                 icon={<TrophyIcon className="h-5 w-5" />}
                 variant="secondary"

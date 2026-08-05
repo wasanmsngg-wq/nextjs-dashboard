@@ -42,6 +42,21 @@ export const exerciseHistoryParamsSchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).catch(1),
 });
 
+export const progressFiltersSchema = z
+  .object({
+    weeks: z.coerce
+      .number()
+      .pipe(z.union([z.literal(4), z.literal(8), z.literal(12), z.literal(26)]))
+      .catch(12),
+    exercise: optionalExerciseId.catch(""),
+  })
+  .transform((filters) => ({
+    weeks: filters.weeks,
+    exerciseId: filters.exercise || undefined,
+  }));
+
+export type ProgressFilters = z.infer<typeof progressFiltersSchema>;
+
 export function validateHistoryDateRange(filters: HistoryFilters) {
   if (filters.from && filters.to && filters.from > filters.to)
     return "The start date must be before the end date." as const;

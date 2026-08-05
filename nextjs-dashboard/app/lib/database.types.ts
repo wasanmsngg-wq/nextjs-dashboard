@@ -371,6 +371,23 @@ export type Database = {
         Returns: boolean;
       };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      performance_weekly_summary: {
+        Args: {
+          requested_end_date: string;
+          requested_exercise_id?: string | null;
+          requested_start_date: string;
+        };
+        Returns: {
+          active_days: number;
+          bodyweight_reps: number;
+          completed_sets: number;
+          duration_seconds: number;
+          peak_estimated_one_rep_max_grams: number | null;
+          session_count: number;
+          volume_grams: number;
+          week_start: string;
+        }[];
+      };
       save_workout_template: {
         Args: {
           requested_exercises: Json;

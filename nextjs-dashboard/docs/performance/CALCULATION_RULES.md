@@ -51,6 +51,29 @@ It is not an adherence percentage because Phase 3 does not store a required
 weekly schedule. Multiple sessions on one local day count as multiple sessions
 but one active day.
 
+## Weekly progress presentation v1
+
+The progress view groups completed sessions by ISO week (Monday through
+Sunday) in the user's saved IANA timezone. Users without a saved profile use
+UTC, matching the application profile default. Ranges are bounded to 4, 8, 12,
+or 26 weeks; weeks without sessions remain explicit zero/missing rows rather
+than disappearing.
+
+- Weekly volume is the sum of eligible set volume.
+- Weekly estimated 1RM is the highest eligible Epley estimate, not a sum or an
+  average across exercises.
+- Weekly duration is the sum of completed-session wall-clock duration.
+- Weekly consistency reports session count and distinct active days.
+- An exercise filter includes sessions where that exercise was retained and
+  not canceled, then aggregates eligible sets for that exercise only.
+- Repetitions-only work is reported separately as bodyweight repetitions.
+  Missing load on a load-tracked set remains missing and is not relabeled as
+  bodyweight work.
+
+Charts are visual summaries of these weekly rows. Every value is printed and
+the complete data remains available in the adjacent keyboard-accessible table;
+color, hover, pointer input, and canvas are never required to read a result.
+
 ## Personal bests v1
 
 Eligible completed sets may produce the following records:

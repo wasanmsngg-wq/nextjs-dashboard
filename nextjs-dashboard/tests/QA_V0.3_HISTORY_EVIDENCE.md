@@ -2,29 +2,34 @@
 
 Date: 2026-08-05
 
-Branch: `feature/39-performance-tracking`
+Branches: `feature/39-performance-tracking` and
+`feature/39-performance-aggregates`
 
-Scope: Phase 3 session history plus exercise-detail history and personal-best
-presentation. Aggregate trends and charts are not part of these review slices.
+Scope: Phase 3 session history, exercise-detail history, personal bests, weekly
+aggregates, and accessible progress visualization.
 
 ## Automated evidence
 
 - TypeScript strict check: passed.
 - ESLint with zero warnings: passed.
-- Unit tests: 45 passed, including formula, personal-best, filter, and DST
-  boundaries.
-- Contract tests: 28 passed, including both additive migration contracts.
+- Unit tests: 49 passed, including formula, personal-best, aggregate summary,
+  explicit weekly gaps, bounded filters, timezone, and DST boundaries.
+- Contract tests: 29 passed, including all three additive performance
+  migration contracts.
 - Disposable local Supabase reset: passed through
-  `20260805110000_performance_history.sql`.
-- Integration tests: 12 passed, including history ownership and snapshot
-  stability.
-- Production build: passed and emitted `/workouts/history` as a dynamic route.
+  `20260805150000_performance_aggregates.sql`.
+- Integration tests: 13 passed, including history ownership, snapshot
+  stability, and a hand-calculated owner-isolated aggregate fixture.
+- Production build: passed and emitted `/workouts/history` and
+  `/workouts/progress` as dynamic routes.
 - Production dependency audit: no known vulnerabilities.
 - `git diff --check`: passed.
-- Authenticated history journey passed on Chromium, Firefox, WebKit,
-  Pixel-sized, and iPhone-sized projects. The journey includes workout
-  completion, history display, exercise/date filters, responsive overflow, and
-  automated WCAG checks.
+- Ten focused authenticated history/progress tests passed across Chromium,
+  Firefox, WebKit, Pixel-sized, and iPhone-sized projects. The progress journey
+  includes navigation discoverability, exercise/range filters, metric/US
+  parity, English/Thai content, empty and partial histories, a 26-week history,
+  responsive overflow, keyboard-focusable scroll regions, equivalent tables,
+  no canvas dependency, and automated WCAG checks.
 
 The first combined iPhone-sized run timed out at the pre-existing discard
 redirect before reaching history. An isolated rerun of the same project passed;
@@ -33,7 +38,7 @@ no reproducible history defect was found.
 ## Formatting baseline
 
 All changed files pass focused Prettier formatting. Repository-wide
-`pnpm format:check` reports 151 pre-existing files outside this slice as stale
+`pnpm format:check` reports 150 pre-existing files outside this slice as stale
 under the currently pinned formatter, so unrelated files were not bulk
 rewritten.
 
@@ -45,6 +50,9 @@ rewritten.
 - The runtime uses no service-role credential.
 - Date and exercise filters are runtime validated and results are bounded to 20
   sessions per page.
+- Progress reads use a security-invoker function, existing RLS, explicit
+  `auth.uid()` ownership, saved-timezone weeks with a UTC fallback, and a
+  maximum 366-day database range.
 
 ## Not performed
 
@@ -71,3 +79,19 @@ rewritten.
   existing iPhone discard redirect is intermittently slow, so performance
   acceptance uses an isolated synthetic completed-history fixture rather than
   masking results behind an unrelated workflow.
+
+## Aggregate and visualization slice
+
+- The hand-calculated database fixture confirms two same-day sessions count as
+  two sessions and one active day; `860,000` gram-repetitions of volume;
+  `132,000` grams peak Epley estimated 1RM; `5,400` seconds duration; canceled
+  and incomplete sets excluded; bodyweight repetitions separate; and a lower
+  deload week retained.
+- Missing load on a load-tracked set remains missing instead of becoming zero
+  or bodyweight work. A repetitions-only set contributes bodyweight
+  repetitions without inventing volume or estimated 1RM.
+- Charts print every value and reference the complete weekly table. Scrollable
+  chart and table regions are keyboard focusable, and no result depends on
+  color, hover, pointer input, or canvas.
+- Empty exercise history, explicit zero/missing weeks, and the maximum
+  26-week presentation are covered in browser and domain acceptance.

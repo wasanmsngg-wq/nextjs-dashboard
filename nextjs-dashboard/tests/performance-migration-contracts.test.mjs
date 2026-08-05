@@ -16,6 +16,13 @@ const exercisePerformanceMigration = readFileSync(
   ),
   "utf8",
 );
+const aggregateMigration = readFileSync(
+  new URL(
+    "../supabase/migrations/20260805150000_performance_aggregates.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 test("performance history migration is additive and indexed", () => {
   assert.match(
@@ -43,4 +50,25 @@ test("exercise performance views preserve RLS and version-one formulas", () => {
     exercisePerformanceMigration,
     /drop table|truncate|delete from/i,
   );
+});
+
+test("weekly aggregates preserve ownership, timezone, and formula contracts", () => {
+  assert.match(aggregateMigration, /security invoker/i);
+  assert.match(aggregateMigration, /s\.user_id\s*=\s*auth\.uid\(\)/i);
+  assert.match(aggregateMigration, /at time zone p\.timezone/i);
+  assert.match(aggregateMigration, /coalesce[\s\S]*'UTC'/i);
+  assert.match(aggregateMigration, /count\(distinct local_date\)/i);
+  assert.match(
+    aggregateMigration,
+    /ws\.reps::bigint \* ws\.load_grams::bigint/i,
+  );
+  assert.match(
+    aggregateMigration,
+    /ws\.load_grams \* \(1 \+ ws\.reps \/ 30\.0\)/i,
+  );
+  assert.match(aggregateMigration, /se\.status\s*<>\s*'canceled'/i);
+  assert.match(aggregateMigration, /se\.tracking_mode\s*=\s*'reps'/i);
+  assert.match(aggregateMigration, /and ws\.completed/i);
+  assert.match(aggregateMigration, /grant execute[\s\S]*to authenticated/i);
+  assert.doesNotMatch(aggregateMigration, /drop table|truncate|delete from/i);
 });
