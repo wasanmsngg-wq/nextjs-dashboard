@@ -501,6 +501,15 @@ const th: Record<string, string> = {
   "Workout history": "ประวัติการออกกำลังกาย",
   "Review completed workouts and filter them by date or exercise.":
     "ดูการออกกำลังกายที่เสร็จแล้วและกรองตามวันที่หรือท่าออกกำลังกาย",
+  "Browse personal bests": "ดูสถิติส่วนตัวทั้งหมด",
+  "Personal bests by exercise": "สถิติส่วนตัวแยกตามท่าออกกำลังกาย",
+  "View personal bests": "ดูสถิติส่วนตัว",
+  "Choose an exercise to see its records, completed sets, and personal bests.":
+    "เลือกท่าออกกำลังกายเพื่อดูสถิติ เซตที่เสร็จแล้ว และสถิติส่วนตัว",
+  "No exercises available yet.": "ยังไม่มีท่าออกกำลังกาย",
+  "Add an exercise and complete a workout to begin tracking personal bests.":
+    "เพิ่มท่าออกกำลังกายและทำการออกกำลังกายให้เสร็จเพื่อเริ่มติดตามสถิติส่วนตัว",
+  "Go to exercise library": "ไปที่คลังท่าออกกำลังกาย",
   "Filter history": "กรองประวัติ",
   "From date": "ตั้งแต่วันที่",
   "To date": "ถึงวันที่",

@@ -14,6 +14,32 @@ export const EXERCISE_HISTORY_PAGE_SIZE = 20;
 const candidateColumns =
   "set_id,session_id,achieved_at,reps,load_grams,duration_seconds,distance_meters";
 
+export async function loadPerformanceExerciseDirectory(locale: Locale) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/workouts/history/exercises");
+
+  const { data: exercises, error } = await supabase
+    .from("exercises")
+    .select("id,name,name_en,name_th,archived_at")
+    .order("name");
+  if (error) throw new Error("Exercise history could not be loaded.");
+
+  return (exercises ?? [])
+    .map((exercise) => ({
+      id: exercise.id,
+      name:
+        exercise.name ??
+        (locale === "th" ? exercise.name_th : exercise.name_en) ??
+        "",
+      archived: Boolean(exercise.archived_at),
+    }))
+    .filter((exercise) => exercise.name)
+    .sort((left, right) => left.name.localeCompare(right.name, locale));
+}
+
 export async function loadExerciseHistory(
   exerciseId: string,
   page: number,

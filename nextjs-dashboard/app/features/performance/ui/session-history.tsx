@@ -1,4 +1,4 @@
-import { CalendarDaysIcon } from "@heroicons/react/24/outline";
+import { CalendarDaysIcon, TrophyIcon } from "@heroicons/react/24/outline";
 import { type Locale, type UnitSystem } from "@/app/domain";
 import { Button, ButtonLink } from "@/app/ui/atoms/button";
 import { EmptyState } from "@/app/ui/atoms/empty-state";
@@ -76,6 +76,14 @@ export function SessionHistory({
     <main className="mx-auto max-w-6xl space-y-6">
       <BackNavigation href="/workouts">{t("Back to workouts")}</BackNavigation>
       <PageHeading
+        actions={
+          <ButtonLink
+            href="/workouts/history/exercises"
+            icon={<TrophyIcon className="h-5 w-5" />}
+          >
+            {t("Browse personal bests")}
+          </ButtonLink>
+        }
         eyebrow={t("Performance")}
         title={t("Workout history")}
         description={t(
@@ -194,7 +202,7 @@ export function SessionHistory({
               </dl>
               <ul
                 className="flex flex-wrap gap-2"
-                aria-label={t("Exercises in workout")}
+                aria-label={t("Personal bests by exercise")}
               >
                 {session.exercises.map((exercise) => (
                   <li key={exercise.id}>
@@ -207,10 +215,7 @@ export function SessionHistory({
                         {exercise.exercise_name_snapshot} ·{" "}
                         {exercise.status === "canceled"
                           ? t("Canceled")
-                          : t("{completed} of {total} sets", {
-                              completed: exercise.completedSets,
-                              total: exercise.totalSets,
-                            })}
+                          : t("View personal bests")}
                       </ButtonLink>
                     ) : (
                       <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">

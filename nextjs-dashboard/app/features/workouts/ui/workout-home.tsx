@@ -7,6 +7,7 @@ import {
   BookOpenIcon,
   ChartBarIcon,
   PlusIcon,
+  TrophyIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -50,6 +51,14 @@ export function WorkoutHome({
         <PageHeading
           actions={
             <>
+              <ButtonLink
+                className="border-white/60 text-white hover:!border-white hover:!text-white"
+                href="/workouts/history/exercises"
+                icon={<TrophyIcon className="h-5 w-5" />}
+                variant="secondary"
+              >
+                {t("Personal bests")}
+              </ButtonLink>
               <ButtonLink
                 className="border-white/60 text-white hover:!border-white hover:!text-white"
                 href="/workouts/history"

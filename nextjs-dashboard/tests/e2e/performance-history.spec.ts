@@ -119,9 +119,15 @@ test("exercise history presents stable personal bests in both unit systems", asy
   await expect(
     page.getByRole("heading", { name: "Fixture Latest" }),
   ).toBeVisible();
+  await page.getByRole("link", { name: "Browse personal bests" }).click();
+  await expect(page).toHaveURL(/\/workouts\/history\/exercises$/);
+  await expect(
+    page.getByRole("heading", { name: "Personal bests" }),
+  ).toBeVisible();
   await page
-    .getByRole("link", { name: /Fixture Squat/ })
-    .first()
+    .getByRole("listitem")
+    .filter({ hasText: "Fixture Squat" })
+    .getByRole("link", { name: "View personal bests" })
     .click();
   await expect(page).toHaveURL(
     new RegExp(`/workouts/history/exercises/${exerciseId}$`),
@@ -148,8 +154,14 @@ test("exercise history presents stable personal bests in both unit systems", asy
   await page.goto(`/workouts/history/exercises/${exerciseId}`);
   await expect(page.getByText("220.46 lb", { exact: true })).toBeVisible();
 
+  const localeRefresh = page.waitForResponse(
+    (response) =>
+      response.url().includes(`/workouts/history/exercises/${exerciseId}`) &&
+      response.request().headers().rsc === "1",
+  );
   await page.getByLabel("Language").selectOption("th");
-  await page.reload();
+  await localeRefresh;
+  await page.goto(`/workouts/history/exercises/${exerciseId}`);
   await expect(
     page.getByRole("heading", { name: "สถิติส่วนตัว", exact: true }),
   ).toBeVisible();
