@@ -748,8 +748,8 @@ Completed in the aggregate and visualization slice:
 Evidence is recorded in `tests/QA_V0.3_HISTORY_EVIDENCE.md`. Phase 3 feature
 implementation and local automated acceptance are complete. The original Phase
 3 staging migrations and the active-time correction are applied with backup
-evidence. Focused manual Preview acceptance and the annotated `v0.3.0` tag
-remain separate evidence-backed release gates. No production migration or
+evidence. Focused manual Preview acceptance passed; the annotated `v0.3.0` tag
+remains a separate evidence-backed release gate. No production migration or
 deployment has been performed.
 
 ## 20. v0.3.0 active-time correction
@@ -773,8 +773,9 @@ Branch: `fix/42-active-workout-duration`
       `rnmzyccanuwacsxqpzez`, retain the pre-correction Free-plan
       application-logical backup, and apply migration `20260805152700` only to
       staging.
-- [ ] Complete focused manual Preview acceptance after the corrective branch
-      deployment.
+- [x] Complete focused manual Preview acceptance against the corrective branch
+      deployment; history and Progress display 24 seconds of active time for
+      the confirmed multi-day session.
 
 No production migration, production deployment, production-branch change, or
 release tag is part of this correction.

@@ -69,6 +69,8 @@ rewritten.
   `workout_sets.elapsed_seconds`, contains no wall-clock epoch calculation, and
   reports 24 seconds across the three completed sets for session
   `bf0796e8-5d53-455d-ab51-c0badce4e4df`.
+- Manual acceptance on the corrective Preview deployment confirmed workout
+  history and Progress show 24 seconds of active time for that session.
 - No production migration, production deployment, or release tag was performed.
 
 ## Exercise-detail slice
