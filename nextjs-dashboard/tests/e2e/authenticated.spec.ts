@@ -410,6 +410,29 @@ test("registered user creates a template and completes an immutable workout", as
   }
   await expect(completionToast).toBeHidden();
   await expectAccessibleResponsivePage(page);
+
+  await page.goto("/workouts/history");
+  await expect(
+    page.getByRole("heading", { name: "Workout history" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Browser Strength" }),
+  ).toBeVisible();
+  await expect(page.getByText(/Squat ·/).first()).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Exercise" })
+    .selectOption({ label: "Squat" });
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page).toHaveURL(/exercise=20000000-0000-4000-8000-000000000001/);
+  await expect(
+    page.getByRole("heading", { name: "Browser Strength" }),
+  ).toBeVisible();
+  const today = new Date().toISOString().slice(0, 10);
+  await page.getByLabel("From date").fill(today);
+  await page.getByLabel("To date").fill(today);
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.getByText("1 workouts found")).toBeVisible();
+  await expectAccessibleResponsivePage(page);
 });
 
 test("administrator manages master data and inspects users and exercise records", async ({
