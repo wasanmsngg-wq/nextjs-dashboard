@@ -32,6 +32,7 @@ const primaryLinks: NavigationItem[] = [
     href: "/workouts",
     icon: ClipboardDocumentCheckIcon,
     children: [
+      { name: "Workout history", href: "/workouts/history" },
       { name: "Exercise library", href: "/workouts/exercises" },
       { name: "Create template", href: "/workouts/templates/new" },
     ],

@@ -46,6 +46,8 @@ or database modules.
     The active route group opens automatically, inactive groups start collapsed,
     and the parent destination remains a separate link from the accessible
     expand/collapse control.
+11. Use the shared `Input` and `Select` atoms for native form controls so
+    focus, sizing, borders, and disabled states remain consistent.
 
 ## Adding a component
 

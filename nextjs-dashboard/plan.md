@@ -378,13 +378,13 @@ Verification gate:
 
 Owner: Performance developer. Reviewer validates aggregation correctness.
 
-- [ ] Add session history with date and exercise filters.
+- [x] Add session history with date and exercise filters.
 - [ ] Show exercise history and personal-best rules.
 - [ ] Calculate volume, estimated one-repetition maximum, duration, and
       consistency using documented formulas.
 - [ ] Add accessible charts with equivalent text/table summaries.
 - [ ] Handle deloads, bodyweight exercises, missing values, and unit changes.
-- [ ] Ensure historical results remain stable after catalog edits.
+- [x] Ensure historical results remain stable after catalog edits.
 
 Verification gate:
 
@@ -715,3 +715,35 @@ Release evidence: PR
 `b6a18199167abc2d717324b76f37ab63e454368b`; GitHub Actions run
 [`30969823349`](https://github.com/wasanmsngg-wq/nextjs-dashboard/actions/runs/30969823349)
 and Vercel Preview passed; annotated tag `v0.2.1` peels to the merge commit.
+
+## 19. v0.3.0 performance history — first review slice
+
+Tracking issue: [#39](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/39)
+
+Branch: `feature/39-performance-tracking`
+
+Completed in this slice:
+
+- [x] Set the development package version to `0.3.0` and open the `v0.3.0`
+      milestone.
+- [x] Document versioned rules for volume, Epley estimated one-repetition
+      maximum, duration, consistency, personal bests, bodyweight work, missing
+      values, canceled exercises, and deloads.
+- [x] Add an additive exercise/session history index with roll-forward notes.
+- [x] Add owner-scoped, newest-first session history with saved-timezone date
+      boundaries, exercise filtering, bounded inputs, and pagination.
+- [x] Add responsive bilingual history navigation, filters, completed-session
+      summaries, immutable detail links, and empty/loading/error behavior.
+- [x] Verify snapshot stability after catalog edits and cross-user denial.
+
+Deferred for the next Phase 3 slice:
+
+- [ ] Exercise-detail history and personal-best presentation.
+- [ ] Aggregate volume, estimated 1RM, duration, and consistency views.
+- [ ] Accessible charts and equivalent table summaries.
+- [ ] Deload, bodyweight, missing-value, unit-change, and large-history
+      presentation acceptance beyond the session-history states covered here.
+
+Evidence is recorded in `tests/QA_V0.3_HISTORY_EVIDENCE.md`. This work applies
+no staging or production migration, performs no deployment, creates no release
+tag, and stops for product review after the session-history slice.

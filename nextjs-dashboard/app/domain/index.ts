@@ -34,3 +34,10 @@ export {
   type WorkoutSessionStatus,
   type WorkoutSetInput,
 } from "./workouts";
+export {
+  PERFORMANCE_FORMULA_VERSION,
+  calculateSessionDurationSeconds,
+  calculateVolume,
+  estimateEpleyOneRepMax,
+  type PerformanceSet,
+} from "./performance";

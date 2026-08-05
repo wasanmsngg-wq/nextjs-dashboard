@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 - Unreleased
+
+- Add documented, versioned performance calculation rules.
+- Add secure, filterable, paginated workout session history with bilingual,
+  accessible empty, loading, and error states.
+
 ## 0.2.1 - 2026-08-05
 
 - Add secure administration pages for user accounts, exercise records,

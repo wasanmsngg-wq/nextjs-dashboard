@@ -497,6 +497,44 @@ const th: Record<string, string> = {
   "The workout set could not be saved.": "ไม่สามารถบันทึกเซตได้",
   "The workout could not be completed.": "ไม่สามารถทำการออกกำลังกายให้เสร็จได้",
   "The workout could not be discarded.": "ไม่สามารถละทิ้งการออกกำลังกายได้",
+  Performance: "ประสิทธิภาพ",
+  "Workout history": "ประวัติการออกกำลังกาย",
+  "Review completed workouts and filter them by date or exercise.":
+    "ดูการออกกำลังกายที่เสร็จแล้วและกรองตามวันที่หรือท่าออกกำลังกาย",
+  "Filter history": "กรองประวัติ",
+  "From date": "ตั้งแต่วันที่",
+  "To date": "ถึงวันที่",
+  Exercise: "ท่าออกกำลังกาย",
+  "All exercises": "ท่าออกกำลังกายทั้งหมด",
+  "Apply filters": "ใช้ตัวกรอง",
+  Clear: "ล้าง",
+  "The start date must be before the end date.":
+    "วันที่เริ่มต้นต้องมาก่อนวันที่สิ้นสุด",
+  "Choose a date range of one year or less.": "เลือกช่วงวันที่ไม่เกินหนึ่งปี",
+  "Dates use your saved timezone: {timezone}.":
+    "วันที่ใช้เขตเวลาที่คุณบันทึกไว้: {timezone}",
+  "Completed sessions": "เซสชันที่เสร็จแล้ว",
+  "{count} workouts found": "พบการออกกำลังกาย {count} รายการ",
+  "View workout": "ดูการออกกำลังกาย",
+  "Completed sets": "เซตที่เสร็จแล้ว",
+  "Exercises in workout": "ท่าออกกำลังกายในการฝึก",
+  "{completed} of {total}": "{completed} จาก {total}",
+  "{completed} of {total} sets": "{completed} จาก {total} เซต",
+  "No completed workouts found.": "ไม่พบการออกกำลังกายที่เสร็จแล้ว",
+  "Workout history could not be loaded.":
+    "ไม่สามารถโหลดประวัติการออกกำลังกายได้",
+  "Try again in a moment. Your workout data is unchanged.":
+    "โปรดลองอีกครั้งในอีกสักครู่ ข้อมูลการออกกำลังกายของคุณไม่มีการเปลี่ยนแปลง",
+  "Complete a workout or change the filters to see session history.":
+    "ทำการออกกำลังกายให้เสร็จหรือเปลี่ยนตัวกรองเพื่อดูประวัติเซสชัน",
+  "Go to workouts": "ไปหน้าการออกกำลังกาย",
+  "History pages": "หน้าประวัติ",
+  "Previous page": "หน้าก่อนหน้า",
+  "Next page": "หน้าถัดไป",
+  "Page {page} of {pages}": "หน้า {page} จาก {pages}",
+  "Not available": "ไม่มีข้อมูล",
+  "{hours} hr {minutes} min": "{hours} ชม. {minutes} นาที",
+  "{minutes} min": "{minutes} นาที",
 };
 
 const dictionaries: Record<Locale, Record<string, string>> = { en: {}, th };
