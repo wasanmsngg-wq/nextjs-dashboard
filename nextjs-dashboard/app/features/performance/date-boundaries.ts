@@ -38,3 +38,31 @@ export function localDateBoundaryUtc(
   }
   return new Date(candidate).toISOString();
 }
+
+export function localCalendarDate(timestamp: number, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: timezone,
+  }).formatToParts(new Date(timestamp));
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+export function startOfIsoWeek(date: string) {
+  const instant = new Date(`${date}T00:00:00Z`);
+  const daysSinceMonday = (instant.getUTCDay() + 6) % 7;
+  instant.setUTCDate(instant.getUTCDate() - daysSinceMonday);
+  return instant.toISOString().slice(0, 10);
+}
+
+export function addCalendarDays(date: string, days: number) {
+  const instant = new Date(`${date}T00:00:00Z`);
+  instant.setUTCDate(instant.getUTCDate() + days);
+  return instant.toISOString().slice(0, 10);
+}

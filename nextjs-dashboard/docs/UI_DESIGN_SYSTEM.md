@@ -62,6 +62,11 @@ feature before introducing another variant.
 only on dark surfaces. `RouteTransitionLoading` belongs to the application
 shell and must not be recreated by feature pages.
 
+`BarChart` is the shared small-series visualization. It uses centralized theme
+tokens, prints every value visibly, and must reference an equivalent table or
+text summary through `descriptionId`; feature pages must not make chart data
+depend on color, hover, pointer input, or canvas rendering.
+
 ## Migration policy
 
 Existing pages are migrated incrementally when they are changed. Any modified

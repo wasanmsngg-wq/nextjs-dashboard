@@ -380,18 +380,18 @@ Owner: Performance developer. Reviewer validates aggregation correctness.
 
 - [x] Add session history with date and exercise filters.
 - [x] Show exercise history and personal-best rules.
-- [ ] Calculate volume, estimated one-repetition maximum, duration, and
+- [x] Calculate volume, estimated one-repetition maximum, duration, and
       consistency using documented formulas.
-- [ ] Add accessible charts with equivalent text/table summaries.
-- [ ] Handle deloads, bodyweight exercises, missing values, and unit changes.
+- [x] Add accessible charts with equivalent text/table summaries.
+- [x] Handle deloads, bodyweight exercises, missing values, and unit changes.
 - [x] Ensure historical results remain stable after catalog edits.
 
 Verification gate:
 
-- [ ] Compare aggregates against a hand-calculated fixture.
+- [x] Compare aggregates against a hand-calculated fixture.
 - [x] Verify metric and US displays represent the same canonical values.
-- [ ] Verify chart information is available without color, pointer, or canvas.
-- [ ] Verify empty, partial, and large histories.
+- [x] Verify chart information is available without color, pointer, or canvas.
+- [x] Verify empty, partial, and large histories.
 
 ### Phase 4 — Food and nutrient tracking (`v0.4.0`)
 
@@ -716,11 +716,12 @@ Release evidence: PR
 [`30969823349`](https://github.com/wasanmsngg-wq/nextjs-dashboard/actions/runs/30969823349)
 and Vercel Preview passed; annotated tag `v0.2.1` peels to the merge commit.
 
-## 19. v0.3.0 performance history — first review slice
+## 19. v0.3.0 performance tracking review slices
 
 Tracking issue: [#39](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/39)
 
-Branch: `feature/39-performance-tracking`
+Branches: `feature/39-performance-tracking` and
+`feature/39-performance-aggregates`
 
 Completed in this slice:
 
@@ -736,14 +737,16 @@ Completed in this slice:
       summaries, immutable detail links, and empty/loading/error behavior.
 - [x] Verify snapshot stability after catalog edits and cross-user denial.
 
-Deferred for the next Phase 3 slice:
+Completed in the aggregate and visualization slice:
 
 - [x] Exercise-detail history and personal-best presentation.
-- [ ] Aggregate volume, estimated 1RM, duration, and consistency views.
-- [ ] Accessible charts and equivalent table summaries.
-- [ ] Deload, bodyweight, missing-value, unit-change, and large-history
+- [x] Aggregate volume, estimated 1RM, duration, and consistency views.
+- [x] Accessible charts and equivalent table summaries.
+- [x] Deload, bodyweight, missing-value, unit-change, and large-history
       presentation acceptance beyond the session-history states covered here.
 
-Evidence is recorded in `tests/QA_V0.3_HISTORY_EVIDENCE.md`. This work applies
-no staging or production migration, performs no deployment, creates no release
-tag, and stops for product review after the session-history slice.
+Evidence is recorded in `tests/QA_V0.3_HISTORY_EVIDENCE.md`. Phase 3 feature
+implementation and local automated acceptance are complete. Staging backup,
+migration application, manual Preview acceptance, release merge, and the
+annotated `v0.3.0` tag remain separate evidence-backed release gates. This work
+applies no staging or production migration and creates no release tag.

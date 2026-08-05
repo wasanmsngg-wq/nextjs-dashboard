@@ -8,6 +8,7 @@ const localServiceRoleKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
 const userId = "76000000-0000-4000-8000-000000000001";
 const exerciseId = "76000000-0000-4000-8000-000000000002";
+const bodyweightExerciseId = "76000000-0000-4000-8000-000000000003";
 const email = "performance-browser@example.test";
 const password = "performance-browser-password";
 
@@ -96,6 +97,9 @@ test.beforeAll(async () => {
     ) values (
       '${exerciseId}','${userId}','Fixture Squat','reps_load',
       'strength','barbell',now()
+    ), (
+      '${bodyweightExerciseId}','${userId}','Fixture Push-Up','reps',
+      'strength','bodyweight',null
     );
     insert into public.workout_sessions(
       id,user_id,status,template_name_snapshot,started_at,completed_at
@@ -112,19 +116,130 @@ test.beforeAll(async () => {
        'Fixture Squat','reps_load',0,true),
       ('76000000-0000-4000-8000-000000000021',
        '76000000-0000-4000-8000-000000000020','${exerciseId}',
-       'Fixture Squat','reps_load',0,true);
+       'Fixture Squat','reps_load',0,true),
+      ('76000000-0000-4000-8000-000000000023',
+       '76000000-0000-4000-8000-000000000020','${bodyweightExerciseId}',
+       'Fixture Push-Up','reps',1,true);
     insert into public.workout_sets(
       id,session_exercise_id,position,completed,reps,load_grams,rpe,notes
     ) values
       ('76000000-0000-4000-8000-000000000012',
        '76000000-0000-4000-8000-000000000011',0,true,5,100000,8,'earliest tie'),
       ('76000000-0000-4000-8000-000000000022',
-       '76000000-0000-4000-8000-000000000021',0,true,5,100000,8,'later tie');
+       '76000000-0000-4000-8000-000000000021',0,true,5,100000,8,'later tie'),
+      ('76000000-0000-4000-8000-000000000024',
+       '76000000-0000-4000-8000-000000000023',0,true,20,null,7,'bodyweight work');
   `);
 });
 
 test.afterAll(async () => {
   await removeFixture();
+});
+
+test("weekly progress is discoverable, equivalent in text, and bilingual", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workouts");
+  await page.getByRole("link", { name: "Progress", exact: true }).click();
+  await expect(page).toHaveURL(/\/workouts\/progress$/);
+  await expect(
+    page.getByRole("heading", { name: "Progress", exact: true }),
+  ).toBeVisible();
+
+  await page.getByLabel("Time range").selectOption("8");
+  await page.getByLabel("Exercise").selectOption(exerciseId);
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page).toHaveURL(
+    new RegExp(`/workouts/progress\\?weeks=8&exercise=${exerciseId}$`),
+  );
+  await expect(
+    page.getByText("1000 kg-reps", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("116.67 kg", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("2 hr 0 min", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("2 workouts", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Active days" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Bodyweight repetitions" }),
+  ).toBeVisible();
+  await expect(page.locator("#weekly-progress-table tbody tr")).toHaveCount(8);
+  await expect(page.locator("canvas")).toHaveCount(0);
+  await expectAccessibleResponsivePage(page);
+
+  await page.getByLabel("Exercise").selectOption("");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(
+    page
+      .locator("#weekly-progress-table tbody td:last-child")
+      .filter({ hasText: /^20$/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Not available", { exact: true }).first(),
+  ).toBeVisible();
+
+  const filteredUrl = page.url();
+  await page.getByLabel("Time range").selectOption("26");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(page.locator("#weekly-progress-table tbody tr")).toHaveCount(26);
+
+  await page.getByLabel("Time range").selectOption("8");
+  await page.getByLabel("Exercise").selectOption({ label: "Cycling" });
+  await page.getByRole("button", { name: "Apply filters" }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "No completed workouts in this range.",
+    }),
+  ).toBeVisible();
+  await page.goto(filteredUrl);
+
+  const thaiRefresh = page.waitForResponse(
+    (response) =>
+      response.url().includes("/workouts/progress") &&
+      response.request().headers().rsc === "1",
+  );
+  await page.getByLabel("Language").selectOption("th");
+  await thaiRefresh;
+  await navigateAfterLocaleRefresh(page, filteredUrl);
+  await expect(
+    page.getByRole("heading", { name: "ความก้าวหน้า", exact: true }),
+  ).toBeVisible();
+
+  const englishRefresh = page.waitForResponse(
+    (response) =>
+      response.url().includes("/workouts/progress") &&
+      response.request().headers().rsc === "1",
+  );
+  await page.getByLabel("ภาษา").selectOption("en");
+  await englishRefresh;
+  await navigateAfterLocaleRefresh(page, filteredUrl);
+  await expect(
+    page.getByRole("heading", { name: "Progress", exact: true }),
+  ).toBeVisible();
+
+  await page.goto("/settings/profile");
+  await page.getByLabel("Units").selectOption("us");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByText("Profile saved.")).toBeVisible();
+  await page.goto(filteredUrl);
+  await expect(
+    page.getByText("2204.62 lb-reps", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("257.21 lb", { exact: true }).first(),
+  ).toBeVisible();
+  await page.goto("/settings/profile");
+  await page.getByLabel("Units").selectOption("metric");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await expect(page.getByText("Profile saved.")).toBeVisible();
 });
 
 test("exercise history presents stable personal bests in both unit systems", async ({

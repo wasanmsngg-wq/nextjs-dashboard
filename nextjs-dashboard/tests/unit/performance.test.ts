@@ -4,11 +4,18 @@ import {
   calculateSessionDurationSeconds,
   calculateVolume,
   estimateEpleyOneRepMax,
+  fillWeeklyPerformanceGaps,
   selectPersonalBests,
+  summarizePerformanceTrend,
 } from "../../app/domain";
-import { localDateBoundaryUtc } from "../../app/features/performance/date-boundaries";
+import {
+  localCalendarDate,
+  localDateBoundaryUtc,
+  startOfIsoWeek,
+} from "../../app/features/performance/date-boundaries";
 import {
   historyFiltersSchema,
+  progressFiltersSchema,
   validateHistoryDateRange,
 } from "../../app/features/performance/validation";
 
@@ -135,6 +142,67 @@ describe("performance calculation contract v1", () => {
       ]),
     ).toEqual({});
   });
+
+  it("summarizes hand-calculated weekly aggregates without inventing values", () => {
+    expect(
+      summarizePerformanceTrend([
+        {
+          weekStart: "2026-07-27",
+          sessionCount: 2,
+          activeDays: 1,
+          volumeGrams: 480_000,
+          peakEstimatedOneRepMaxGrams: 116_667,
+          durationSeconds: 5_400,
+          completedSets: 4,
+          bodyweightReps: 20,
+        },
+        {
+          weekStart: "2026-08-03",
+          sessionCount: 1,
+          activeDays: 1,
+          volumeGrams: 120_000,
+          peakEstimatedOneRepMaxGrams: null,
+          durationSeconds: 1_800,
+          completedSets: 2,
+          bodyweightReps: 12,
+        },
+      ]),
+    ).toEqual({
+      version: PERFORMANCE_FORMULA_VERSION,
+      sessionCount: 3,
+      activeDays: 2,
+      volumeGrams: 600_000,
+      peakEstimatedOneRepMaxGrams: 116_667,
+      durationSeconds: 7_200,
+      completedSets: 6,
+      bodyweightReps: 32,
+    });
+  });
+
+  it("fills a bounded large history with explicit empty weeks", () => {
+    const weeks = fillWeeklyPerformanceGaps("2026-02-09", 26, [
+      {
+        weekStart: "2026-08-03",
+        sessionCount: 1,
+        activeDays: 1,
+        volumeGrams: 100_000,
+        peakEstimatedOneRepMaxGrams: 50_000,
+        durationSeconds: 1_800,
+        completedSets: 1,
+        bodyweightReps: 0,
+      },
+    ]);
+    expect(weeks).toHaveLength(26);
+    expect(weeks[0]).toMatchObject({
+      weekStart: "2026-02-09",
+      sessionCount: 0,
+      peakEstimatedOneRepMaxGrams: null,
+    });
+    expect(weeks.at(-1)).toMatchObject({
+      weekStart: "2026-08-03",
+      volumeGrams: 100_000,
+    });
+  });
 });
 
 describe("history filters", () => {
@@ -177,5 +245,22 @@ describe("history filters", () => {
     expect(localDateBoundaryUtc("2026-03-08", "America/New_York", true)).toBe(
       "2026-03-09T04:00:00.000Z",
     );
+  });
+
+  it("derives local dates and ISO week starts deterministically", () => {
+    expect(
+      localCalendarDate(Date.parse("2026-08-02T18:00:00Z"), "Asia/Bangkok"),
+    ).toBe("2026-08-03");
+    expect(startOfIsoWeek("2026-08-09")).toBe("2026-08-03");
+  });
+
+  it("bounds progress ranges and normalizes external exercise filters", () => {
+    expect(
+      progressFiltersSchema.parse({ weeks: "26", exercise: "bad" }),
+    ).toEqual({ weeks: 26, exerciseId: undefined });
+    expect(progressFiltersSchema.parse({ weeks: "52" })).toEqual({
+      weeks: 12,
+      exerciseId: undefined,
+    });
   });
 });

@@ -77,12 +77,18 @@ export function SessionHistory({
       <BackNavigation href="/workouts">{t("Back to workouts")}</BackNavigation>
       <PageHeading
         actions={
-          <ButtonLink
-            href="/workouts/history/exercises"
-            icon={<TrophyIcon className="h-5 w-5" />}
-          >
-            {t("Browse personal bests")}
-          </ButtonLink>
+          <>
+            <ButtonLink href="/workouts/progress">
+              {t("View progress")}
+            </ButtonLink>
+            <ButtonLink
+              href="/workouts/history/exercises"
+              icon={<TrophyIcon className="h-5 w-5" />}
+              variant="secondary"
+            >
+              {t("Browse personal bests")}
+            </ButtonLink>
+          </>
         }
         eyebrow={t("Performance")}
         title={t("Workout history")}

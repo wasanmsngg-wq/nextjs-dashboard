@@ -498,6 +498,43 @@ const th: Record<string, string> = {
   "The workout could not be completed.": "ไม่สามารถทำการออกกำลังกายให้เสร็จได้",
   "The workout could not be discarded.": "ไม่สามารถละทิ้งการออกกำลังกายได้",
   Performance: "ประสิทธิภาพ",
+  Progress: "ความก้าวหน้า",
+  "View progress": "ดูความก้าวหน้า",
+  "Review weekly training volume, strength estimates, duration, and consistency.":
+    "ดูปริมาณการฝึกรายสัปดาห์ ค่าประมาณความแข็งแรง ระยะเวลา และความสม่ำเสมอ",
+  "Progress filters": "ตัวกรองความก้าวหน้า",
+  "Time range": "ช่วงเวลา",
+  "Last {count} weeks": "{count} สัปดาห์ล่าสุด",
+  "{start} to {end}, using {timezone}.":
+    "{start} ถึง {end} โดยใช้เขตเวลา {timezone}",
+  "No completed workouts in this range.":
+    "ไม่มีการออกกำลังกายที่เสร็จแล้วในช่วงเวลานี้",
+  "Complete a workout or expand the time range to see progress.":
+    "ทำการออกกำลังกายให้เสร็จหรือขยายช่วงเวลาเพื่อดูความก้าวหน้า",
+  "Range summary": "สรุปช่วงเวลา",
+  "Training volume": "ปริมาณการฝึก",
+  "{count} completed sets": "{count} เซตที่เสร็จแล้ว",
+  "Peak estimated 1RM": "ค่า 1RM โดยประมาณสูงสุด",
+  "Epley estimate from 1 to 10 repetitions":
+    "ค่าประมาณ Epley จากการทำ 1 ถึง 10 ครั้ง",
+  "Workout duration": "ระยะเวลาการออกกำลังกาย",
+  "Completed-session wall-clock time": "เวลาจริงของเซสชันที่เสร็จแล้ว",
+  Consistency: "ความสม่ำเสมอ",
+  "{count} workouts": "{count} การออกกำลังกาย",
+  "{count} active days": "{count} วันที่ออกกำลังกาย",
+  "Weekly trends": "แนวโน้มรายสัปดาห์",
+  "Every chart value is also available in the weekly table.":
+    "ค่าทุกค่าในกราฟมีอยู่ในตารางรายสัปดาห์ด้วย",
+  "Weekly progress table": "ตารางความก้าวหน้ารายสัปดาห์",
+  "Bodyweight repetitions are reported separately because body mass is never inferred as external load.":
+    "รายงานจำนวนครั้งของท่าบอดี้เวทแยกต่างหาก เพราะระบบจะไม่ถือว่าน้ำหนักตัวเป็นน้ำหนักภายนอก",
+  Week: "สัปดาห์",
+  "Active days": "วันที่ออกกำลังกาย",
+  "Bodyweight repetitions": "จำนวนครั้งของท่าบอดี้เวท",
+  "{value} lb-reps": "{value} ปอนด์-ครั้ง",
+  "{value} kg-reps": "{value} กก.-ครั้ง",
+  "Performance progress could not be loaded.":
+    "ไม่สามารถโหลดความก้าวหน้าของประสิทธิภาพได้",
   "Workout history": "ประวัติการออกกำลังกาย",
   "Review completed workouts and filter them by date or exercise.":
     "ดูการออกกำลังกายที่เสร็จแล้วและกรองตามวันที่หรือท่าออกกำลังกาย",
