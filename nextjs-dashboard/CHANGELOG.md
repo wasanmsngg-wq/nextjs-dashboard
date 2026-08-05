@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1 - 2026-08-05
+
+- Add secure administration pages for user accounts, exercise records,
+  exercise categories, system exercises, and the retained customer directory.
+- Add consistent back navigation and sidebar subpage links for workout and
+  administration workflows.
+- Show route-transition feedback before protected destination URLs resolve.
+- Fix the duplicate language-selector arrow and stabilize cross-browser
+  accessibility timing.
+- Make workout and administration sidebar groups collapsible with accessible
+  keyboard controls and automatic active-section expansion.
+- Show immediate loading feedback while adding an exercise to an active
+  workout and prevent duplicate submissions.
+
 ## 0.2.0 - 2026-08-03
 
 - Add a bilingual system exercise library and user-owned custom exercises.
