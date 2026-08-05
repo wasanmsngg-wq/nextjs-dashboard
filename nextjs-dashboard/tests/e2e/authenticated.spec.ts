@@ -260,10 +260,10 @@ test("registered user creates a template and completes an immutable workout", as
   });
   await expect(removeDialog).toBeVisible();
   await removeDialog.getByRole("button", { name: "Remove exercise" }).click();
+  await expect(page.getByText("Exercise removed.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Browser Curl" })).toHaveCount(
     0,
   );
-  await expect(page.getByText("Exercise removed.")).toBeVisible();
   await page.getByLabel("Sets").fill("0");
   await addButton.click();
   await expect(
