@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 - Unreleased
+## 0.3.0 - 2026-08-06
 
 - Add documented, versioned performance calculation rules.
 - Add secure, filterable, paginated workout session history with bilingual,

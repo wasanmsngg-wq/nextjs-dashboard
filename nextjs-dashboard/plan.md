@@ -779,3 +779,20 @@ Branch: `fix/42-active-workout-duration`
 
 No production migration, production deployment, production-branch change, or
 release tag is part of this correction.
+
+## 21. v0.3.0 staging release packaging
+
+Tracking issue: [#39](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/39)
+
+- [x] Keep the package version at `0.3.0` and date the changelog.
+- [x] Document the Phase 3 feature scope, all four migrations, staging backup,
+      roll-forward recovery, and production exclusions.
+- [x] Attach local automated verification, GitHub Actions, Vercel Preview, and
+      focused manual Preview evidence.
+- [ ] Merge the protected release PR after all required checks pass.
+- [ ] Create and push the annotated `v0.3.0` tag after the merge is verified.
+- [ ] Record the final merge and tag evidence and close issue #39 and the
+      `v0.3.0` milestone.
+
+This is a staging-only release. It performs no production migration,
+production deployment, or production-branch change.
