@@ -789,10 +789,16 @@ Tracking issue: [#39](https://github.com/wasanmsngg-wq/nextjs-dashboard/issues/3
       roll-forward recovery, and production exclusions.
 - [x] Attach local automated verification, GitHub Actions, Vercel Preview, and
       focused manual Preview evidence.
-- [ ] Merge the protected release PR after all required checks pass.
-- [ ] Create and push the annotated `v0.3.0` tag after the merge is verified.
-- [ ] Record the final merge and tag evidence and close issue #39 and the
+- [x] Merge the protected release PR after all required checks pass.
+- [x] Create and push the annotated `v0.3.0` tag after the merge is verified.
+- [x] Record the final merge and tag evidence and close issue #39 and the
       `v0.3.0` milestone.
 
 This is a staging-only release. It performs no production migration,
 production deployment, or production-branch change.
+
+Release evidence: PR
+[#44](https://github.com/wasanmsngg-wq/nextjs-dashboard/pull/44) merged as
+`d404cc9a081f57af1cdff13e1e19796621c2eecf`; GitHub Actions run
+[`31069519563`](https://github.com/wasanmsngg-wq/nextjs-dashboard/actions/runs/31069519563)
+and Vercel Preview passed; annotated tag `v0.3.0` peels to the merge commit.
