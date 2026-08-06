@@ -46,3 +46,20 @@ with:
    and take a recoverable staging backup. Never apply production migrations,
    deploy production, create a release tag, or change the production branch
    without explicit user authorization.
+4. Prefer recording post-merge identifiers in the GitHub Release or tracking issue instead of opening an evidence-only
+   pull request, unless the release plan explicitly requires an in-repository record.
+
+## Token and execution efficiency
+
+1. Read only relevant file sections. Prefer targeted searches and bounded line ranges over printing complete large
+   files.
+2. Keep GitHub and CI queries compact. Request only required fields and show successful job-step details only when they
+   provide necessary evidence.
+3. Do not repeatedly poll pending CI checks. Use auto-merge when authorized and appropriate, or recheck only after a
+   meaningful interval.
+4. Run focused checks while developing. Run the complete required verification suite once before completion or release.
+5. Do not rerun expensive checks when no relevant files changed unless branch protection, release policy, or direct
+   evidence requires them.
+6. Avoid evidence-only follow-up pull requests when immutable release evidence can be recorded in a GitHub Release or
+   tracking-issue comment.
+7. Keep progress updates concise and do not repeat evidence already reported.
